@@ -50,6 +50,8 @@ CREATE TABLE `customers` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `address` text DEFAULT NULL,
+  `city` varchar(255) NOT NULL,
+  `region` varchar(255) NOT NULL,
   `postcode` varchar(12) DEFAULT NULL,
   `telephone` varchar(16) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
@@ -60,8 +62,8 @@ CREATE TABLE `customers` (
 -- Dumping data for table `customers`
 --
 
-INSERT INTO `customers` (`id`, `name`, `address`, `postcode`, `telephone`, `email`, `paymethod`) VALUES
-(1, 'Gotham Police Department', '1234 Narrow Lane', '40040', '555-555-1212', 'jgordon@gothampd.net', 'Charge');
+INSERT INTO `customers` (`id`, `name`, `address`, `city`, `region`, `postcode`, `telephone`, `email`, `paymethod`) VALUES
+(1, 'Gotham Police Department', '1234 Narrow Lane', 'Chicago', 'IL', '60666', '555-555-1212', 'jgordon@gothampd.net', 'Charge');
 
 -- --------------------------------------------------------
 
@@ -145,9 +147,9 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `name`, `description`, `sku`, `location`, `quantity`, `buy_price`, `sale_price`, `category_id`, `media_id`, `date`) VALUES
-(1, 'Arduino Nano', 'ATMega324p Microcontroller', '', 'Bin ABC', '10', '5.00', '10.00', 2, 2, '2020-03-26 09:20:18'),
-(2, 'Raspberry Pi V3', 'New Original Raspberry Pi 3 Model B+ Built-in Broadcom 1. 4GHz quad-core 64 bit processor with Low Energy On-Board Wi-Fi Bluetooth and USB Port Built on the latest Broadcom 2837 ARMv8 64 bit processor, Raspberry Pi 3 Model B+ is faster and more powerful than its predecessors. It has improved power management to support more powerful external USB devices and now comes with built-in wireless and Bluetooth connectivity. To take full advantage of the improved power management on the Raspberry Pi 3 and provide support for even more powerful devices on the USB ports, a 2. 5A adapter is required. Technical Specifications: - Broadcom BCM2837BO 64 bit ARMv8 QUAD Core A53 64bit Processor powered Single Board Computer run at 1. 4GHz- 1GB RAM - BCM43143 Wi-Fi on board- Bluetooth Low Energy (BLE) on board- 40 pin extended GPIO - 4 x USB2 ports- 4 pole Stereo output and Composite video port- Full size HDMI- CSI camera port for connecting the Raspberry Pi camera - DSI display port for connecting the Raspberry Pi touch screen display - Micro SD port for loading your operating system and storing data- Upgraded switched Micro USB power source (now supports up to 2. 5 Amps. Package Contents : - 1x Raspberry Pi 3 Model B+', '', 'Bin XYZ', '8', '50.00', '75.00', 2, 3, '2020-03-26 09:23:20'),
-(3, 'Pothos Plant', 'Epipremnum aureum is a species of flowering plant in the arum family Araceae, native to Mo\'orea in the Society Islands of French Polynesia. The species is a popular houseplant in temperate regions, but has also become naturalised in tropical and sub-tropical forests worldwide, including northern Australia, Southeast Asia, South Asia, the Pacific Islands and the West Indies, where it has caused severe ecological damage in some cases.[citation needed]  The plant has a multitude of common names including golden pothos, Ceylon creeper,[2] hunter\'s robe, ivy arum, money plant, silver vine, Solomon Islands ivy, marble queen, and taro vine. It is also called devil\'s vine or devil\'s ivy because it is almost impossible to kill and it stays green even when kept in the dark.[3] It is sometimes mistakenly labeled as a Philodendron in plant stores. It is commonly known as money plant in many parts of the Indian subcontinent.[4][5] It rarely flowers without artificial hormone supplements; the last known spontaneous flowering was reported in 1964.[6]', '', 'Garage', '16', '10.00', '20.00', 1, 4, '2020-03-26 09:28:07');
+(1, 'Arduino Nano', 'ATMega324p Microcontroller', '00400200', 'Bin ABC', '10', '5.00', '10.00', 2, 2, '2020-03-26 09:20:18'),
+(2, 'Raspberry Pi V3', 'New Original Raspberry Pi 3 Model B+ Built-in Broadcom 1. 4GHz quad-core 64 bit processor with Low Energy On-Board Wi-Fi Bluetooth and USB Port Built on the latest Broadcom 2837 ARMv8 64 bit processor, Raspberry Pi 3 Model B+ is faster and more powerful than its predecessors. It has improved power management to support more powerful external USB devices and now comes with built-in wireless and Bluetooth connectivity. To take full advantage of the improved power management on the Raspberry Pi 3 and provide support for even more powerful devices on the USB ports, a 2. 5A adapter is required. Technical Specifications: - Broadcom BCM2837BO 64 bit ARMv8 QUAD Core A53 64bit Processor powered Single Board Computer run at 1. 4GHz- 1GB RAM - BCM43143 Wi-Fi on board- Bluetooth Low Energy (BLE) on board- 40 pin extended GPIO - 4 x USB2 ports- 4 pole Stereo output and Composite video port- Full size HDMI- CSI camera port for connecting the Raspberry Pi camera - DSI display port for connecting the Raspberry Pi touch screen display - Micro SD port for loading your operating system and storing data- Upgraded switched Micro USB power source (now supports up to 2. 5 Amps. Package Contents : - 1x Raspberry Pi 3 Model B+', '00400525', 'Bin XYZ', '8', '50.00', '75.00', 2, 3, '2020-03-26 09:23:20'),
+(3, 'Pothos Plant', 'Epipremnum aureum is a species of flowering plant in the arum family Araceae, native to Mo\'orea in the Society Islands of French Polynesia. The species is a popular houseplant in temperate regions, but has also become naturalised in tropical and sub-tropical forests worldwide, including northern Australia, Southeast Asia, South Asia, the Pacific Islands and the West Indies, where it has caused severe ecological damage in some cases.[citation needed]  The plant has a multitude of common names including golden pothos, Ceylon creeper,[2] hunter\'s robe, ivy arum, money plant, silver vine, Solomon Islands ivy, marble queen, and taro vine. It is also called devil\'s vine or devil\'s ivy because it is almost impossible to kill and it stays green even when kept in the dark.[3] It is sometimes mistakenly labeled as a Philodendron in plant stores. It is commonly known as money plant in many parts of the Indian subcontinent.[4][5] It rarely flowers without artificial hormone supplements; the last known spontaneous flowering was reported in 1964.[6]', '30402610', 'Garage', '16', '10.00', '20.00', 1, 4, '2020-03-26 09:28:07');
 
 -- --------------------------------------------------------
 

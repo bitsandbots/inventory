@@ -42,6 +42,8 @@ CREATE TABLE `customers` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `address` text DEFAULT NULL,
+  `city` varchar(255) NOT NULL,
+  `region` varchar(255) NOT NULL,
   `postcode` varchar(12) DEFAULT NULL,
   `telephone` varchar(16) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,

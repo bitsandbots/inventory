@@ -34,6 +34,16 @@ if (isset($_POST['edit_customer'])) {
 		} else {
 			$c_address  = remove_junk($db->escape($_POST['customer-address']));
 		}
+		if (is_null($_POST['customer-city']) || $_POST['customer-city'] === "") {
+			$c_postcode  =  '';
+		} else {
+			$c_postcode  = remove_junk($db->escape($_POST['customer-city']));
+		}
+		if (is_null($_POST['customer-region']) || $_POST['customer-region'] === "") {
+			$c_postcode  =  '';
+		} else {
+			$c_postcode  = remove_junk($db->escape($_POST['customer-region']));
+		}
 		if (is_null($_POST['customer-postcode']) || $_POST['customer-postcode'] === "") {
 			$c_postcode  =  '';
 		} else {
@@ -59,7 +69,7 @@ if (isset($_POST['edit_customer'])) {
 	{
 
 		$query   = "UPDATE customers SET";
-		$query  .=" name ='{$c_name}', address ='{$c_address}', postcode ='{$c_postcode}', telephone ='{$c_telephone}', email ='{$c_email}',";
+		$query  .=" name ='{$c_name}', address ='{$c_address}', city ='{$c_city}', region ='{$c_region}', postcode ='{$c_postcode}', telephone ='{$c_telephone}', email ='{$c_email}',";
 		$query  .=" paymethod ='{$c_paymethod}'";
 		$query  .=" WHERE id ='{$customer['id']}'";
 		$result = $db->query($query);
@@ -124,6 +134,23 @@ if (isset($_POST['edit_customer'])) {
                   <input type="text" class="form-control" name="customer-address" value="<?php echo remove_junk($customer['address']);?>" placeholder="Address">
                </div>
               </div>
+              <div class="form-group">
+                <div class="input-group">
+                  <span class="input-group-addon">
+                   <i class="glyphicon glyphicon-home"></i>
+                  </span>
+                  <input type="text" class="form-control" name="customer-city" value="<?php echo remove_junk($customer['city']);?>" placeholder="City">
+               </div>
+              </div>
+              <div class="form-group">
+                <div class="input-group">
+                  <span class="input-group-addon">
+                   <i class="glyphicon glyphicon-home"></i>
+                  </span>
+                  <input type="text" class="form-control" name="customer-region" value="<?php echo remove_junk($customer['region']);?>" placeholder="State / Province / Region">
+               </div>
+              </div>
+
               <div class="form-group">
                 <div class="input-group">
                   <span class="input-group-addon">

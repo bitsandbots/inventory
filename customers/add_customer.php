@@ -26,6 +26,16 @@ if (isset($_POST['add_customer'])) {
 		} else {
 			$c_address  = remove_junk($db->escape($_POST['customer-address']));
 		}
+		if (is_null($_POST['customer-city']) || $_POST['customer-city'] === "") {
+			$c_postcode  =  '';
+		} else {
+			$c_postcode  = remove_junk($db->escape($_POST['customer-city']));
+		}
+		if (is_null($_POST['customer-region']) || $_POST['customer-region'] === "") {
+			$c_postcode  =  '';
+		} else {
+			$c_postcode  = remove_junk($db->escape($_POST['customer-region']));
+		}		
 		if (is_null($_POST['customer-postcode']) || $_POST['customer-postcode'] === "") {
 			$c_postcode  =  '';
 		} else {
@@ -50,9 +60,9 @@ if (isset($_POST['add_customer'])) {
 	if ( ! find_by_name('customers',$c_name) )
 	{	
 		$query  = "INSERT INTO customers (";
-		$query .=" name,address,postcode,telephone,email,paymethod";
+		$query .=" name,address,city,region,postcode,telephone,email,paymethod";
 		$query .=") VALUES (";
-		$query .=" '{$c_name}', '{$c_address}', '{$c_postcode}', '{$c_telephone}', '{$c_email}', '{$c_paymethod}'";
+		$query .=" '{$c_name}', '{$c_address}', '{$c_city}', '{$c_region}', '{$c_postcode}', '{$c_telephone}', '{$c_email}', '{$c_paymethod}'";
 		$query .=")";
 		$result = $db->query($query);
 		if ($result && $db->affected_rows() === 1) {
@@ -116,6 +126,23 @@ if (isset($_POST['add_customer'])) {
                   <input type="text" class="form-control" name="customer-address" value="" placeholder="Address">
                </div>
               </div>
+              <div class="form-group">
+                <div class="input-group">
+                  <span class="input-group-addon">
+                   <i class="glyphicon glyphicon-home"></i>
+                  </span>
+                  <input type="text" class="form-control" name="customer-city" value="" placeholder="City">
+               </div>
+              </div>
+              <div class="form-group">
+                <div class="input-group">
+                  <span class="input-group-addon">
+                   <i class="glyphicon glyphicon-home"></i>
+                  </span>
+                  <input type="text" class="form-control" name="customer-region" value="" placeholder="State / Province / Region">
+               </div>
+              </div>
+
               <div class="form-group">
                 <div class="input-group">
                   <span class="input-group-addon">

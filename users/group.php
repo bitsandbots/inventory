@@ -28,12 +28,12 @@ $all_groups = find_all('user_groups');
     <div class="panel panel-default">
     <div class="panel-heading clearfix">
       <strong>
-<!--     *************************     -->
         <span class="glyphicon glyphicon-th"></span>
         <span>Groups</span>
-<!--     *************************     -->
      </strong>
-       <a href="../users/add_group.php" class="btn btn-info pull-right btn-sm"> Add New Group</a>
+          <div class="pull-right">
+             <a href="../users/add_group.php"class="btn btn-primary">Add New Group</a>
+          </div>
     </div>
 <!--     *************************     -->
      <div class="panel-body">

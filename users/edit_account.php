@@ -40,7 +40,7 @@ if (isset($_POST['update'])) {
 			$session->msg('s', "Acount updated ");
 			redirect('../users/edit_account.php', false);
 		} else {
-			$session->msg('d', ' Sorry failed to updated!');
+			$session->msg('d', ' Sorry, failed to update!');
 			redirect('../users/edit_account.php', false);
 		}
 	} else {
@@ -56,12 +56,10 @@ if (isset($_POST['update'])) {
   </div>
   <div class="col-md-6">
       <div class="panel panel-default">
-        <div class="panel-heading">
           <div class="panel-heading clearfix">
             <span class="glyphicon glyphicon-camera"></span>
             <span>Change My Photo</span>
           </div>
-        </div>
         <div class="panel-body">
           <div class="row">
             <div class="col-md-4">

@@ -43,8 +43,9 @@ $all_customers = find_all('customers');
           <thead>
                 <tr>
                     <th class="text-center" style="width: 100px;">Customer</th>
-                    <th class="text-center" style="width: 100px;">Address</th>
-                    <th class="text-center" style="width: 50px;">Postal Code</th>
+                    <th class="text-center" style="width: 100px;">City</th>
+                    <th class="text-center" style="width: 50px;">Region</th>
+                    <th class="text-center" style="width: 50px;">Code</th>
                     <th class="text-center" style="width: 50px;">Telephone</th>
                     <th class="text-center" style="width: 50px;">Email</th>
                     <th class="text-center" style="width: 50px;">Pay Method</th>
@@ -60,7 +61,10 @@ $all_customers = find_all('customers');
 						<?php echo remove_junk(ucfirst($customer['name']));?>
 					</td>
                     <td class="text-center">
-						<?php echo remove_junk($customer['address']);?>
+						<?php echo remove_junk($customer['city']);?>
+					</td>
+                    <td class="text-center">
+						<?php echo remove_junk($customer['region']);?>
 					</td>
 
                     <td class="text-center">
