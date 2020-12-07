@@ -35,14 +35,14 @@ if (isset($_POST['edit_customer'])) {
 			$c_address  = remove_junk($db->escape($_POST['customer-address']));
 		}
 		if (is_null($_POST['customer-city']) || $_POST['customer-city'] === "") {
-			$c_postcode  =  '';
+			$c_city  =  '';
 		} else {
-			$c_postcode  = remove_junk($db->escape($_POST['customer-city']));
+			$c_city  = remove_junk($db->escape($_POST['customer-city']));
 		}
 		if (is_null($_POST['customer-region']) || $_POST['customer-region'] === "") {
-			$c_postcode  =  '';
+			$c_region  =  '';
 		} else {
-			$c_postcode  = remove_junk($db->escape($_POST['customer-region']));
+			$c_region  = remove_junk($db->escape($_POST['customer-region']));
 		}
 		if (is_null($_POST['customer-postcode']) || $_POST['customer-postcode'] === "") {
 			$c_postcode  =  '';
