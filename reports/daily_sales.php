@@ -37,7 +37,7 @@ $sales = dailySales($year, $month);
             <thead>
               <tr>
                 <th class="text-center" style="width: 50px;">#</th>
-                <th> Product name </th>
+                <th> Product </th>
                 <th class="text-center" style="width: 15%;"> Quantity sold</th>
                 <th class="text-center" style="width: 15%;"> Total </th>
                 <th class="text-center" style="width: 15%;"> Date </th>
@@ -49,7 +49,7 @@ $sales = dailySales($year, $month);
                <td class="text-center"><?php echo count_id();?></td>
                <td><?php echo remove_junk($sale['name']); ?></td>
                <td class="text-center"><?php echo (int)$sale['qty']; ?></td>
-               <td class="text-center"><?php echo formatcurrency($sale['total_saleing_price'],  $CURRENCY_CODE); ?></td>
+               <td class="text-center"><?php echo formatcurrency($sale['total_selling_price'],  $CURRENCY_CODE); ?></td>
                <td class="text-center"><?php echo $sale['date']; ?></td>
              </tr>
              <?php endforeach;?>

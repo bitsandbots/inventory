@@ -8,14 +8,14 @@
 
 $page_title = 'Admin Home Page';
 require_once '../includes/load.php';
-// Checkin What level user has permission to view this page
+
 page_require_level(1);
 
-$c_categorie     = count_by_id('categories');
-$c_product       = count_by_id('products');
-$c_sale          = count_by_id('sales');
-$c_user          = count_by_id('users');
-$products_sold   = find_higest_saleing_product('10');
+$c_categories     = count_by_id('categories');
+$c_products       = count_by_id('products');
+$c_sales          = count_by_id('sales');
+$c_customers          = count_by_id('customers');
+$products_sold   = find_highest_selling_product('10');
 $recent_products = find_recent_product_added('5');
 $recent_sales    = find_recent_sale_added('5')
 ?>
@@ -49,8 +49,8 @@ function closePanel()
 
         </div>
         <div class="panel-value pull-right">
-          <h2 class="margin-top"> <?php  echo $c_user['total']; ?> </h2>
-          <p class="text-muted">Users</p>
+          <h2 class="margin-top"> <?php  echo $c_customers['total']; ?> </h2>
+          <p class="text-muted">Customers</p>
         </div>
        </div>
     </div>
@@ -63,7 +63,7 @@ function closePanel()
 
         </div>
         <div class="panel-value pull-right">
-          <h2 class="margin-top"> <?php  echo $c_categorie['total']; ?> </h2>
+          <h2 class="margin-top"> <?php  echo $c_categories['total']; ?> </h2>
           <p class="text-muted">Categories</p>
         </div>
        </div>
@@ -77,7 +77,7 @@ function closePanel()
 
         </div>
         <div class="panel-value pull-right">
-          <h2 class="margin-top"> <?php  echo $c_product['total']; ?> </h2>
+          <h2 class="margin-top"> <?php  echo $c_products['total']; ?> </h2>
           <p class="text-muted">Products</p>
         </div>
        </div>
@@ -91,7 +91,7 @@ function closePanel()
 
         </div>
         <div class="panel-value pull-right">
-          <h2 class="margin-top"> <?php  echo $c_sale['total']; ?> </h2>
+          <h2 class="margin-top"> <?php  echo $c_sales['total']; ?> </h2>
           <p class="text-muted">Sales</p>
         </div>
        </div>
@@ -128,7 +128,7 @@ function closePanel()
 
           <thead>
            <tr>
-             <th>Title</th>
+             <th>Product</th>
              <th>Total Sold</th>
              <th>Total Quantity</th>
            <tr>
@@ -167,7 +167,7 @@ function closePanel()
        <thead>
          <tr>
            <th class="text-center" style="width: 50px;">#</th>
-           <th>Product Name</th>
+           <th>Product</th>
            <th>Date</th>
            <th>Total Sale</th>
          </tr>

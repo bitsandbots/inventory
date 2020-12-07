@@ -26,18 +26,15 @@ if ( isset($_POST['update_category'] ) ) {
     <?php echo display_msg($msg); ?>
   </div>
 </div>
+
 <div class="row">
   <div class="col-md-6">
     <div class="panel">
-      <div class="panel-heading">
-
-      </div>
-      <div class="panel-body">
+      <div class="jumbotron text-center">
+      <h3>Stock Report</h3>
           <form class="clearfix" method="post" action="stock_report_process.php">
             <div class="form-group">
               <label class="form-label">Category</label>
-
-                <div class="input-group">
                     <select class="form-control" name="product-category">
                       <option value="">All Categories</option>
                     <?php  foreach ($all_categories as $cat): ?>
@@ -45,20 +42,17 @@ if ( isset($_POST['update_category'] ) ) {
                         <?php echo $cat['name'] ?></option>
                     <?php endforeach; ?>
                     </select>
-              </div>
-              
+             </div> 
             <div class="form-group">
                  <button type="submit" name="submit" class="btn btn-primary">Generate Report</button>
             </div>
-      </div>
+          </div>
 
           </form>
       </div>
-
-
     </div>
   </div>
-
 </div>
+
 <?php include_once '../layouts/footer.php'; ?>
 

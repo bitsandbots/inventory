@@ -116,7 +116,7 @@ $order = find_by_id("orders", $order_id);
             <thead>
               <tr>
                 <th class="text-center" style="width: 50px;">#</th>
-                <th> Product name </th>
+                <th> Product </th>
                 <th class="text-center" style="width: 15%;"> SKU </th>
                 <th class="text-center" style="width: 15%;"> Location </th>
                 <th class="text-center" style="width: 15%;"> Quantity </th>
@@ -174,18 +174,6 @@ foreach ($sales as $sale) {
 <!--     *************************     -->
         </div>
       </div>
-<?php
-// print "<pre>";
-// print_r($sales);
-// print "</pre>\n";
-?>
-
-
-<?php
-// print "<pre>";
-// print_r($order);
-// print "</pre>\n";
-?>
 
 
     </div>

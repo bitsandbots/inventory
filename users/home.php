@@ -9,23 +9,13 @@
 $page_title = 'Home Page';
 require_once '../includes/load.php';
 if (!$session->isUserLoggedIn(true)) { redirect('index.php', false);}
+page_require_level(3);
 
-// $c_categorie     = count_by_id('categories');
-// $c_product       = count_by_id('products');
-// $c_sale          = count_by_id('sales');
-// $c_user          = count_by_id('users');
-$products_sold   = find_higest_saleing_product('10');
+$products_sold   = find_highest_selling_product('10');
 $recent_products = find_recent_product_added('5');
 $recent_sales    = find_recent_sale_added('5')
 ?>
 <?php include_once '../layouts/header.php'; ?>
-
-<!--     *************************     -->
-<div class="row">
-   <div class="col-md-6">
-     <?php echo display_msg($msg); ?>
-   </div>
-</div>
 
 <script>
 function closePanel()
@@ -40,6 +30,14 @@ function closePanel()
 }
 </script>
 
+
+<div class="row">
+   <div class="col-md-12">
+     <?php echo display_msg($msg); ?>
+   </div>
+</div>
+
+    
   <div class="row" id="myDIV">
    <div class="col-md-12">
       <div class="panel">
@@ -54,7 +52,7 @@ function closePanel()
       </div>
    </div>
   </div>
-<!--     *************************     -->
+
   <div class="row">
    <div class="col-md-4">
      <div class="panel panel-default">
@@ -70,7 +68,7 @@ function closePanel()
 
           <thead>
            <tr>
-             <th>Title</th>
+             <th>Product</th>
              <th>Total Sold</th>
              <th>Total Quantity</th>
            <tr>
@@ -109,7 +107,7 @@ function closePanel()
        <thead>
          <tr>
            <th class="text-center" style="width: 50px;">#</th>
-           <th>Product Name</th>
+           <th>Product</th>
            <th>Date</th>
            <th>Total Sale</th>
          </tr>
@@ -121,7 +119,9 @@ function closePanel()
          <tr>
            <td class="text-center"><?php echo count_id();?></td>
            <td>
+            <a href="../users/edit_sale.php?id=<?php echo (int)$recent_sale['id']; ?>">
              <?php echo remove_junk(first_character($recent_sale['name'])); ?>
+           </a>
            </td>
            <td><?php echo remove_junk(ucfirst($recent_sale['date'])); ?></td>
            <td><?php echo formatcurrency( remove_junk(first_character($recent_sale['price'])), $CURRENCY_CODE); ?></td>
@@ -151,7 +151,7 @@ function closePanel()
 
 
       <?php foreach ($recent_products as  $recent_product): ?>
-            <a class="list-group-item clearfix" href="../users/view_product.php?id=<?php echo    (int)$recent_product['id'];?>">
+            <a class="list-group-item clearfix" href="../users/edit_product.php?id=<?php echo    (int)$recent_product['id'];?>">
                 <h4 class="list-group-item-heading">
                  <?php if ($recent_product['media_id'] === '0'): ?>
                     <img class="img-avatar img-circle" src="../uploads/products/no_image.jpg" alt="">
@@ -170,6 +170,7 @@ function closePanel()
 
       <?php endforeach; ?>
 
+
     </div>
   </div>
  </div>
@@ -178,5 +179,6 @@ function closePanel()
   <div class="row">
 
   </div>
+
 
 <?php include_once '../layouts/footer.php'; ?>

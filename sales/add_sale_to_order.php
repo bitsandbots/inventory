@@ -104,7 +104,7 @@ $all_categories = find_all('categories');
       <div class="panel-body">
          <table class="table table-bordered">
            <thead>
-            <th class="text-center" style="width: 15px;"> Item </th>
+            <th class="text-center" style="width: 15px;"> Product </th>
             <th class="text-center" style="width: 50px;"> Photo </th>
             <th class="text-center" style="width: 15px;"> SKU </th>
             <th class="text-center" style="width: 50px;"> Location </th>
@@ -177,7 +177,7 @@ foreach ( $products_available as $product ) {
 </td>
 <td>
 <button type="submit" name="add_sale" class="btn btn-primary">
-Add sale
+Add Sale
 </button>
 </td>
 </tr>
@@ -193,15 +193,6 @@ Add sale
          </table>
       </div>
     </div>
-<?php
-// print "<pre>";
-// print_r($products_available);
-// print "</pre>\n";
-
-// print "<pre>";
-// print_r($sales);
-// print "</pre>\n";
-?>
 
   </div>
 </div>

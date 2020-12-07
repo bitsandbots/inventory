@@ -86,9 +86,10 @@ $products_available = join_product_table();
            <strong><?php echo remove_junk($order['date']);?> </strong>
        </div>
        <div class="sale-head pull-left">
-           <h1><?php echo remove_junk(ucfirst($order['customer']));?> </h1>
-
        <?php
+            echo "<strong>";
+            echo remove_junk(ucfirst($order['customer']));
+            echo "</strong><br>";            
             echo remove_junk($customer['address']);
             echo "<br>";
             echo remove_junk($customer['city']);
@@ -104,7 +105,7 @@ $products_available = join_product_table();
       <table class="table table-border">
         <thead>
           <tr>
-              <th>Product Title</th>
+              <th>Product</th>
               <th>Price</th>
               <th>Quantity</th>
               <th>TOTAL</th>

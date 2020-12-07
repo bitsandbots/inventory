@@ -93,7 +93,7 @@ if (isset($_POST['submit'])) {
         <thead>
           <tr>
               <th>Date</th>
-              <th>Product Title</th>
+              <th>Product </th>
               <th>Cost Price</th>
               <th>Selling Price</th>
               <th>Total Qty</th>
@@ -108,7 +108,7 @@ if (isset($_POST['submit'])) {
               <td class="text-right"><?php echo formatcurrency($result['buy_price'], $CURRENCY_CODE);?></td>
               <td class="text-right"><?php echo formatcurrency($result['sale_price'], $CURRENCY_CODE);?></td>
               <td class="text-right"><?php echo remove_junk($result['total_sales']);?></td>
-              <td class="text-right"><?php echo formatcurrency($result['total_saleing_price'], $CURRENCY_CODE);?></td>
+              <td class="text-right"><?php echo formatcurrency($result['total_selling_price'], $CURRENCY_CODE);?></td>
           </tr>
         <?php endforeach; ?>
         </tbody>

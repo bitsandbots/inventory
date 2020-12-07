@@ -108,7 +108,7 @@ if (isset($_POST['update_sale'])) {
      </strong>
      <div class="pull-right">
 <!--     *************************     -->
-       <a href="../sales/sales.php" class="btn btn-primary">Show all sales</a>
+       <a href="../sales/sales.php" class="btn btn-primary">Show All Sales</a>
 <!--     *************************     -->
      </div>
     </div>
@@ -117,7 +117,7 @@ if (isset($_POST['update_sale'])) {
        <table class="table table-bordered">
          <thead>
           <th> Order # </th>
-          <th> Product title </th>
+          <th> Product </th>
           <th> Qty </th>
           <th> Price </th>
           <th> Total </th>
@@ -152,7 +152,7 @@ if (isset($_POST['update_sale'])) {
                   <input type="date" class="form-control datepicker" name="date" data-date-format="" value="<?php echo remove_junk($sale['date']); ?>">
                 </td>
                 <td>
-                  <button type="submit" name="update_sale" class="btn btn-primary">Update sale</button>
+                  <button type="submit" name="update_sale" class="btn btn-primary">Update Sale</button>
                 </td>
               </form>
               </tr>

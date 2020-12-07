@@ -62,7 +62,7 @@ if (isset($_POST['p_name']) && strlen($_POST['p_name'])) {
 			$html  .= "<input type=\"text\" class=\"form-control\" name=\"total\" value=\"{$result['sale_price']}\">";
 			$html  .= "</td>";
 			$html .= "<td class=\"text-center\">";
-			$html  .= "<button type=\"submit\" name=\"add_sale\" class=\"btn btn-primary\">Add sale</button>";
+			$html  .= "<button type=\"submit\" name=\"add_sale\" class=\"btn btn-primary\">Add Sale</button>";
 			$html  .= "</td>";
 			$html  .= "</tr>";
 
