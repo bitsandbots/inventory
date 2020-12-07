@@ -6,7 +6,7 @@
  */
 
 
-$page_title = 'All sale';
+$page_title = 'All Sales';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
 page_require_level(3);
@@ -40,7 +40,7 @@ page_require_level(3);
             <thead>
               <tr>
                 <th class="text-center" style="width: 15%;">Order</th>
-                <th> Product name </th>
+                <th> Product </th>
                 <th class="text-center" style="width: 15%;"> Quantity</th>
                 <th class="text-center" style="width: 15%;"> Total </th>
                 <th class="text-center" style="width: 15%;"> Date </th>

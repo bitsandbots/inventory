@@ -18,19 +18,19 @@ $new_order_id = $order_id['id'] + 1;
 if (isset($_POST['add_order'])) {
 	$customer_name = remove_junk($db->escape($_POST['customer_name']));
 	$paymethod = remove_junk($db->escape($_POST['paymethod']));
-	//$c_address = "";
-	//$c_postcode = "";
-	//$c_telephone = "";
-	//$c_email = "";
+	$c_address = "";
+	$c_city = "";
+	$c_region = "";
+	$c_postcode = "";
+	$c_telephone = "";
+	$c_email = "";
 	
 	if ( ! find_by_name('customers',$customer_name) )
 	{
 		$query  = "INSERT INTO customers (";
-		//$query .=" name,address,postcode,telephone,email,paymethod";
-		$query .=" name,paymethod";
+		$query .=" name,address,city,region,postcode,telephone,email,paymethod";
 		$query .=") VALUES (";
-		//$query .=" '{$customer}', '{$c_address}', '{$c_postcode}', '{$c_telephone}', '{$c_email}', '{$paymethod}'";
-		$query .=" '{$customer_name}', '{$paymethod}'";
+		$query .=" '{$customer_name}', '{$c_address}','{$c_city}', '{$c_region}', '{$c_postcode}', '{$c_telephone}', '{$c_email}', '{$paymethod}'";
 		$query .=")";
 		$result = $db->query($query);
 		if ($result && $db->affected_rows() === 1) {
