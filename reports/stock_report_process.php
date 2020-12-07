@@ -88,7 +88,7 @@ if (isset($_POST['submit'])) {
         <thead>
           <tr>
               <th>Product SKU</th>
-              <th>Product Title</th>
+              <th>Product </th>
               <th>Category</th>
               <th>Quantity</th>
               <th>Cost Price</th>

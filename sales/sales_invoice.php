@@ -89,7 +89,7 @@ $products_available = join_product_table();
        <?php
             echo "<strong>";
             echo remove_junk(ucfirst($order['customer']));
-            echo "</strong><br>";            
+            echo "</strong>";            
             echo remove_junk($customer['address']);
             echo "<br>";
             echo remove_junk($customer['city']);
@@ -99,8 +99,10 @@ $products_available = join_product_table();
             echo remove_junk($customer['postcode']);
             echo "<br>";
 
+            echo "&nbsp;&nbsp;";
+            echo remove_junk($customer['telephone']); echo "&nbsp; | &nbsp;"; echo remove_junk($customer['email']);
+            echo "&nbsp;&nbsp;";
        ?>
-           <?php echo remove_junk($customer['telephone']); echo "&nbsp; | &nbsp;"; echo remove_junk($customer['email']);?>
        </div>       
       <table class="table table-border">
         <thead>

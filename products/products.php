@@ -82,7 +82,7 @@ if ( isset($_POST['update_category'] ) ) {
 <!--     *************************     -->
                 <th class="text-center" style="width: 50px;">#</th>
                 <th class="text-center" style="width: 10%;"> Category </th>
-                <th> Product Name </th>
+                <th> Product </th>
                 <th> Photo</th>
                 <th class="text-center" style="width: 10%;"> Location </th>
                 <th class="text-center" style="width: 10%;"> Stock </th>
