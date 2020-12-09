@@ -23,5 +23,8 @@ if ($session->isUserLoggedIn(true)) { redirect('../users/home.php', false);}
                 <button type="submit" class="btn btn-info  pull-right">Login</button>
         </div>
     </form>
+    <div class="text-center">
+       <p></p>
+     </div>
 </div>
 <?php include_once '../layouts/footer.php'; ?>

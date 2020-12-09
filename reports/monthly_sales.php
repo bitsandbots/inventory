@@ -4,8 +4,6 @@
  *
  * @package default
  */
-
-
 $page_title = 'Monthly Sales';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
@@ -35,8 +33,8 @@ $sales = monthlySales($year);
             <thead>
               <tr>
                 <th class="text-center" style="width: 50px;">#</th>
-                <th> Product name </th>
-                <th class="text-center" style="width: 15%;"> Quantity sold</th>
+                <th> Product </th>
+                <th class="text-center" style="width: 15%;"> Quantity Sold</th>
                 <th class="text-center" style="width: 15%;"> Total </th>
                 <th class="text-center" style="width: 15%;"> Date </th>
              </tr>

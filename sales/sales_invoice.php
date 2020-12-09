@@ -4,10 +4,7 @@
  *
  * @package default
  */
-
-
 $page_title = 'Sales Invoice';
-
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
 page_require_level(3);
@@ -26,7 +23,6 @@ $customer = find_by_name('customers', $order['customer']);
 $products_available = join_product_table();
 
 ?>
-
 <!doctype html>
 <html lang="en-US">
  <head>
@@ -87,9 +83,9 @@ $products_available = join_product_table();
        </div>
        <div class="sale-head pull-left">
        <?php
-            echo "<strong>";
+            echo "<h1>";
             echo remove_junk(ucfirst($order['customer']));
-            echo "</strong>";            
+            echo "</h1>";            
             echo remove_junk($customer['address']);
             echo "<br>";
             echo remove_junk($customer['city']);
@@ -107,27 +103,27 @@ $products_available = join_product_table();
       <table class="table table-border">
         <thead>
           <tr>
+              <th>Quantity</th>
               <th>Product</th>
               <th>Price</th>
-              <th>Quantity</th>
-              <th>TOTAL</th>
+              <th>Total</th>
           </tr>
         </thead>
         <tbody>
           <?php foreach ($sales as $sale): ?>
            <tr>
+              <td class="text-center"><?php echo remove_junk($sale['qty']);?></td>
               <td class="text-center"><?php echo remove_junk(ucfirst($sale['name']));?></td>
               <td class="text-center">
                <?php
               foreach ( $products_available as $product ) {
                             if ( $product['name'] == $sale['name'] )
                             {
-                            echo remove_junk($product['sale_price']);
+                            echo formatcurrency( remove_junk($product['sale_price']), $CURRENCY_CODE);
                             }
               }
               ?>                    
               </td>
-              <td class="text-center"><?php echo remove_junk($sale['qty']);?></td>
               <td class="text-center"><?php echo formatcurrency( remove_junk($sale['price']), $CURRENCY_CODE); ?></td>
 <?php
 	$order_total = $order_total + remove_junk($sale['price']);

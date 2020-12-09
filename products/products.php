@@ -4,8 +4,6 @@
  *
  * @package default
  */
-
-
 $page_title = 'All Product';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
@@ -17,11 +15,7 @@ if ( isset($_POST['update_category'] ) ) {
 } else {
 	$products = join_product_table();
 }
-
 ?>
-
-<!--     *************************     -->
-
 <?php include_once '../layouts/header.php'; ?>
 <div class="row">
   <div class="col-md-6">
@@ -32,8 +26,6 @@ if ( isset($_POST['update_category'] ) ) {
             <span class="input-group-btn">
             <button type="submit" name="update_category" class="btn btn-primary">Update Category</button>
             </span>
-
-
                     <select class="form-control" name="product-category">
                       <option value="">Select Product Category</option>
                     <?php  foreach ($all_categories as $cat): ?>
@@ -136,19 +128,6 @@ if ( isset($_POST['update_category'] ) ) {
           </table>
         </div>
       </div>
-<?php
-// print "<pre>";
-// print_r($products);
-// print "</pre>\n";
-?>
-
-<?php
-// print "<pre>";
-// print_r($_POST);
-// print "</pre>\n";
-?>
-
-
     </div>
   </div>
   <?php include_once '../layouts/footer.php'; ?>
