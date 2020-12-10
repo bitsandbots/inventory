@@ -15,18 +15,19 @@ $order_id = last_id('orders');
 $o_id = $order_id['id'];
 
 if (isset($_POST['add_sale'])) {
-	$req_fields = array('s_id', 'quantity', 'price', 'total' );
+	$req_fields = array('s_id', 'quantity' );
 	validate_fields($req_fields);
 	if (empty($errors)) {
 		$p_id      = $db->escape((int)$_POST['s_id']);
 		$s_qty     = $db->escape((int)$_POST['quantity']);
-
 		$product = find_by_id("products", $p_id);
+
 		if ( (int)$product['quantity'] < $s_qty ) {
 			$session->msg('d', ' Insufficient Quantity for Sale!');
 			redirect('../sales/add_sale.php', false);
 		}
-		$s_total   = $db->escape($_POST['total']);
+		$s_price   = $product['sale_price'];
+		$s_total   = $s_qty * $s_price;
 		$s_date    = make_date();
 
 		$sql  = "INSERT INTO sales (";
@@ -60,7 +61,7 @@ if (isset($_POST['add_sale'])) {
             <span class="input-group-btn">
               <button type="submit" class="btn btn-primary">Search</button>
             </span>
-            <input type="text" id="sug_input" class="form-control" name="title"  placeholder="Product Name">
+            <input type="text" id="sug_input" class="form-control" name="title"  placeholder="Product Name / SKU / Description">
          </div>
          <div id="result" class="list-group"></div>
         </div>
@@ -70,7 +71,8 @@ if (isset($_POST['add_sale'])) {
   <div class="col-md-6">
     <div class="panel">
       <div class="jumbotron text-center">
-<h3>Order #<?php echo $o_id; ?></h3>
+<a href="../sales/sales_by_order.php?id=<?php echo $o_id;?>">
+<h3>Order #<?php echo $o_id; ?></h3></a>
 
       </div>
     </div>
@@ -98,7 +100,6 @@ if (isset($_POST['add_sale'])) {
             <th class="text-center" style="width: 15px;"> Available </th>
             <th class="text-center" style="width: 15px;"> Quantity </th>
             <th class="text-center" style="width: 50px;"> Price </th>
-            <th class="text-center" style="width: 50px;"> Total </th>
             <th class="text-center" style="width: 50px;"> Action</th>
            </thead>
              <tbody  id="product_info"> </tbody>

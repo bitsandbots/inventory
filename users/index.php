@@ -1,7 +1,9 @@
 <?php
 ob_start();
 require_once '../includes/load.php';
-if ($session->isUserLoggedIn(true)) { redirect('../users/home.php', false);}
+//importing csrf handler
+use csrfhandler\csrf as csrf;
+if ($session->isUserLoggedIn()) { redirect('../users/home.php', false);}
 ?>
 <?php include_once '../layouts/header.php'; ?>
 <div class="login-page">
@@ -11,6 +13,7 @@ if ($session->isUserLoggedIn(true)) { redirect('../users/home.php', false);}
      </div>
      <?php echo display_msg($msg); ?>
       <form method="post" action="../users/auth.php" class="clearfix">
+      <input type="hidden" name="_token" value="<?php echo csrf::token()?>">
         <div class="form-group">
               <label for="username" class="control-label">Username</label>
               <input type="name" class="form-control" name="username" placeholder="Username">

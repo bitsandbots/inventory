@@ -6,8 +6,15 @@
  */
 
 
-include_once '../includes/load.php'; ?>
-<?php
+include_once '../includes/load.php';
+///importing csrf handler
+use csrfhandler\csrf as csrf;	
+//check for only get & post requests
+$isValid = csrf::all();
+if(!($isValid)) {
+	$session->msg('d', "Invalid Token ");
+	redirect('index.php', false);
+}
 $req_fields = array('username', 'password' );
 validate_fields($req_fields);
 $username = remove_junk($_POST['username']);

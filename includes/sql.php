@@ -231,7 +231,7 @@ function tableExists($table){
      $current_user = current_user();
      $login_level = find_by_groupLevel($current_user['user_level']);
      //if user not login
-     if (!$session->isUserLoggedIn(true)):
+     if (!$session->isUserLoggedIn()):
             $session->msg('d','Please login...');
             redirect('index.php', false);
       //if Group status Deactive

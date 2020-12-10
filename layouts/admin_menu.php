@@ -34,7 +34,7 @@
          <li><a href="../sales/add_order_by_customer.php">Add Order</a> </li>
          <li><a href="../sales/orders.php">Manage Orders</a> </li>
          <li><a href="../sales/sales.php">Manage Sales</a> </li>
-         <li><a href="../sales/add_sale.php">Add Sale by Product Name</a> </li>
+         <li><a href="../sales/add_sale.php">Add Sale by Product</a> </li>
          <li><a href="../sales/add_sale_by_sku.php">Add Sale by SKU</a> </li>
      </ul>
   </li>

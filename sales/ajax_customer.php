@@ -75,9 +75,9 @@ if (isset($_POST['c_name']) && strlen($_POST['c_name'])) {
 	} else {
 			$html   = "<tr>";
 			$html  .= "<td colspan=\"4\">Customer Not Registered!</td>";
-			$html  .= "<td class=\"text-center\"><strong>";
-			$html  .= "<a href=\"add_customer.php\">Add Customer</a>";
-			$html  .= "</strong></td>";
+			$html  .= "<td class=\"text-center\">";
+			$html  .= "<a href=\"../customers/add_customer.php\" class=\"btn btn-primary\">Add Customer</a>";
+			$html  .= "</td>";
 			$html  .= "</tr>";
 	}
 

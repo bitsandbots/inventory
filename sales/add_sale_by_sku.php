@@ -70,7 +70,8 @@ if (isset($_POST['add_sale'])) {
   <div class="col-md-6">
     <div class="panel">
       <div class="jumbotron text-center">
-<h3>Order #<?php echo $o_id; ?></h3>
+<a href="../sales/sales_by_order.php?id=<?php echo $o_id;?>">
+<h3>Order #<?php echo $o_id; ?></h3></a>
 
       </div>
     </div>

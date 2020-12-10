@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="../libs/css/main.css" />
   </head>
   <body>
-  <?php  if ($session->isUserLoggedIn(true)): ?>
+  <?php  if ($session->isUserLoggedIn()): ?>
     <header id="header">
       <div class="logo pull-left">My Inventory
 <!--
@@ -73,6 +73,10 @@
       <?php elseif($user['user_level'] === '3'): ?>
         <!-- User menu -->
       <?php include_once('user_menu.php');?>
+
+      <?php else: ?>
+        <!-- You shouldn't be here -->
+      <?php redirect('../users/logout.php', false); ?>
 
       <?php endif;?>
 

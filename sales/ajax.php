@@ -14,7 +14,7 @@ if (!$session->isUserLoggedIn(true)) { redirect('index.php', false);}
 // Auto suggestion
 $html = "";
 if (isset($_POST['product_name']) && strlen($_POST['product_name'])) {
-	$products = find_product_by_title($_POST['product_name']);
+	$products = find_products_by_search($_POST['product_name']);
 	if ($products) {
 		foreach ($products as $product):
 		$html .= "<li class=\"list-group-item\">";
@@ -36,11 +36,10 @@ if (isset($_POST['product_name']) && strlen($_POST['product_name'])) {
 // find all product
 if (isset($_POST['p_name']) && strlen($_POST['p_name'])) {
 	$product_title = remove_junk($db->escape($_POST['p_name']));
-	if ($results = find_all_product_info_by_title($product_title)) {
+	if ($results = find_all_product_info_by_search($product_title)) {
 		foreach ($results as $result) {
 
 			$html .= "<tr>";
-
 			$html .= "<td id=\"s_name\">{$result['name']}</td>";
 			$html .= "<input type=\"hidden\" name=\"s_id\" value=\"{$result['id']}\">";
 			$html .= "<td class=\"text-center\">";
@@ -56,10 +55,7 @@ if (isset($_POST['p_name']) && strlen($_POST['p_name'])) {
 			$html .= "<input type=\"text\" class=\"form-control\" name=\"quantity\" value=\"1\">";
 			$html  .= "</td>";
 			$html .= "<td class=\"text-center\">";
-			$html  .= "<input type=\"text\" class=\"form-control\" name=\"price\" value=\"{$result['sale_price']}\">";
-			$html  .= "</td>";
-			$html .= "<td class=\"text-center\">";
-			$html  .= "<input type=\"text\" class=\"form-control\" name=\"total\" value=\"{$result['sale_price']}\">";
+			$html .= formatcurrency( $result['sale_price'], $CURRENCY_CODE);
 			$html  .= "</td>";
 			$html .= "<td class=\"text-center\">";
 			$html  .= "<button type=\"submit\" name=\"add_sale\" class=\"btn btn-primary\">Add Sale</button>";
@@ -68,7 +64,7 @@ if (isset($_POST['p_name']) && strlen($_POST['p_name'])) {
 
 		}
 	} else {
-		$html ="<tr><td colspan=\"8\">Product Name Not Registered!</td></tr>";
+		$html ="<tr><td colspan=\"8\">Product Not Registered!</td></tr>";
 	}
 
 	echo json_encode($html);
