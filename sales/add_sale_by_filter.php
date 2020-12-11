@@ -1,12 +1,12 @@
 <?php
 /**
- * add_sale_to_order.php
+ * add_sale_by_search.php
  *
  * @package default
  */
 
 
-$page_title = 'Add Sale';
+$page_title = 'Add Sale by Filter';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
 page_require_level(3);
@@ -18,6 +18,8 @@ if (isset($_GET['id'])) {
 	$session->msg("d", "Missing order id.");
 	redirect( ( '../sales/sales_by_order.php?id=' . $order_id ) , false);
 }
+
+
 
 if (isset($_POST['add_sale'])) {
 	$req_fields = array('s_id', 'order_id', 'quantity', 'sale_price');
@@ -63,38 +65,22 @@ $all_categories = find_all('categories');
 
 
 ?>
+
 <?php include_once '../layouts/header.php'; ?>
 <div class="row">
   <div class="col-md-6">
     <?php echo display_msg($msg); ?>
-    <form method="post" action="">
+    <form method="post" action="../sales/add_sale_by_search.php?id=<?php echo $order_id; ?>">
         <div class="form-group">
           <div class="input-group">
             <span class="input-group-btn">
-            <button type="submit" name="update_category" class="btn btn-primary">Update Category</button>
+              <button type="submit" class="btn btn-primary">Filter</button>
             </span>
-
-
-                    <select class="form-control" name="product-category">
-                      <option value="">Select Product Category</option>
-		    <?php
-		    foreach ($all_categories as $cat) {
-		      echo "<option value=\"";
-		      echo (int)$cat['id'];
-		      if ( (int)$cat['id'] == (int)$_POST['product-category'] ) { echo "\" selected>"; } else { echo "\">"; }
-                      echo $cat['name'];
-		    }
-		    ?>
-		      </option>
-                    
-                    </select>
-
+            <input type="text" class="form-control" name="search"  placeholder="Product Name / SKU / Description">
          </div>
         </div>
     </form>
   </div>
-
-
 
   <div class="col-md-6">
     <div class="panel">
@@ -106,11 +92,6 @@ $all_categories = find_all('categories');
     </div>
 </div>
 
-
-  <div class="col-md-6">
-</div>
-
-
 <div class="row">
   <div class="col-md-12">
     <div class="panel panel-default">
@@ -120,10 +101,10 @@ $all_categories = find_all('categories');
           <span>Add Sales to Order #<?php echo $order_id; ?></span>
        </strong>
           <div class="pull-right">
+            <a href="../sales/add_sale_to_order.php?id=<?php echo $order_id; ?>" class="btn btn-primary">Add Sales by Category</a>
             <a href="../sales/add_sale_by_search.php?id=<?php echo $order_id; ?>" class="btn btn-primary">Add Sales by Search</a>
-            <a href="../sales/add_sale_by_filter.php?id=<?php echo $order_id; ?>" class="btn btn-primary">Add Sales by Filter</a>
           </div>
-      </div>      
+      </div>
       <div class="panel-body">
          <table class="table table-bordered">
            <thead>
@@ -136,16 +117,23 @@ $all_categories = find_all('categories');
             <th class="text-center" style="width: 50px;"> Price </th>
             <th class="text-center" style="width: 50px;"> Action</th>
            </thead>
-             <tbody  id="product_info">
+
 <?php
 
 $sales = find_sales_by_order_id( $order_id );
 
-if ( ( isset($_POST['update_category'] ) ) && ( (int)$_POST['product-category'] > 0 ) ) {
+if ( isset($_POST['update_category'] ) ) {
 	$products_available = find_products_by_category((int)$_POST['product-category']);
 } else {
 	$products_available = join_product_table();
 }
+
+// find all product
+if (isset($_POST['search']) && strlen($_POST['search'])) {
+	$product_search = remove_junk($db->escape($_POST['search']));
+	$products_available = find_all_product_info_by_search($product_search);
+    }
+
 
 foreach ( $products_available as $product ) {
 	$added_to_order = false;
@@ -158,7 +146,7 @@ foreach ( $products_available as $product ) {
 	if ( $added_to_order == false ) {
 
 ?>
-        <form method="post" action="../sales/add_sale_to_order.php?id=<?php echo $order_id; ?>">
+        <form method="post" action="../sales/add_sale_by_search.php?id=<?php echo $order_id; ?>">
 
 <tr>
 <td id="s_name">

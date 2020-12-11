@@ -101,6 +101,7 @@ $all_categories = find_all('categories');
           <span>Add Sales to Order #<?php echo $order_id; ?></span>
        </strong>
           <div class="pull-right">
+            <a href="../sales/add_sale_by_filter.php?id=<?php echo $order_id; ?>" class="btn btn-primary">Add Sales by Filter</a>
             <a href="../sales/add_sale_to_order.php?id=<?php echo $order_id; ?>" class="btn btn-primary">Add Sales by Category</a>
           </div>
       </div>
@@ -121,18 +122,10 @@ $all_categories = find_all('categories');
 
 $sales = find_sales_by_order_id( $order_id );
 
-if ( isset($_POST['update_category'] ) ) {
-	$products_available = find_products_by_category((int)$_POST['product-category']);
-} else {
-	$products_available = join_product_table();
-}
-
 // find all product
 if (isset($_POST['search']) && strlen($_POST['search'])) {
 	$product_search = remove_junk($db->escape($_POST['search']));
 	$products_available = find_all_product_info_by_search($product_search);
-    }
-
 
 foreach ( $products_available as $product ) {
 	$added_to_order = false;
@@ -195,6 +188,8 @@ Add Sale
 <?php
 	}
 }
+}
+
 ?>
 
 
