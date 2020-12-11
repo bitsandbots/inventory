@@ -10,7 +10,7 @@ require_once '../includes/load.php';
 page_require_level(2);
 
 $all_categories = find_all('categories');
-if ( isset($_POST['update_category'] ) ) {
+if ( ( isset($_POST['update_category'] ) ) && ( (int)$_POST['product-category'] > 0 ) ) {
 	$products = find_products_by_category((int)$_POST['product-category']);
 } else {
 	$products = join_product_table();
@@ -27,11 +27,15 @@ if ( isset($_POST['update_category'] ) ) {
             <button type="submit" name="update_category" class="btn btn-primary">Update Category</button>
             </span>
                     <select class="form-control" name="product-category">
-                      <option value="">Select Product Category</option>
-                    <?php  foreach ($all_categories as $cat): ?>
-                      <option value="<?php echo (int)$cat['id'] ?>">
-                        <?php echo $cat['name'] ?></option>
-                    <?php endforeach; ?>
+                      <option value="0">Select Product Category</option>
+		    <?php
+		    foreach ($all_categories as $cat) {
+		      echo "<option value=\"";
+		      echo (int)$cat['id'];
+		      if ( (int)$cat['id'] == (int)$_POST['product-category'] ) { echo "\" selected>"; } else { echo "\">"; }
+                      echo $cat['name'];
+		    }
+		    ?>
                     </select>
 
          </div>
@@ -53,7 +57,7 @@ if ( isset($_POST['update_category'] ) ) {
             <span class="glyphicon glyphicon-th"></span>
             <span>
  <?php
-if ( isset($_POST['update_category'] ) ) {
+if ( ( isset($_POST['update_category'] ) ) && ( (int)$_POST['product-category'] > 0 ) ) {
 	echo "Products by Category";
 } else {
 	echo "All Products";

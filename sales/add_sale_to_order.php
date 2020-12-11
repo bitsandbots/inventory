@@ -77,10 +77,16 @@ $all_categories = find_all('categories');
 
                     <select class="form-control" name="product-category">
                       <option value="">Select Product Category</option>
-                    <?php  foreach ($all_categories as $cat): ?>
-                      <option value="<?php echo (int)$cat['id'] ?>">
-                        <?php echo $cat['name'] ?></option>
-                    <?php endforeach; ?>
+		    <?php
+		    foreach ($all_categories as $cat) {
+		      echo "<option value=\"";
+		      echo (int)$cat['id'];
+		      if ( (int)$cat['id'] == (int)$_POST['product-category'] ) { echo "\" selected>"; } else { echo "\">"; }
+                      echo $cat['name'];
+		    }
+		    ?>
+		      </option>
+                    
                     </select>
 
          </div>
@@ -134,7 +140,7 @@ $all_categories = find_all('categories');
 
 $sales = find_sales_by_order_id( $order_id );
 
-if ( isset($_POST['update_category'] ) ) {
+if ( ( isset($_POST['update_category'] ) ) && ( (int)$_POST['product-category'] > 0 ) ) {
 	$products_available = find_products_by_category((int)$_POST['product-category']);
 } else {
 	$products_available = join_product_table();
