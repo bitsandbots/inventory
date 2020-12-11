@@ -10,8 +10,11 @@ require_once '../includes/load.php';
 page_require_level(2);
 
 $all_categories = find_all('categories');
-if ( ( isset($_POST['update_category'] ) ) && ( (int)$_POST['product-category'] > 0 ) ) {
-	$products = find_products_by_category((int)$_POST['product-category']);
+$selected_category = 0;
+if ( isset( $_POST['product-category'] ) ) { $selected_category = (int)$_POST['product-category']; }
+if ( ( isset($_POST['update_category'] ) ) && ( $selected_category > 0 ) )
+{
+	$products = find_products_by_category($selected_category);
 } else {
 	$products = join_product_table();
 }
@@ -32,7 +35,7 @@ if ( ( isset($_POST['update_category'] ) ) && ( (int)$_POST['product-category'] 
 		    foreach ($all_categories as $cat) {
 		      echo "<option value=\"";
 		      echo (int)$cat['id'];
-		      if ( (int)$cat['id'] == (int)$_POST['product-category'] ) { echo "\" selected>"; } else { echo "\">"; }
+		      if ( (int)$cat['id'] == $selected_category ) { echo "\" selected>"; } else { echo "\">"; }
                       echo $cat['name'];
 		    }
 		    ?>
@@ -57,7 +60,7 @@ if ( ( isset($_POST['update_category'] ) ) && ( (int)$_POST['product-category'] 
             <span class="glyphicon glyphicon-th"></span>
             <span>
  <?php
-if ( ( isset($_POST['update_category'] ) ) && ( (int)$_POST['product-category'] > 0 ) ) {
+if ( ( isset($_POST['update_category'] ) ) && ( $selected_category > 0 ) ) {
 	echo "Products by Category";
 } else {
 	echo "All Products";

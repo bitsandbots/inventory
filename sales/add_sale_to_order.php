@@ -11,6 +11,8 @@ require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
 page_require_level(3);
 $order_id = 0;
+$selected_category = 0;
+if ( isset( $_POST['product-category'] ) ) { $selected_category = (int)$_POST['product-category']; }
 
 if (isset($_GET['id'])) {
 	$order_id = (int)$_GET['id'];
@@ -76,12 +78,12 @@ $all_categories = find_all('categories');
 
 
                     <select class="form-control" name="product-category">
-                      <option value="">Select Product Category</option>
+                      <option value="0">Select Product Category</option>
 		    <?php
 		    foreach ($all_categories as $cat) {
 		      echo "<option value=\"";
 		      echo (int)$cat['id'];
-		      if ( (int)$cat['id'] == (int)$_POST['product-category'] ) { echo "\" selected>"; } else { echo "\">"; }
+		      if ( (int)$cat['id'] == $selected_category ) { echo "\" selected>"; } else { echo "\">"; }
                       echo $cat['name'];
 		    }
 		    ?>
@@ -140,8 +142,9 @@ $all_categories = find_all('categories');
 
 $sales = find_sales_by_order_id( $order_id );
 
-if ( ( isset($_POST['update_category'] ) ) && ( (int)$_POST['product-category'] > 0 ) ) {
-	$products_available = find_products_by_category((int)$_POST['product-category']);
+if ( ( isset($_POST['update_category'] ) ) && ( $selected_category > 0 ) )
+{
+	$products_available = find_products_by_category($selected_category);
 } else {
 	$products_available = join_product_table();
 }
