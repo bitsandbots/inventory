@@ -76,10 +76,10 @@ if ( ( isset($_POST['update_category'] ) ) && ( (int)$_POST['product-category'] 
             <thead>
               <tr>
 <!--     *************************     -->
-                <th class="text-center" style="width: 50px;">#</th>
-                <th class="text-center" style="width: 10%;"> Category </th>
                 <th> Product </th>
                 <th> Photo</th>
+                <th class="text-center" style="width: 10%;"> SKU</th>
+                <th class="text-center" style="width: 10%;"> Category </th>
                 <th class="text-center" style="width: 10%;"> Location </th>
                 <th class="text-center" style="width: 10%;"> Stock </th>
                 <th class="text-center" style="width: 10%;"> Cost Price </th>
@@ -93,8 +93,6 @@ if ( ( isset($_POST['update_category'] ) ) && ( (int)$_POST['product-category'] 
 <!--     *************************     -->
               <?php foreach ($products as $product):?>
               <tr>
-                <td class="text-center"><?php echo count_id();?></td>
-                <td class="text-center"> <?php echo remove_junk($product['category']); ?></td>
 
                 <td><a href="../products/view_product.php?id=<?php echo (int)$product['id'];?>"><?php echo remove_junk($product['name']); ?></a></td>
 
@@ -105,6 +103,8 @@ if ( ( isset($_POST['update_category'] ) ) && ( (int)$_POST['product-category'] 
                   <img class="img-avatar img-circle" src="../uploads/products/<?php echo $product['image']; ?>" alt="">
                 <?php endif; ?>
                 </td>
+                <td class="text-center"><?php echo remove_junk($product['sku']);?></td>
+                <td class="text-center"> <?php echo remove_junk($product['category']); ?></td>
                 <td class="text-center"> <?php echo remove_junk($product['location']); ?></td>
                 <td class="text-center"> <?php echo remove_junk($product['quantity']); ?></td>
                 <td class="text-center"> <?php echo formatcurrency( $product['buy_price'], $CURRENCY_CODE); ?></td>

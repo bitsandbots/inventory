@@ -9,7 +9,8 @@ require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
 page_require_level(1);
 
-$all_orders = find_all('orders')
+$all_orders = find_all('orders');
+$orders = array_reverse($all_orders);
 ?>
 <?php include_once '../layouts/header.php'; ?>
   <div class="row">
@@ -46,7 +47,7 @@ $all_orders = find_all('orders')
             <tbody>
 
 
-              <?php foreach ($all_orders as $order):?>
+              <?php foreach ($orders as $order):?>
                 <tr>
                     <td class="text-center">
 					<a href="../sales/sales_by_order.php?id=<?php echo (int)$order['id'];?>">
