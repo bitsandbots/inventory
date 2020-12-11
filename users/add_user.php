@@ -4,23 +4,39 @@
  *
  * @package default
  */
-
-
 $page_title = 'Add User';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
 page_require_level(1);
+///importing csrf handler
+use csrfhandler\csrf as csrf;	
+
 $groups = find_all('user_groups');
-?>
-<?php
+$all_users = find_all_user();
+
 if (isset($_POST['add_user'])) {
 
+//check for only get & post requests
+$isValid = csrf::all();
+if(!($isValid)) {
+	$session->msg('d', "Invalid Token ");
+	redirect('index.php', false);
+}
 	$req_fields = array('full-name', 'username', 'password', 'level' );
 	validate_fields($req_fields);
 
 	if (empty($errors)) {
 		$name   = remove_junk($db->escape($_POST['full-name']));
-		$username   = remove_junk($db->escape($_POST['username']));
+		$username   = strtolower(remove_junk($db->escape($_POST['username'])));
+
+		foreach ($all_users as $a_user) {
+		if ( $username == $a_user['username'] ) {
+			//failed
+			$session->msg('d', ' Sorry, username already used!');
+			redirect('../users/add_user.php', false);
+		  }
+		}
+
 		$password   = remove_junk($db->escape($_POST['password']));
 		$user_level = (int)$db->escape($_POST['level']);
 		$password = sha1($password);
@@ -31,13 +47,16 @@ if (isset($_POST['add_user'])) {
 		$query .=")";
 		if ($db->query($query)) {
 			//sucess
-			$session->msg('s', "User account has been creted! ");
+			$session->msg('s', "User account has been created! ");
 			redirect('../users/add_user.php', false);
 		} else {
 			//failed
-			$session->msg('d', ' Sorry failed to create account!');
+			$session->msg('d', ' Sorry, failed to create account!');
 			redirect('../users/add_user.php', false);
 		}
+
+
+
 	} else {
 		$session->msg("d", $errors);
 		redirect('../users/add_user.php', false);
@@ -57,6 +76,7 @@ if (isset($_POST['add_user'])) {
       <div class="panel-body">
         <div class="col-md-6">
           <form method="post" action="../users/add_user.php">
+          <input type="hidden" name="_token" value="<?php echo csrf::token()?>">
             <div class="form-group">
                 <label for="name">Name</label>
                 <input type="text" class="form-control" name="full-name" placeholder="Full Name">

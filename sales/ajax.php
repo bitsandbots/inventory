@@ -36,7 +36,7 @@ if (isset($_POST['product_name']) && strlen($_POST['product_name'])) {
 // find all product
 if (isset($_POST['p_name']) && strlen($_POST['p_name'])) {
 	$product_title = remove_junk($db->escape($_POST['p_name']));
-	if ($results = find_all_product_info_by_search($product_title)) {
+	if ($results = find_all_product_info_by_title($product_title)) {
 		foreach ($results as $result) {
 
 			$html .= "<tr>";
@@ -55,7 +55,10 @@ if (isset($_POST['p_name']) && strlen($_POST['p_name'])) {
 			$html .= "<input type=\"text\" class=\"form-control\" name=\"quantity\" value=\"1\">";
 			$html  .= "</td>";
 			$html .= "<td class=\"text-center\">";
-			$html .= formatcurrency( $result['sale_price'], $CURRENCY_CODE);
+			$html  .= "<input type=\"text\" class=\"form-control\" name=\"price\" value=\"{$result['sale_price']}\">";
+			$html  .= "</td>";
+			$html .= "<td class=\"text-center\">";
+			$html  .= "<input type=\"text\" class=\"form-control\" name=\"total\" value=\"{$result['sale_price']}\">";
 			$html  .= "</td>";
 			$html .= "<td class=\"text-center\">";
 			$html  .= "<button type=\"submit\" name=\"add_sale\" class=\"btn btn-primary\">Add Sale</button>";

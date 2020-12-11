@@ -9,7 +9,7 @@
 ?>
 
 <?php
-$page_title = 'All User';
+$page_title = 'All Users';
 require_once '../includes/load.php';
 ?>
 
@@ -47,7 +47,7 @@ $all_users = find_all_user();
         <thead>
 <!--     *************************     -->
           <tr>
-            <th class="text-center" style="width: 50px;">#</th>
+            <th class="text-center" style="width: 50px;">ID#</th>
             <th>Name </th>
             <th>Username</th>
             <th class="text-center" style="width: 15%;">User Role</th>
@@ -63,7 +63,7 @@ $all_users = find_all_user();
         <?php foreach ($all_users as $a_user): ?>
 
           <tr>
-           <td class="text-center"><?php echo count_id();?></td>
+           <td class="text-center"><?php echo $a_user['id'];?></td>
            <td><?php echo remove_junk(ucwords($a_user['name']))?></td>
            <td><?php echo remove_junk(ucwords($a_user['username']))?></td>
            <td class="text-center"><?php echo remove_junk(ucwords($a_user['group_name']))?></td>

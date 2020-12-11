@@ -15,19 +15,30 @@ $order_id = last_id('orders');
 $o_id = $order_id['id'];
 
 if (isset($_POST['add_sale'])) {
-	$req_fields = array('s_id', 'quantity' );
+	$req_fields = array('s_id', 'quantity', 'price', 'total'  );
 	validate_fields($req_fields);
 	if (empty($errors)) {
 		$p_id      = $db->escape((int)$_POST['s_id']);
 		$s_qty     = $db->escape((int)$_POST['quantity']);
-		$product = find_by_id("products", $p_id);
+
+	$product = find_by_id("products", $p_id);
+	$sales = find_sales_by_order_id( $o_id );
+	$added_to_order = false;
+	foreach ( $sales as $sale ) {
+		if ( $product['name'] == $sale['name'] ) { // already added to order
+			$added_to_order = true;
+		}
+	}
+	if ( $added_to_order == false ) {
 
 		if ( (int)$product['quantity'] < $s_qty ) {
 			$session->msg('d', ' Insufficient Quantity for Sale!');
 			redirect('../sales/add_sale.php', false);
 		}
-		$s_price   = $product['sale_price'];
-		$s_total   = $s_qty * $s_price;
+
+		$s_total   = $db->escape($_POST['total']);
+		//$s_price   = $product['sale_price'];
+		//$s_total   = $s_qty * $s_price;
 		$s_date    = make_date();
 
 		$sql  = "INSERT INTO sales (";
@@ -44,6 +55,12 @@ if (isset($_POST['add_sale'])) {
 			$session->msg('d', ' Sorry failed to add!');
 			redirect('../sales/add_sale.php', false);
 		}
+		
+	} else {
+	    		$session->msg('d', ' Already added to order!');
+			redirect('../sales/add_sale.php', false);
+	    }
+		
 	} else {
 		$session->msg("d", $errors);
 		redirect('../sales/add_sale.php', false);
@@ -100,6 +117,7 @@ if (isset($_POST['add_sale'])) {
             <th class="text-center" style="width: 15px;"> Available </th>
             <th class="text-center" style="width: 15px;"> Quantity </th>
             <th class="text-center" style="width: 50px;"> Price </th>
+            <th class="text-center" style="width: 50px;"> Total </th>
             <th class="text-center" style="width: 50px;"> Action</th>
            </thead>
              <tbody  id="product_info"> </tbody>
