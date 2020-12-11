@@ -121,7 +121,6 @@ $all_categories = find_all('categories');
        </strong>
           <div class="pull-right">
             <a href="../sales/add_sale_by_search.php?id=<?php echo $order_id; ?>" class="btn btn-primary">Add Sales by Search</a>
-            <a href="../sales/add_sale_by_filter.php?id=<?php echo $order_id; ?>" class="btn btn-primary">Add Sales by Filter</a>
           </div>
       </div>      
       <div class="panel-body">

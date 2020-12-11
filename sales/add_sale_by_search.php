@@ -101,7 +101,6 @@ $all_categories = find_all('categories');
           <span>Add Sales to Order #<?php echo $order_id; ?></span>
        </strong>
           <div class="pull-right">
-            <a href="../sales/add_sale_by_filter.php?id=<?php echo $order_id; ?>" class="btn btn-primary">Add Sales by Filter</a>
             <a href="../sales/add_sale_to_order.php?id=<?php echo $order_id; ?>" class="btn btn-primary">Add Sales by Category</a>
           </div>
       </div>
