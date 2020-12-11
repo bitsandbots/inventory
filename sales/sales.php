@@ -29,9 +29,6 @@ page_require_level(3);
             <span class="glyphicon glyphicon-th"></span>
             <span>All Sales</span>
           </strong>
-          <div class="pull-right">
-            <a href="../sales/add_sale.php" class="btn btn-primary">Add Sale</a>
-          </div>
         </div>
         <div class="panel-body">
 
