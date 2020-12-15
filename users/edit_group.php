@@ -70,7 +70,7 @@ if (isset($_POST['update'])) {
 <!--     *************************     -->
         <div class="form-group">
               <label for="name" class="control-label">Group Name</label>
-              <input type="name" class="form-control" name="group-name" value="<?php echo remove_junk(ucwords($e_group['group_name'])); ?>">
+              <input type="name" class="form-control" name="group-name" value="<?php echo ucwords($e_group['group_name']); ?>">
         </div>
 <!--     *************************     -->
         <div class="form-group">

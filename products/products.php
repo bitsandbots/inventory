@@ -97,7 +97,7 @@ if ( ( isset($_POST['update_category'] ) ) && ( $selected_category > 0 ) ) {
               <?php foreach ($products as $product):?>
               <tr>
 
-                <td><a href="../products/view_product.php?id=<?php echo (int)$product['id'];?>"><?php echo remove_junk($product['name']); ?></a></td>
+                <td><a href="../products/view_product.php?id=<?php echo (int)$product['id'];?>"><?php echo $product['name']; ?></a></td>
 
                 <td>
                   <?php if ($product['media_id'] === '0'): ?>
@@ -106,10 +106,10 @@ if ( ( isset($_POST['update_category'] ) ) && ( $selected_category > 0 ) ) {
                   <img class="img-avatar img-circle" src="../uploads/products/<?php echo $product['image']; ?>" alt="">
                 <?php endif; ?>
                 </td>
-                <td class="text-center"><?php echo remove_junk($product['sku']);?></td>
-                <td class="text-center"> <?php echo remove_junk($product['category']); ?></td>
-                <td class="text-center"> <?php echo remove_junk($product['location']); ?></td>
-                <td class="text-center"> <?php echo remove_junk($product['quantity']); ?></td>
+                <td class="text-center"><?php echo $product['sku'];?></td>
+                <td class="text-center"> <?php echo $product['category']; ?></td>
+                <td class="text-center"> <?php echo $product['location']; ?></td>
+                <td class="text-center"> <?php echo $product['quantity']; ?></td>
                 <td class="text-center"> <?php echo formatcurrency( $product['buy_price'], $CURRENCY_CODE); ?></td>
                 <td class="text-center"> <?php echo formatcurrency( $product['sale_price'], $CURRENCY_CODE); ?></td>
                 <td class="text-center"> <?php echo read_date($product['date']); ?></td>

@@ -100,7 +100,7 @@ if (isset($_POST['add_cat'])) {
               <?php foreach ($all_categories as $cat):?>
                 <tr>
                     <td class="text-center"><?php echo count_id();?></td>
-                    <td><?php echo remove_junk(ucfirst($cat['name'])); ?></td>
+                    <td><?php echo ucfirst($cat['name']); ?></td>
                     <td class="text-center">
                       <div class="btn-group">
                         <a href="../products/edit_category.php?id=<?php echo (int)$cat['id'];?>"  class="btn btn-xs btn-warning" data-toggle="tooltip" title="Edit">

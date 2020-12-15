@@ -56,9 +56,9 @@ $all_groups = find_all('user_groups');
 
           <tr>
            <td class="text-center"><?php echo count_id();?></td>
-           <td><?php echo remove_junk(ucwords($a_group['group_name']))?></td>
+           <td><?php echo ucwords($a_group['group_name'])?></td>
            <td class="text-center">
-             <?php echo remove_junk(ucwords($a_group['group_level']))?>
+             <?php echo ucwords($a_group['group_level'])?>
            </td>
 <!--     *************************     -->
            <td class="text-center">
@@ -74,9 +74,11 @@ $all_groups = find_all('user_groups');
                 <a href="../users/edit_group.php?id=<?php echo (int)$a_group['id'];?>" class="btn btn-xs btn-warning" data-toggle="tooltip" title="Edit">
                   <i class="glyphicon glyphicon-pencil"></i>
                </a>
+<!--
                 <a href="../users/delete_group.php?id=<?php echo (int)$a_group['id'];?>" onClick=\"return confirm('Are you sure you want to delete?')\" class="btn btn-xs btn-danger" data-toggle="tooltip" title="Remove">
                   <i class="glyphicon glyphicon-remove"></i>
                 </a>
+-->
                 </div>
            </td>
 <!--     *************************     -->

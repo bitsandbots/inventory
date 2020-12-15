@@ -129,12 +129,12 @@ if (isset($_POST['update_sale'])) {
               <form method="post" action="../sales/edit_sale.php?id=<?php echo (int)$sale['id']; ?>">
 
                 <td>
-                  <input type="text" class="form-control" name="order_id" value="<?php echo remove_junk($order['id']); ?>">
+                  <input type="text" class="form-control" name="order_id" value="<?php echo $order['id']; ?>">
                 </td>
 
 
                 <td id="s_name">
-                  <input type="text" class="form-control" id="sug_input" name="title" value="<?php echo remove_junk($product['name']); ?>">
+                  <input type="text" class="form-control" id="sug_input" name="title" value="<?php echo $product['name']; ?>">
 
                   <div id="result" class="list-group"></div>
 
@@ -143,13 +143,13 @@ if (isset($_POST['update_sale'])) {
                   <input type="text" class="form-control" name="quantity" value="<?php echo (int)$sale['qty']; ?>">
                 </td>
                 <td id="s_price">
-                  <input type="text" class="form-control" name="price" value="<?php echo remove_junk($product['sale_price']); ?>" >
+                  <input type="text" class="form-control" name="price" value="<?php echo $product['sale_price']; ?>" >
                 </td>
                 <td>
-                  <input type="text" class="form-control" name="total" value="<?php echo remove_junk($sale['price']); ?>">
+                  <input type="text" class="form-control" name="total" value="<?php echo $sale['price']; ?>">
                 </td>
                 <td id="s_date">
-                  <input type="date" class="form-control datepicker" name="date" data-date-format="" value="<?php echo remove_junk($sale['date']); ?>">
+                  <input type="date" class="form-control datepicker" name="date" data-date-format="" value="<?php echo $sale['date']; ?>">
                 </td>
                 <td>
                   <button type="submit" name="update_sale" class="btn btn-primary">Update Sale</button>

@@ -20,34 +20,39 @@ if (!$order) {
 }
 
 if (isset($_POST['edit_order'])) {
-	$customer = remove_junk($db->escape($_POST['customer']));
-	$paymethod = remove_junk($db->escape($_POST['paymethod']));
+	$req_fields = array('customer-name','paymethod' );
+	validate_fields($req_fields);
+	$customer_name = $db->escape($_POST['customer-name']);
+	$paymethod = $db->escape($_POST['paymethod']);
 	$notes = remove_junk($db->escape($_POST['notes']));
+	$c_address = "";
+	$c_city = "";
+	$c_region = "";
+	$c_postcode = "";
+	$c_telephone = "";
+	$c_email = "";
 	$date = remove_junk($db->escape($_POST['date']));
 	if ($date == 0 ) { $date    = make_date(); }
 
 	if (empty($errors)) {
-
-
-	if ( ! find_by_name('customers',$customer) )
+			
+	if ( ! find_by_name('customers',$customer_name) )
 	{
 		$query  = "INSERT INTO customers (";
-		//$query .=" name,address,postcode,telephone,email,paymethod";
-		$query .=" name,paymethod";
+		$query .=" name,address,city,region,postcode,telephone,email,paymethod";
 		$query .=") VALUES (";
-		//$query .=" '{$customer}', '{$c_address}', '{$c_postcode}', '{$c_telephone}', '{$c_email}', '{$paymethod}'";
-		$query .=" '{$customer}', '{$paymethod}'";
+		$query .=" '{$customer_name}', '{$c_address}','{$c_city}', '{$c_region}', '{$c_postcode}', '{$c_telephone}', '{$c_email}', '{$paymethod}'";
 		$query .=")";
 		$result = $db->query($query);
 		if ($result && $db->affected_rows() === 1) {
-			$session->msg('s', "Customer Added ");
+			$session->msg('s', "Customer Added! ");
 		} else {
-			$session->msg('d', ' Sorry failed to updated!');
+			$session->msg('d', ' Sorry, Failed to Add!');
 		}
 	}	
-
+	
 		$sql = "UPDATE orders SET";
-		$sql .= " customer='{$customer}', paymethod='{$paymethod}', notes='{$notes}', date='{$date}'";
+		$sql .= " customer='{$customer_name}', paymethod='{$paymethod}', notes='{$notes}', date='{$date}'";
 		$sql .= " WHERE id='{$order['id']}'";
 
 		$result = $db->query($sql);
@@ -75,13 +80,13 @@ if (isset($_POST['edit_order'])) {
        <div class="panel-heading">
          <strong>
            <span class="glyphicon glyphicon-th"></span>
-           <span>Editing Order #<?php echo remove_junk(ucfirst($order['id']));?></span>
+           <span>Editing Order #<?php echo ucfirst($order['id']);?></span>
         </strong>
        </div>
        <div class="panel-body">
          <form method="post" action="../sales/edit_order.php?id=<?php echo (int)$order['id'];?>">
            <div class="form-group">
-               <input type="text" class="form-control" name="customer" value="<?php echo remove_junk(ucfirst($order['customer']));?>">
+               <input type="text" class="form-control" name="customer-name" value="<?php echo ucfirst($order['customer']);?>">
            </div>
 
            <div class="form-group">
@@ -96,11 +101,11 @@ if (isset($_POST['edit_order'])) {
            </div>
 
            <div class="form-group">
-               <input type="text" class="form-control" name="notes" value="<?php echo remove_junk(ucfirst($order['notes']));?>" placeholder="Notes">
+               <input type="text" class="form-control" name="notes" value="<?php echo ucfirst($order['notes']);?>" placeholder="Notes">
            </div>
 
            <div class="form-group">
-           <input type="date" class="form-control datepicker" name="date" data-date-format="" value="<?php echo remove_junk($order['date']); ?>">
+           <input type="date" class="form-control datepicker" name="date" data-date-format="" value="<?php echo $order['date']; ?>">
            </div>
 
          <div class="pull-right">

@@ -78,25 +78,25 @@ $products_available = join_product_table();
   <?php if ($sales): ?>
     <div class="page-break">
        <div class="sale-head pull-right">
-           <h1>Invoice #<?php echo remove_junk(ucfirst($order['id']));?></h1>
-           <strong><?php echo remove_junk($order['date']);?> </strong>
+           <h1>Invoice #<?php echo ucfirst($order['id']);?></h1>
+           <strong><?php echo $order['date'];?> </strong>
        </div>
        <div class="sale-head pull-left">
        <?php
             echo "<h1>";
-            echo remove_junk(ucfirst($order['customer']));
+            echo ucfirst($order['customer']);
             echo "</h1>";            
-            echo remove_junk($customer['address']);
+            echo $customer['address'];
             echo "<br>";
-            echo remove_junk($customer['city']);
+            echo $customer['city'];
             echo "&nbsp;&nbsp;";
-            echo remove_junk($customer['region']);
+            echo $customer['region'];
             echo "&nbsp;&nbsp;";
-            echo remove_junk($customer['postcode']);
+            echo $customer['postcode'];
             echo "<br>";
 
             echo "&nbsp;&nbsp;";
-            echo remove_junk($customer['telephone']); echo "&nbsp; | &nbsp;"; echo remove_junk($customer['email']);
+            echo $customer['telephone']; echo "&nbsp; | &nbsp;"; echo $customer['email'];
             echo "&nbsp;&nbsp;";
        ?>
        </div>       
@@ -112,21 +112,21 @@ $products_available = join_product_table();
         <tbody>
           <?php foreach ($sales as $sale): ?>
            <tr>
-              <td class="text-center"><?php echo remove_junk($sale['qty']);?></td>
-              <td class="text-center"><?php echo remove_junk(ucfirst($sale['name']));?></td>
+              <td class="text-center"><?php echo $sale['qty'];?></td>
+              <td class="text-center"><?php echo ucfirst($sale['name']);?></td>
               <td class="text-center">
                <?php
               foreach ( $products_available as $product ) {
                             if ( $product['name'] == $sale['name'] )
                             {
-                            echo formatcurrency( remove_junk($product['sale_price']), $CURRENCY_CODE);
+                            echo formatcurrency( $product['sale_price'], $CURRENCY_CODE);
                             }
               }
               ?>                    
               </td>
-              <td class="text-center"><?php echo formatcurrency( remove_junk($sale['price']), $CURRENCY_CODE); ?></td>
+              <td class="text-center"><?php echo formatcurrency( $sale['price'], $CURRENCY_CODE); ?></td>
 <?php
-	$order_total = $order_total + remove_junk($sale['price']);
+	$order_total = $order_total + $sale['price'];
 ?>
           </tr>
         <?php endforeach; ?>

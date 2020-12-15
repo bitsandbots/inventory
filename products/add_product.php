@@ -220,11 +220,6 @@ if (isset($_POST['add_product'])) {
          </div>
         </div>
       </div>
-<?php
-//$product = last_id("products");
-//$product_id = $product['id'];
-//echo "product_id: " . $product_id;
-?>
 
     </div>
   </div>

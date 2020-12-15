@@ -15,6 +15,8 @@ function real_escape($str){
 /*--------------------------------------------------------------*/
 function remove_junk($str){
   $str = nl2br($str);
+  $str = trim($str);
+  $str = stripslashes($str);
   $str = htmlspecialchars(strip_tags($str, ENT_QUOTES));
   return $str;
 }

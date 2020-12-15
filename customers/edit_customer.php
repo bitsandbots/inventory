@@ -24,45 +24,41 @@ if (isset($_POST['edit_customer'])) {
 	validate_fields($req_fields);
 
 	if (empty($errors)) {
-		if (is_null($_POST['customer-name']) || $_POST['customer-name'] === "") {
-			$c_name  =  '';
-		} else {
-			$c_name  = remove_junk($db->escape($_POST['customer-name']));
-		}
+		$c_name  = $db->escape($_POST['customer-name']);
 		if (is_null($_POST['customer-address']) || $_POST['customer-address'] === "") {
 			$c_address  =  '';
 		} else {
-			$c_address  = remove_junk($db->escape($_POST['customer-address']));
+			$c_address  = $db->escape($_POST['customer-address']);
 		}
 		if (is_null($_POST['customer-city']) || $_POST['customer-city'] === "") {
 			$c_city  =  '';
 		} else {
-			$c_city  = remove_junk($db->escape($_POST['customer-city']));
+			$c_city  = $db->escape($_POST['customer-city']);
 		}
 		if (is_null($_POST['customer-region']) || $_POST['customer-region'] === "") {
 			$c_region  =  '';
 		} else {
-			$c_region  = remove_junk($db->escape($_POST['customer-region']));
+			$c_region  = $db->escape($_POST['customer-region']);
 		}
 		if (is_null($_POST['customer-postcode']) || $_POST['customer-postcode'] === "") {
 			$c_postcode  =  '';
 		} else {
-			$c_postcode  = remove_junk($db->escape($_POST['customer-postcode']));
+			$c_postcode  = $db->escape($_POST['customer-postcode']);
 		}
 		if (is_null($_POST['customer-telephone']) || $_POST['customer-telephone'] === "") {
 			$c_telephone  =  '';
 		} else {
-			$c_telephone  = remove_junk($db->escape($_POST['customer-telephone']));
+			$c_telephone  = $db->escape($_POST['customer-telephone']);
 		}
 		if (is_null($_POST['customer-email']) || $_POST['customer-email'] === "") {
 			$c_email  =  '';
 		} else {
-			$c_email  = remove_junk($db->escape($_POST['customer-email']));
+			$c_email  = $db->escape($_POST['customer-email']);
 		}
 		if (is_null($_POST['customer-paymethod']) || $_POST['customer-paymethod'] === "") {
 			$c_paymethod  =  '';
 		} else {
-			$c_paymethod  = remove_junk($db->escape($_POST['customer-paymethod']));
+			$c_paymethod  = $db->escape($_POST['customer-paymethod']);
 		}
 
 	if ( find_by_name('customers',$c_name) )
@@ -118,10 +114,8 @@ if (isset($_POST['edit_customer'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-user"></i>
                   </span>
-		  &nbsp;
-		  &nbsp;
-		  <?php echo remove_junk($customer['name']);?>
-                  <input type="hidden" class="form-control" name="customer-name" value="<?php echo remove_junk($customer['name']);?>">
+                  <input type="text" class="form-control" name="customer-name" value="<?php echo $customer['name'];?>" disabled>
+                  <input type="hidden" class="form-control" name="customer-name" value="<?php echo $customer['name'];?>">
                </div>
               </div>
 
@@ -131,7 +125,7 @@ if (isset($_POST['edit_customer'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-home"></i>
                   </span>
-                  <input type="text" class="form-control" name="customer-address" value="<?php echo remove_junk($customer['address']);?>" placeholder="Address">
+                  <input type="text" class="form-control" name="customer-address" value="<?php echo $customer['address'];?>" placeholder="Address">
                </div>
               </div>
               <div class="form-group">
@@ -139,7 +133,7 @@ if (isset($_POST['edit_customer'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-home"></i>
                   </span>
-                  <input type="text" class="form-control" name="customer-city" value="<?php echo remove_junk($customer['city']);?>" placeholder="City">
+                  <input type="text" class="form-control" name="customer-city" value="<?php echo $customer['city'];?>" placeholder="City">
                </div>
               </div>
               <div class="form-group">
@@ -147,7 +141,7 @@ if (isset($_POST['edit_customer'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-home"></i>
                   </span>
-                  <input type="text" class="form-control" name="customer-region" value="<?php echo remove_junk($customer['region']);?>" placeholder="State / Province / Region">
+                  <input type="text" class="form-control" name="customer-region" value="<?php echo $customer['region'];?>" placeholder="State / Province / Region">
                </div>
               </div>
 
@@ -156,7 +150,7 @@ if (isset($_POST['edit_customer'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-envelope"></i>
                   </span>
-                  <input type="text" class="form-control" name="customer-postcode" value="<?php echo remove_junk($customer['postcode']);?>" placeholder="Postal Code">
+                  <input type="text" class="form-control" name="customer-postcode" value="<?php echo $customer['postcode'];?>" placeholder="Postal Code">
                </div>
               </div>
               <div class="form-group">
@@ -164,7 +158,7 @@ if (isset($_POST['edit_customer'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-phone"></i>
                   </span>
-                  <input type="text" class="form-control" name="customer-telephone" value="<?php echo remove_junk($customer['telephone']);?>" placeholder="Telephone">
+                  <input type="text" class="form-control" name="customer-telephone" value="<?php echo $customer['telephone'];?>" placeholder="Telephone">
                </div>
               </div>
               <div class="form-group">
@@ -172,7 +166,7 @@ if (isset($_POST['edit_customer'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-globe"></i>
                   </span>
-                  <input type="text" class="form-control" name="customer-email" value="<?php echo remove_junk($customer['email']);?>" placeholder="Email">
+                  <input type="text" class="form-control" name="customer-email" value="<?php echo $customer['email'];?>" placeholder="Email">
                </div>
               </div>
 

@@ -96,7 +96,7 @@ if (isset($_POST['update-pass'])) {
        <div class="panel-heading">
         <strong>
           <span class="glyphicon glyphicon-th"></span>
-          Update <?php echo remove_junk(ucwords($e_user['name'])); ?> Account
+          Update <?php echo ucwords($e_user['name']); ?> Account
         </strong>
        </div>
 <!--     *************************     -->
@@ -107,12 +107,12 @@ if (isset($_POST['update-pass'])) {
 <!--     *************************     -->
             <div class="form-group">
                   <label for="name" class="control-label">Name</label>
-                  <input type="name" class="form-control" name="name" value="<?php echo remove_junk(ucwords($e_user['name'])); ?>">
+                  <input type="name" class="form-control" name="name" value="<?php echo ucwords($e_user['name']); ?>">
             </div>
 <!--     *************************     -->
             <div class="form-group">
                   <label for="username" class="control-label">Username</label>
-                  <input type="text" class="form-control" name="username" value="<?php echo remove_junk(ucwords($e_user['username'])); ?>">
+                  <input type="text" class="form-control" name="username" value="<?php echo $e_user['username']; ?>">
             </div>
 <!--     *************************     -->
             <div class="form-group">
@@ -148,7 +148,7 @@ if (isset($_POST['update-pass'])) {
       <div class="panel-heading">
         <strong>
           <span class="glyphicon glyphicon-th"></span>
-          Change <?php echo remove_junk(ucwords($e_user['name'])); ?> password
+          Change <?php echo ucwords($e_user['name']); ?> password
         </strong>
       </div>
       <div class="panel-body">

@@ -42,7 +42,7 @@ if (isset($_POST['c_name']) && strlen($_POST['c_name'])) {
 			$html .= "<tr>";
 
 			$html .= "<td id=\"customer_name\">{$result['name']}</td>";
-			$html .= "<input type=\"hidden\" name=\"customer_name\" value=\"{$result['name']}\">";
+			$html .= "<input type=\"hidden\" name=\"customer-name\" value=\"{$result['name']}\">";
 			$html .= "<td class=\"text-center\">";
 			$html .= "{$result['address']}";
 			$html .= "</td>";

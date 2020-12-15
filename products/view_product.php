@@ -51,10 +51,10 @@ if ( ! $product ) {
     <div class="col-md-1">
     </div>
     <div class="col-md-6">
-<h4><?php echo remove_junk(first_character($product['name']));?></h4>
+<h4><?php echo first_character($product['name']);?></h4>
 
 <div><label>Description:</label></div>
-<div><?php echo remove_junk($product['description']); ?></div>
+<div><?php echo $product['description'];?></div>
 
     </div>
 
@@ -120,10 +120,10 @@ foreach ($all_categories as $category ) {
 	}
 }
 ?>
- 			    <td class="text-center"> <?php echo remove_junk($category['name']); ?></td>
-                <td class="text-center"> <?php echo remove_junk($product['location']); ?></td>
-                <td class="text-center"> <?php echo remove_junk($product['sku']); ?></td>
-                <td class="text-center"> <?php echo remove_junk($product['quantity']); ?></td>
+ 			    <td class="text-center"> <?php echo $category['name']; ?></td>
+                <td class="text-center"> <?php echo $product['location']; ?></td>
+                <td class="text-center"> <?php echo $product['sku']; ?></td>
+                <td class="text-center"> <?php echo $product['quantity']; ?></td>
                 <td class="text-center"> <?php echo formatcurrency( $product['buy_price'], $CURRENCY_CODE); ?></td>
                 <td class="text-center"> <?php echo formatcurrency( $product['sale_price'], $CURRENCY_CODE); ?></td>
                 <td class="text-center"> <?php echo read_date($product['date']); ?></td>

@@ -97,10 +97,10 @@ if (isset($_POST['submit'])) {
         <tbody>
           <?php foreach ($products as $product): ?>
            <tr>
-              <td class="text-center"><?php echo remove_junk($product['sku']);?></td>
-              <td class="text-center"><?php echo remove_junk(ucfirst($product['name']));?></td>
-              <td class="text-center"><?php echo remove_junk($product['category']);?></td>
-              <td class="text-center"><?php echo remove_junk($product['quantity']);?></td>
+              <td class="text-center"><?php echo $product['sku'];?></td>
+              <td class="text-center"><?php echo ucfirst($product['name']);?></td>
+              <td class="text-center"><?php echo $product['category'];?></td>
+              <td class="text-center"><?php echo $product['quantity'];?></td>
               <td class="text-center"><?php echo formatcurrency($product['buy_price'],$CURRENCY_CODE);?></td>
           </tr>
         <?php endforeach; ?>

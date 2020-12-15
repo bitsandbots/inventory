@@ -58,28 +58,28 @@ $all_customers = find_all('customers');
               <?php foreach ($all_customers as $customer):?>
                 <tr>
                     <td class="text-center">
-						<?php echo remove_junk(ucfirst($customer['name']));?>
+						<?php echo ucfirst($customer['name']);?>
 					</td>
                     <td class="text-center">
-						<?php echo remove_junk($customer['city']);?>
+						<?php echo $customer['city'];?>
 					</td>
                     <td class="text-center">
-						<?php echo remove_junk($customer['region']);?>
+						<?php echo $customer['region'];?>
 					</td>
 
                     <td class="text-center">
-						<?php echo remove_junk($customer['postcode']);?>
+						<?php echo $customer['postcode'];?>
 					</td>
                    <td class="text-center">
-          					<a href="tel:<?php echo remove_junk($customer['telephone']);?>"><?php echo remove_junk($customer['telephone']);?></a>
+          					<a href="tel:<?php echo $customer['telephone'];?>"><?php echo $customer['telephone'];?></a>
           				</td>
 
                     <td class="text-center">
-          					<a href="mailto:<?php echo remove_junk($customer['email']);?>"><?php echo remove_junk($customer['email']);?></a>
+          					<a href="mailto:<?php echo $customer['email'];?>"><?php echo $customer['email'];?></a>
           				</td>
 			
                     <td class="text-center">
-						<?php echo remove_junk(ucfirst($customer['paymethod']));?>
+						<?php echo ucfirst($customer['paymethod']);?>
 					</td>
 
                     <td class="text-center">

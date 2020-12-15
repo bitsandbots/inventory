@@ -90,11 +90,11 @@ if (isset($_POST['update'])) {
           <form method="post" action="../users/edit_account.php?id=<?php echo (int)$user['id'];?>" class="clearfix">
             <div class="form-group">
                   <label for="name" class="control-label">Name</label>
-                  <input type="name" class="form-control" name="name" value="<?php echo remove_junk(ucwords($user['name'])); ?>">
+                  <input type="name" class="form-control" name="name" value="<?php echo ucwords($user['name']); ?>">
             </div>
             <div class="form-group">
                   <label for="username" class="control-label">Username</label>
-                  <input type="text" class="form-control" name="username" value="<?php echo remove_junk(ucwords($user['username'])); ?>">
+                  <input type="text" class="form-control" name="username" value="<?php echo $user['username']; ?>">
             </div>
             <div class="form-group clearfix">
                     <a href="../users/change_password.php" title="change password" class="btn btn-danger pull-right">Change Password</a>

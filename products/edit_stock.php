@@ -88,7 +88,7 @@ if (isset($_POST['edit_stock'])) {
        <div class="panel-heading">
          <strong>
            <span class="glyphicon glyphicon-th"></span>
-           <span>Editing <?php echo remove_junk(ucfirst($stock['product_id']));?></span>
+           <span>Editing <?php echo $stock['product_id'];?></span>
         </strong>
        </div>
        <div class="panel-body">
@@ -109,7 +109,7 @@ if (isset($_POST['edit_stock'])) {
            </div>
 
            <div class="form-group">
-               <input type="text" class="form-control" name="comments" value="<?php echo remove_junk(ucfirst($stock['comments']));?>" placeholder="Notes">
+               <input type="text" class="form-control" name="comments" value="<?php echo $stock['comments'];?>" placeholder="Notes">
            </div>
 
            <button type="submit" name="edit_stock" class="btn btn-primary">Update Inventory</button>

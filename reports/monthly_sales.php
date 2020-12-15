@@ -43,7 +43,7 @@ $sales = monthlySales($year);
              <?php foreach ($sales as $sale):?>
              <tr>
                <td class="text-center"><?php echo count_id();?></td>
-               <td><?php echo remove_junk($sale['name']); ?></td>
+               <td><?php echo $sale['name']; ?></td>
                <td class="text-center"><?php echo (int)$sale['qty']; ?></td>
                <td class="text-center"><?php echo formatcurrency($sale['total_selling_price'],  $CURRENCY_CODE); ?></td>
                <td class="text-center"><?php echo $sale['date']; ?></td>

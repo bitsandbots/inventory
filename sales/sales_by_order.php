@@ -61,18 +61,18 @@ $order = find_by_id("orders", $order_id);
 					</td>
 
                     <td class="text-center">
-						<?php echo remove_junk(ucfirst($order['customer']));?>
+						<?php echo ucfirst($order['customer']);?>
 					</td>
                     <td class="text-center">
-						<?php echo remove_junk(ucfirst($order['paymethod']));?>
-					</td>
-
-                    <td class="text-center">
-						<?php echo remove_junk(ucfirst($order['notes']));?>
+						<?php echo ucfirst($order['paymethod']);?>
 					</td>
 
                     <td class="text-center">
-						<?php echo remove_junk(ucfirst($order['date']));?>
+						<?php echo $order['notes'];?>
+					</td>
+
+                    <td class="text-center">
+						<?php echo $order['date'];?>
 					</td>
 
                     <td class="text-center">
@@ -131,7 +131,7 @@ $order = find_by_id("orders", $order_id);
 
              <tr>
                <td class="text-center"><?php echo count_id();?></td>
-               <td><?php echo remove_junk($sale['name']); ?></td>
+               <td><?php echo $sale['name']; ?></td>
                <td class="text-center"><?php echo $sale['sku']; ?></td>
                <td class="text-center"><?php echo $sale['location']; ?></td>
                <td class="text-center"><?php echo (int)$sale['qty']; ?></td>

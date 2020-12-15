@@ -16,15 +16,20 @@ $new_order_id = $order_id['id'] + 1;
 ?>
 <?php
 if (isset($_POST['add_order'])) {
-	$customer_name = remove_junk($db->escape($_POST['customer_name']));
-	$paymethod = remove_junk($db->escape($_POST['paymethod']));
+	$req_fields = array('customer-name','paymethod' );
+	validate_fields($req_fields);
+	$customer_name = $db->escape($_POST['customer-name']);
+	$paymethod = $db->escape($_POST['paymethod']);
+	$notes = $db->escape($_POST['notes']);
 	$c_address = "";
 	$c_city = "";
 	$c_region = "";
 	$c_postcode = "";
 	$c_telephone = "";
 	$c_email = "";
-	
+
+	if (empty($errors)) {
+			
 	if ( ! find_by_name('customers',$customer_name) )
 	{
 		$query  = "INSERT INTO customers (";
@@ -40,10 +45,7 @@ if (isset($_POST['add_order'])) {
 		}
 	}	
 	
-	
-	$notes = "";
 	$current_date    = make_date();
-	if (empty($errors)) {
 		$sql  = "INSERT INTO orders (id,customer,paymethod,notes,date)";
 		$sql .= " VALUES ('{$new_order_id}','{$customer_name}','{$paymethod}','{$notes}','{$current_date}')";
 		if ($db->query($sql)) {
@@ -78,7 +80,7 @@ if (isset($_POST['add_order'])) {
 
         <div class="form-group">
               <label for="name" class="control-label">Customer Name</label>
-              <input type="text" class="form-control" name="customer_name" value="" placeholder="Customer">
+              <input type="text" class="form-control" name="customer-name" value="" placeholder="Customer">
         </div>
 
            <div class="form-group">

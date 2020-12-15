@@ -140,7 +140,7 @@ function closePanel()
             <?php foreach ($products_sold as  $product_sold): ?>
 
               <tr>
-                <td><?php echo remove_junk(first_character($product_sold['name'])); ?></td>
+                <td><?php echo first_character($product_sold['name']); ?></td>
                 <td><?php echo (int)$product_sold['totalSold']; ?></td>
                 <td><?php echo (int)$product_sold['totalQty']; ?></td>
               </tr>
@@ -180,11 +180,11 @@ function closePanel()
            <td class="text-center"><?php echo count_id();?></td>
            <td>
             <a href="../sales/edit_sale.php?id=<?php echo (int)$recent_sale['id']; ?>">
-             <?php echo remove_junk(first_character($recent_sale['name'])); ?>
+             <?php echo first_character($recent_sale['name']); ?>
            </a>
            </td>
-           <td><?php echo remove_junk(ucfirst($recent_sale['date'])); ?></td>
-           <td><?php echo formatcurrency( remove_junk(first_character($recent_sale['price'])), $CURRENCY_CODE); ?></td>
+           <td><?php echo ucfirst($recent_sale['date']); ?></td>
+           <td><?php echo formatcurrency( first_character($recent_sale['price']), $CURRENCY_CODE); ?></td>
         </tr>
 
        <?php endforeach; ?>
@@ -218,13 +218,13 @@ function closePanel()
                   <?php else: ?>
                   <img class="img-avatar img-circle" src="../uploads/products/<?php echo $recent_product['image'];?>" alt="" />
                 <?php endif;?>
-                <?php echo remove_junk(first_character($recent_product['name']));?>
+                <?php echo first_character($recent_product['name']);?>
                   <span class="label label-warning pull-right">
                  <?php echo formatcurrency( (int)$recent_product['sale_price'], $CURRENCY_CODE); ?>
                   </span>
                 </h4>
                 <span class="list-group-item-text pull-right">
-                <?php echo remove_junk(first_character($recent_product['category'])); ?>
+                <?php echo first_character($recent_product['category']); ?>
               </span>
           </a>
 

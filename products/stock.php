@@ -64,15 +64,15 @@ foreach ( $all_products as $product ) {
 					</td>
 
                     <td class="text-center">
-						<?php echo remove_junk(ucfirst($stock['quantity']));?>
+						<?php echo $stock['quantity'];?>
 					</td>
 
 
                     <td class="text-center">
-						<?php echo remove_junk(ucfirst($stock['comments']));?>
+						<?php echo $stock['comments'];?>
 					</td>
                     <td class="text-center">
-						<?php echo remove_junk(ucfirst($stock['date']));?>
+						<?php echo $stock['date'];?>
 					</td>
 
 
@@ -94,17 +94,6 @@ foreach ( $all_products as $product ) {
           </table>
        </div>
     </div>
-
-<?php
-/**
- * print "<pre>";
- * print_r($all_stock);
- * print "</pre>\n";
- *
- */
-?>
-
-
     </div>
    </div>
   </div>

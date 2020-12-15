@@ -64,9 +64,9 @@ $all_users = find_all_user();
 
           <tr>
            <td class="text-center"><?php echo $a_user['id'];?></td>
-           <td><?php echo remove_junk(ucwords($a_user['name']))?></td>
-           <td><?php echo remove_junk(ucwords($a_user['username']))?></td>
-           <td class="text-center"><?php echo remove_junk(ucwords($a_user['group_name']))?></td>
+           <td><?php echo ucwords($a_user['name'])?></td>
+           <td><?php echo $a_user['username']?></td>
+           <td class="text-center"><?php echo ucwords($a_user['group_name'])?></td>
 <!--     *************************     -->
            <td class="text-center">
            <?php if ($a_user['status'] === '1'): ?>

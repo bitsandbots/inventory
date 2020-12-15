@@ -103,17 +103,17 @@ if (isset($_POST['submit'])) {
         <tbody>
           <?php foreach ($results as $result): ?>
            <tr>
-              <td class=""><?php echo remove_junk($result['date']);?></td>
-              <td class="text-center"><?php echo remove_junk(ucfirst($result['name']));?></td>
-              <td class="text-right"><?php echo formatcurrency($result['buy_price'], $CURRENCY_CODE);?></td>
-              <td class="text-right"><?php echo formatcurrency($result['sale_price'], $CURRENCY_CODE);?></td>
-              <td class="text-right"><?php echo remove_junk($result['total_sales']);?></td>
-              <td class="text-right"><?php echo formatcurrency($result['total_selling_price'], $CURRENCY_CODE);?></td>
+              <td class="text-center"><?php echo $result['date'];?></td>
+              <td class="text-center"><?php echo ucfirst($result['name']);?></td>
+              <td class="text-center"><?php echo formatcurrency($result['buy_price'], $CURRENCY_CODE);?></td>
+              <td class="text-center"><?php echo formatcurrency($result['sale_price'], $CURRENCY_CODE);?></td>
+              <td class="text-center"><?php echo $result['total_sales'];?></td>
+              <td class="text-center"><?php echo formatcurrency($result['total_selling_price'], $CURRENCY_CODE);?></td>
           </tr>
         <?php endforeach; ?>
         </tbody>
         <tfoot>
-         <tr class="text-right">
+         <tr class="text-center">
            <td colspan="4"></td>
            <td colspan="1">Grand Total</td>
            <td>
@@ -122,7 +122,7 @@ if (isset($_POST['submit'])) {
             ?>
           </td>
          </tr>
-         <tr class="text-right">
+         <tr class="text-center">
            <td colspan="4"></td>
            <td colspan="1">Profit</td>
            <td>

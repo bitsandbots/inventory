@@ -80,11 +80,11 @@ $products_available = join_product_table();
   <?php if ($sales): ?>
     <div class="page-break">
        <div class="sale-head pull-right">
-           <h1>Order #<?php echo remove_junk(ucfirst($order['id']));?></h1>
-           <strong><?php echo remove_junk($order['date']);?> </strong>
+           <h1>Order #<?php echo ucfirst($order['id']);?></h1>
+           <strong><?php echo $order['date'];?> </strong>
        </div>
        <div class="sale-head pull-left">
-           <h1><?php echo remove_junk(ucfirst($order['customer']));?> </h1>
+           <h1><?php echo ucfirst($order['customer']);?> </h1>
        </div>
            
       <table class="table table-border">
@@ -108,24 +108,24 @@ $products_available = join_product_table();
               foreach ( $products_available as $product ) {
                             if ( $product['name'] == $sale['name'] )
                             {
-                            echo remove_junk($product['sku']);
+                            echo $product['sku'];
                             }
               }
               ?>              
               </td>
-              <td class="text-center"><?php echo remove_junk(ucfirst($sale['name']));?></td>
-              <td class="text-center"><?php echo remove_junk($sale['location']);?></td>
+              <td class="text-center"><?php echo ucfirst($sale['name']);?></td>
+              <td class="text-center"><?php echo $sale['location'];?></td>
               <td class="text-center">
               <?php
               foreach ( $products_available as $product ) {
                             if ( $product['name'] == $sale['name'] )
                             {
-                            echo (( remove_junk($product['quantity']) ) + ( remove_junk($sale['qty']) ) );
+                            echo $product['quantity'] + $sale['qty'];
                             }
               }
               ?>
               </td>
-              <td class="text-center"><?php echo remove_junk($sale['qty']);?></td>
+              <td class="text-center"><?php echo $sale['qty'];?></td>
               <td class="text-center"></td>
               <td class="text-center"></td>
               <td class="text-center"></td>

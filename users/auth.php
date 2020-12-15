@@ -9,8 +9,8 @@
 include_once '../includes/load.php';
 ///importing csrf handler
 use csrfhandler\csrf as csrf;	
-//check for only get & post requests
-$isValid = csrf::all();
+//check for only post requests
+$isValid = csrf::post();
 if(!($isValid)) {
 	$session->msg('d', "Invalid Token ");
 	redirect('index.php', false);
