@@ -107,7 +107,7 @@ $order = find_by_id("orders", $order_id);
             <span>Sales</span>
           </strong>
           <div class="pull-right">
-            <a href="../sales/add_sale_to_order.php?id=<?php echo $order_id; ?>" class="btn btn-primary">Add sale</a>
+            <a href="../sales/add_sale_by_search.php?id=<?php echo $order_id; ?>" class="btn btn-primary">Add sale</a>
           </div>
         </div>
         <div class="panel-body">

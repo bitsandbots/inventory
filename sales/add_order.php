@@ -50,7 +50,7 @@ if (isset($_POST['add_order'])) {
 		$sql .= " VALUES ('{$new_order_id}','{$customer_name}','{$paymethod}','{$notes}','{$current_date}')";
 		if ($db->query($sql)) {
 			$session->msg("s", "Successfully Added Order");
-			redirect( ( '../sales/add_sale_to_order.php?id=' . $new_order_id ) , false);
+			redirect( ( '../sales/add_sale_by_search.php?id=' . $new_order_id ) , false);
 		} else {
 			$session->msg("d", "Sorry, Failed to Add Order!");
 			redirect( '../sales/add_order.php' , false);

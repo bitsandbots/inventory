@@ -32,7 +32,7 @@ $all_groups = find_all('user_groups');
         <span>Groups</span>
      </strong>
           <div class="pull-right">
-             <a href="../users/add_group.php"class="btn btn-primary">Add New Group</a>
+             <!-- <a href="../users/add_group.php"class="btn btn-primary">Add New Group</a> -->
           </div>
     </div>
 <!--     *************************     -->
