@@ -14,13 +14,6 @@ $groups = find_all('user_groups');
 $all_users = find_all_user();
 
 if (isset($_POST['add_user'])) {
-
-//check for only get & post requests
-$isValid = csrf::all();
-if(!($isValid)) {
-	$session->msg('d', "Invalid Token ");
-	redirect('index.php', false);
-}
 	$req_fields = array('full-name', 'username', 'password', 'level' );
 	validate_fields($req_fields);
 
