@@ -6,21 +6,21 @@
  */
 
 
-$page_title = 'Edit product';
+$page_title = 'Edit Product';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
 page_require_level(2);
-?>
-<?php
-$product = find_by_id('products', (int)$_GET['id']);
+$id = filter_var($_GET['id'], FILTER_VALIDATE_INT);
+$product = find_by_id('products', $id);
 $all_categories = find_all('categories');
 $all_photo = find_all('media');
 if (!$product) {
 	$session->msg("d", "Missing product id.");
+	$log_action = "missing id";
+	logAction( $log_action );
 	redirect('../products/products.php');
 }
-?>
-<?php
+
 if (isset($_POST['product'])) {
 	$req_fields = array('product-title', 'product-category', 'product-quantity', 'cost-price', 'sale-price' );
 	validate_fields($req_fields);
@@ -29,31 +29,31 @@ if (isset($_POST['product'])) {
 		if (is_null($_POST['product-sku']) || $_POST['product-sku'] === "") {
 			$p_sku  =  '';
 		} else {
-			$p_sku  = remove_junk($db->escape($_POST['product-sku']));
+			$p_sku  = $db->escape(remove_junk($_POST['product-sku']));
 		}
 
-		$p_name  = remove_junk($db->escape($_POST['product-title']));
+		$p_name  = $db->escape(remove_junk($_POST['product-title']));
 
 		if (is_null($_POST['product-desc']) || $_POST['product-desc'] === "") {
 			$p_desc  =  'none';
 		} else {
-			$p_desc  = remove_junk($db->escape($_POST['product-desc']));
+			$p_desc  = $db->escape(remove_junk($_POST['product-desc']));
 		}
 
 		if (is_null($_POST['product-location']) || $_POST['product-location'] === "") {
 			$p_loc  =  'NA';
 		} else {
-			$p_loc  = remove_junk($db->escape($_POST['product-location']));
+			$p_loc  = $db->escape(remove_junk($_POST['product-location']));
 		}
 
 		$p_cat   = (int)$_POST['product-category'];
-		$p_qty   = remove_junk($db->escape($_POST['product-quantity']));
-		$p_buy   = remove_junk($db->escape($_POST['cost-price']));
-		$p_sale  = remove_junk($db->escape($_POST['sale-price']));
+		$p_qty   = $db->escape(remove_junk($_POST['product-quantity']));
+		$p_buy   = $db->escape(remove_junk($_POST['cost-price']));
+		$p_sale  = $db->escape(remove_junk($_POST['sale-price']));
 		if (is_null($_POST['product-photo']) || $_POST['product-photo'] === "") {
 			$media_id = '0';
 		} else {
-			$media_id = remove_junk($db->escape($_POST['product-photo']));
+			$media_id = $db->escape(remove_junk($_POST['product-photo']));
 		}
 		$query   = "UPDATE products SET";
 		$query  .=" name ='{$p_name}', description ='{$p_desc}', sku ='{$p_sku}',location ='{$p_loc}', quantity ='{$p_qty}',";
@@ -62,14 +62,21 @@ if (isset($_POST['product'])) {
 		$result = $db->query($query);
 		if ($result && $db->affected_rows() === 1) {
 			$session->msg('s', "Product Updated ");
+			$log_action = "success";
+			logAction( $log_action );
 			redirect('../products/products.php', false);
 		} else {
 			$session->msg('d', ' Sorry Failed to Update!');
+			$log_action = "failed";
+			logAction( $log_action );
 			redirect('../products/edit_product.php?id='.$product['id'], false);
 		}
 
 	} else {
 		$session->msg("d", $errors);
+		$log_action = $errors;
+		logAction( $log_action );
+
 		redirect('../products/edit_product.php?id='.$product['id'], false);
 	}
 
@@ -82,23 +89,27 @@ if (isset($_POST['product'])) {
     <?php echo display_msg($msg); ?>
   </div>
 </div>
+<!--     *************************     -->
   <div class="row">
+  <div class="col-md-8">
       <div class="panel panel-default">
         <div class="panel-heading">
           <strong>
             <span class="glyphicon glyphicon-th"></span>
+<!--     *************************     -->
             <span>Edit Product</span>
+<!--     *************************     -->
          </strong>
         </div>
         <div class="panel-body">
-         <div class="col-md-7">
+         <div class="col-md-12">
            <form method="post" action="../products/edit_product.php?id=<?php echo (int)$product['id'] ?>">
               <div class="form-group">
                 <div class="input-group">
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-th-large"></i>
                   </span>
-                  <input type="text" class="form-control" name="product-title" value="<?php echo remove_junk($product['name']);?>">
+                  <input type="text" class="form-control" name="product-title" value="<?php echo remove_junk($product['name']);?>" placeholder="Name">
                </div>
               </div>
 
@@ -108,7 +119,7 @@ if (isset($_POST['product'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-th-large"></i>
                   </span>
-                  <input type="text" class="form-control" name="product-desc" value="<?php echo remove_junk($product['description']);?>" placeholder="Product Description">
+                  <input type="text" class="form-control" name="product-desc" value="<?php echo remove_junk($product['description']);?>" placeholder="Description">
                </div>
               </div>
               <div class="form-group">
@@ -116,7 +127,7 @@ if (isset($_POST['product'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-th-large"></i>
                   </span>
-                  <input type="text" class="form-control" name="product-sku" value="<?php echo remove_junk($product['sku']);?>" placeholder="Product SKU">
+                  <input type="text" class="form-control" name="product-sku" value="<?php echo remove_junk($product['sku']);?>" placeholder="SKU">
                </div>
               </div>
               <div class="form-group">
@@ -124,7 +135,7 @@ if (isset($_POST['product'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-th-large"></i>
                   </span>
-                  <input type="text" class="form-control" name="product-location" value="<?php echo remove_junk($product['location']);?>" placeholder="Product Location">
+                  <input type="text" class="form-control" name="product-location" value="<?php echo remove_junk($product['location']);?>" placeholder="Location">
                </div>
               </div>
 
@@ -151,8 +162,8 @@ if (isset($_POST['product'])) {
                   </div>
                 </div>
               </div>
-
-              <div class="form-group">
+	      
+	      <div class="form-group">
                <div class="row">
                  <div class="col-md-4">
                   <div class="form-group">
@@ -167,7 +178,7 @@ if (isset($_POST['product'])) {
                  </div>
                  <div class="col-md-4">
                   <div class="form-group">
-                    <label for="qty">Cost Price</label>
+                    <label for="cost-price">Cost Price</label>
                     <div class="input-group">
                       <span class="input-group-addon">
                         <i class="glyphicon glyphicon-piggy-bank"></i>
@@ -178,7 +189,7 @@ if (isset($_POST['product'])) {
                  </div>
                   <div class="col-md-4">
                    <div class="form-group">
-                     <label for="qty">Sell Price</label>
+                     <label for="sale-price">Sale Price</label>
                      <div class="input-group">
                        <span class="input-group-addon">
                          <i class="glyphicon glyphicon-piggy-bank"></i>
@@ -188,12 +199,19 @@ if (isset($_POST['product'])) {
                    </div>
                   </div>
                </div>
+
          <div class="pull-right">
-              <button type="submit" name="product" class="btn btn-info">Update</button>
+              <button type="submit" name="edit_product" class="btn btn-info">Update</button>
+         </div>
+
+<!--     *************************     -->
           </form>
+
          </div>
         </div>
       </div>
+
+    </div>
   </div>
 
 <?php include_once '../layouts/footer.php'; ?>

@@ -18,7 +18,6 @@ require_once(LIB_PATH_INC.'upload.php');
 require_once(LIB_PATH_INC.'database.php');
 require_once(LIB_PATH_INC.'sql.php');
 require_once(LIB_PATH_INC.'formatcurrency.php');
-require_once LIB_PATH_INC.'csrfhandler.php';
 
 /*--------------------------------------------------------------*/
 /* Change format of currency used throughout the system

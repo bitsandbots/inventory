@@ -8,8 +8,7 @@ $page_title = 'Add User';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
 page_require_level(1);
-///importing csrf handler
-use csrfhandler\csrf as csrf;	
+	
 
 $groups = find_all('user_groups');
 $all_users = find_all_user();
@@ -76,7 +75,6 @@ if(!($isValid)) {
       <div class="panel-body">
         <div class="col-md-6">
           <form method="post" action="../users/add_user.php">
-          <input type="hidden" name="_token" value="<?php echo csrf::token()?>">
             <div class="form-group">
                 <label for="name">Name</label>
                 <input type="text" class="form-control" name="full-name" placeholder="Full Name">

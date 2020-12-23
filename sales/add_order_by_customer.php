@@ -20,7 +20,7 @@ if (isset($_POST['add_order'])) {
 	validate_fields($req_fields);
 	$customer_name = $db->escape($_POST['customer-name']);
 	$paymethod = $db->escape($_POST['paymethod']);
-	$notes = $db->escape($_POST['notes']);
+	$notes = '';
 
 	if (empty($errors)) {		
 	if ( ! find_by_name('customers',$customer_name) )
