@@ -21,7 +21,7 @@ if (!$product) {
 	redirect('../products/products.php');
 }
 
-if (isset($_POST['product'])) {
+if (isset($_POST['edit_product'])) {
 	$req_fields = array('product-title', 'product-category', 'product-quantity', 'cost-price', 'sale-price' );
 	validate_fields($req_fields);
 
