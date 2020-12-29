@@ -1,3 +1,12 @@
+<?php
+/**
+ * layouts/user_menu.php
+ *
+ * @package default
+ */
+
+
+?>
 <ul>
   <li>
     <a href="../users/home.php">
@@ -38,5 +47,5 @@
      </ul>
   </li>
   <li>
-  
+
 </ul>

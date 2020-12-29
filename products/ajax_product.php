@@ -17,7 +17,7 @@ if (isset($_POST['product_search']) && strlen($_POST['product_search'])) {
 	$products = find_products_by_search($_POST['product_search']);
 	if ($products) {
 		foreach ($products as $product):
-		$html .= "<li class=\"list-group-item\">";
+			$html .= "<li class=\"list-group-item\">";
 		$html .= $product['name'];
 		$html .= "</li>";
 		endforeach;
@@ -43,12 +43,11 @@ if (isset($_POST['p_search']) && strlen($_POST['p_search'])) {
 			$html .= "<td id=\"s_name\"><a href=\"view_product.php?id={$result['id']}\">{$result['name']}</a></td>";
 			$html .= "<input type=\"hidden\" name=\"s_id\" value=\"{$result['id']}\">";
 			$html .= "<td class=\"text-center\">";
-if ($result['media_id'] === '0')
-{
-$html .= "<img class=\"img-avatar img-circle\" src=\"../uploads/products/no_image.jpg\">";
-} else {
-$html .= "<img class=\"img-avatar img-circle\" src=\"../uploads/products/{$result['image']}\">";
-}
+			if ($result['media_id'] === '0') {
+				$html .= "<img class=\"img-avatar img-circle\" src=\"../uploads/products/no_image.jpg\">";
+			} else {
+				$html .= "<img class=\"img-avatar img-circle\" src=\"../uploads/products/{$result['image']}\">";
+			}
 			$html .= "</td>";
 			$html .= "<td class=\"text-center\">";
 			$html .= "{$result['sku']}";

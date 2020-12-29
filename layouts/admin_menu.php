@@ -1,3 +1,12 @@
+<?php
+/**
+ * layouts/admin_menu.php
+ *
+ * @package default
+ */
+
+
+?>
 <ul>
   <li>
     <a href="../users/admin.php">
@@ -58,8 +67,8 @@
     <ul class="nav submenu">
       <li><a href="../users/group.php">Manage Groups</a> </li>
       <li><a href="../users/users.php">Manage Users</a> </li>
-      <li><a href="../users/log.php">System Log</a> </li>      
+      <li><a href="../users/log.php">System Log</a> </li>
    </ul>
   </li>
-  
+
 </ul>

@@ -12,8 +12,7 @@ require_once '../includes/load.php';
 page_require_level(1);
 
 $selected_product = 0;
-if ( isset($_GET['id'] ) )
-{
+if ( isset($_GET['id'] ) ) {
 	$selected_product = (int)$_GET['id'];
 }
 

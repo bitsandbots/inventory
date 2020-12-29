@@ -4,11 +4,13 @@
  *
  * @package default
  */
+
+
 $page_title = 'Add User';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
 page_require_level(1);
-	
+
 
 $groups = find_all('user_groups');
 $all_users = find_all_user();
@@ -22,11 +24,11 @@ if (isset($_POST['add_user'])) {
 		$username   = strtolower(remove_junk($db->escape($_POST['username'])));
 
 		foreach ($all_users as $a_user) {
-		if ( $username == $a_user['username'] ) {
-			//failed
-			$session->msg('d', ' Sorry, username already used!');
-			redirect('../users/add_user.php', false);
-		  }
+			if ( $username == $a_user['username'] ) {
+				//failed
+				$session->msg('d', ' Sorry, username already used!');
+				redirect('../users/add_user.php', false);
+			}
 		}
 
 		$password   = remove_junk($db->escape($_POST['password']));

@@ -15,12 +15,11 @@ if (isset($_POST['submit'])) {
 	$req = array('product-category');
 	validate_fields($req);
 
-	if (empty($errors))
-  {
-	$products = find_products_by_category((int)$_POST['product-category']);
-  } else {
-	$products = join_product_table();
-  }
+	if (empty($errors)) {
+		$products = find_products_by_category((int)$_POST['product-category']);
+	} else {
+		$products = join_product_table();
+	}
 
 } else {
 	$session->msg("d", "Sorry no products have been found.");
@@ -101,7 +100,7 @@ if (isset($_POST['submit'])) {
               <td class="text-center"><?php echo ucfirst($product['name']);?></td>
               <td class="text-center"><?php echo $product['category'];?></td>
               <td class="text-center"><?php echo $product['quantity'];?></td>
-              <td class="text-center"><?php echo formatcurrency($product['buy_price'],$CURRENCY_CODE);?></td>
+              <td class="text-center"><?php echo formatcurrency($product['buy_price'], $CURRENCY_CODE);?></td>
           </tr>
         <?php endforeach; ?>
         </tbody>

@@ -77,7 +77,7 @@ $all_customers = find_all('customers');
                     <td class="text-center">
           					<a href="mailto:<?php echo $customer['email'];?>"><?php echo $customer['email'];?></a>
           				</td>
-			
+
                     <td class="text-center">
 						<?php echo ucfirst($customer['paymethod']);?>
 					</td>

@@ -86,7 +86,7 @@ $products_available = join_product_table();
        <div class="sale-head pull-left">
            <h1><?php echo ucfirst($order['customer']);?> </h1>
        </div>
-           
+
       <table class="table table-border">
         <thead>
           <tr>
@@ -105,25 +105,23 @@ $products_available = join_product_table();
            <tr>
               <td class="text-center">
               <?php
-              foreach ( $products_available as $product ) {
-                            if ( $product['name'] == $sale['name'] )
-                            {
-                            echo $product['sku'];
-                            }
-              }
-              ?>              
+	foreach ( $products_available as $product ) {
+		if ( $product['name'] == $sale['name'] ) {
+			echo $product['sku'];
+		}
+	}
+?>
               </td>
               <td class="text-center"><?php echo ucfirst($sale['name']);?></td>
               <td class="text-center"><?php echo $sale['location'];?></td>
               <td class="text-center">
               <?php
-              foreach ( $products_available as $product ) {
-                            if ( $product['name'] == $sale['name'] )
-                            {
-                            echo $product['quantity'] + $sale['qty'];
-                            }
-              }
-              ?>
+foreach ( $products_available as $product ) {
+	if ( $product['name'] == $sale['name'] ) {
+		echo $product['quantity'] + $sale['qty'];
+	}
+}
+?>
               </td>
               <td class="text-center"><?php echo $sale['qty'];?></td>
               <td class="text-center"></td>

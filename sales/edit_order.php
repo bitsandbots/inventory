@@ -20,7 +20,7 @@ if (!$order) {
 }
 
 if (isset($_POST['edit_order'])) {
-	$req_fields = array('customer-name','paymethod' );
+	$req_fields = array('customer-name', 'paymethod' );
 	validate_fields($req_fields);
 	$customer_name = $db->escape($_POST['customer-name']);
 	$paymethod = $db->escape($_POST['paymethod']);
@@ -35,22 +35,21 @@ if (isset($_POST['edit_order'])) {
 	if ($date == 0 ) { $date    = make_date(); }
 
 	if (empty($errors)) {
-			
-	if ( ! find_by_name('customers',$customer_name) )
-	{
-		$query  = "INSERT INTO customers (";
-		$query .=" name,address,city,region,postcode,telephone,email,paymethod";
-		$query .=") VALUES (";
-		$query .=" '{$customer_name}', '{$c_address}','{$c_city}', '{$c_region}', '{$c_postcode}', '{$c_telephone}', '{$c_email}', '{$paymethod}'";
-		$query .=")";
-		$result = $db->query($query);
-		if ($result && $db->affected_rows() === 1) {
-			$session->msg('s', "Customer Added! ");
-		} else {
-			$session->msg('d', ' Sorry, Failed to Add!');
+
+		if ( ! find_by_name('customers', $customer_name) ) {
+			$query  = "INSERT INTO customers (";
+			$query .=" name,address,city,region,postcode,telephone,email,paymethod";
+			$query .=") VALUES (";
+			$query .=" '{$customer_name}', '{$c_address}','{$c_city}', '{$c_region}', '{$c_postcode}', '{$c_telephone}', '{$c_email}', '{$paymethod}'";
+			$query .=")";
+			$result = $db->query($query);
+			if ($result && $db->affected_rows() === 1) {
+				$session->msg('s', "Customer Added! ");
+			} else {
+				$session->msg('d', ' Sorry, Failed to Add!');
+			}
 		}
-	}	
-	
+
 		$sql = "UPDATE orders SET";
 		$sql .= " customer='{$customer_name}', paymethod='{$paymethod}', notes='{$notes}', date='{$date}'";
 		$sql .= " WHERE id='{$order['id']}'";

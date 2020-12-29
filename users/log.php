@@ -88,8 +88,8 @@ foreach ($logs as $log ) {
 
 <td class="text-center">
 <?php
-$user =  find_by_id( "users",$log['user_id'] );
-echo $user['name'];
+	$user =  find_by_id( "users", $log['user_id'] );
+	echo $user['name'];
 ?>
 </td>
 <td class="text-center">

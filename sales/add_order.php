@@ -4,6 +4,8 @@
  *
  * @package default
  */
+
+
 $page_title = 'Add Order';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
@@ -16,12 +18,12 @@ $new_order_id = $order_id['id'] + 1;
 ?>
 <?php
 if (isset($_POST['add_order'])) {
-	$req_fields = array('customer-name','paymethod' );
+	$req_fields = array('customer-name', 'paymethod' );
 	validate_fields($req_fields);
 	$customer_name = $db->escape($_POST['customer-name']);
 	$paymethod = $db->escape($_POST['paymethod']);
-	 $notes = '';
-	 if (isset($_POST['notes'])) { $notes = $db->escape($_POST['notes']); }
+	$notes = '';
+	if (isset($_POST['notes'])) { $notes = $db->escape($_POST['notes']); }
 	$c_address = "";
 	$c_city = "";
 	$c_region = "";
@@ -30,23 +32,22 @@ if (isset($_POST['add_order'])) {
 	$c_email = "";
 
 	if (empty($errors)) {
-			
-	if ( ! find_by_name('customers',$customer_name) )
-	{
-		$query  = "INSERT INTO customers (";
-		$query .=" name,address,city,region,postcode,telephone,email,paymethod";
-		$query .=") VALUES (";
-		$query .=" '{$customer_name}', '{$c_address}','{$c_city}', '{$c_region}', '{$c_postcode}', '{$c_telephone}', '{$c_email}', '{$paymethod}'";
-		$query .=")";
-		$result = $db->query($query);
-		if ($result && $db->affected_rows() === 1) {
-			$session->msg('s', "Customer Added! ");
-		} else {
-			$session->msg('d', ' Sorry, Failed to Add!');
+
+		if ( ! find_by_name('customers', $customer_name) ) {
+			$query  = "INSERT INTO customers (";
+			$query .=" name,address,city,region,postcode,telephone,email,paymethod";
+			$query .=") VALUES (";
+			$query .=" '{$customer_name}', '{$c_address}','{$c_city}', '{$c_region}', '{$c_postcode}', '{$c_telephone}', '{$c_email}', '{$paymethod}'";
+			$query .=")";
+			$result = $db->query($query);
+			if ($result && $db->affected_rows() === 1) {
+				$session->msg('s', "Customer Added! ");
+			} else {
+				$session->msg('d', ' Sorry, Failed to Add!');
+			}
 		}
-	}	
-	
-	$current_date    = make_date();
+
+		$current_date    = make_date();
 		$sql  = "INSERT INTO orders (id,customer,paymethod,notes,date)";
 		$sql .= " VALUES ('{$new_order_id}','{$customer_name}','{$paymethod}','{$notes}','{$current_date}')";
 		if ($db->query($sql)) {
@@ -110,4 +111,4 @@ if (isset($_POST['add_order'])) {
     </form>
 </div>
 
-<?php include_once('../layouts/footer.php'); ?>
+<?php include_once '../layouts/footer.php'; ?>

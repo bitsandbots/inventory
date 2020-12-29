@@ -80,15 +80,15 @@ $all_categories = find_all('categories');
                     <select class="form-control" name="product-category">
                       <option value="0">Select Product Category</option>
 		    <?php
-		    foreach ($all_categories as $cat) {
-		      echo "<option value=\"";
-		      echo (int)$cat['id'];
-		      if ( (int)$cat['id'] == $selected_category ) { echo "\" selected>"; } else { echo "\">"; }
-                      echo $cat['name'];
-		    }
-		    ?>
+foreach ($all_categories as $cat) {
+	echo "<option value=\"";
+	echo (int)$cat['id'];
+	if ( (int)$cat['id'] == $selected_category ) { echo "\" selected>"; } else { echo "\">"; }
+	echo $cat['name'];
+}
+?>
 		      </option>
-                    
+
                     </select>
 
          </div>
@@ -124,7 +124,7 @@ $all_categories = find_all('categories');
           <div class="pull-right">
             <a href="../sales/add_sale_by_search.php?id=<?php echo $order_id; ?>" class="btn btn-success">Add Sales by Search</a>
           </div>
-      </div>      
+      </div>
       <div class="panel-body">
          <table class="table table-bordered">
            <thead>
@@ -142,8 +142,7 @@ $all_categories = find_all('categories');
 
 $sales = find_sales_by_order_id( $order_id );
 
-if ( ( isset($_POST['update_category'] ) ) && ( $selected_category > 0 ) )
-{
+if ( ( isset($_POST['update_category'] ) ) && ( $selected_category > 0 ) ) {
 	$products_available = find_products_by_category($selected_category);
 } else {
 	$products_available = join_product_table();

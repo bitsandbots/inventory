@@ -1,3 +1,12 @@
+<?php
+/**
+ * users/index.php
+ *
+ * @package default
+ */
+
+
+?>
 <!--includes -->
 
 <?php
@@ -33,11 +42,11 @@ if ($session->isUserLoggedIn()) { redirect('../users/home.php', false);}
 
       <form method="post" action="../users/auth.php" class="clearfix">
         <div class="form-group">
-        
+
               <label for="username" class="control-label">Username</label>
               <input type="name" class="form-control animate__animated animate__lightSpeedInLeft animate__delay-3s" name="username" placeholder="Username">
         </div>
-        <div class="form-group">       
+        <div class="form-group">
             <label for="Password" class="control-label">Password</label>
             <input type="password"  id="UserInput" name= "password" class="form-control animate__animated animate__lightSpeedInLeft animate__delay-3s " placeholder="Password">
 
@@ -57,7 +66,7 @@ if ($session->isUserLoggedIn()) { redirect('../users/home.php', false);}
 
         </div>
 
-        
+
 
         <div class="form-group">
                 <button type="submit" class="btn btn-info  pull-right">Login</button>
@@ -76,6 +85,3 @@ if ($session->isUserLoggedIn()) { redirect('../users/home.php', false);}
 <?php include_once '../layouts/footer.php'; ?>
 </body>
 </html>
-
-
-

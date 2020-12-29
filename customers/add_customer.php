@@ -31,7 +31,7 @@ if (isset($_POST['add_customer'])) {
 			$c_region  =  '';
 		} else {
 			$c_region  = $db->escape($_POST['customer-region']);
-		}		
+		}
 		if (is_null($_POST['customer-postcode']) || $_POST['customer-postcode'] === "") {
 			$c_postcode  =  '';
 		} else {
@@ -53,25 +53,24 @@ if (isset($_POST['add_customer'])) {
 			$c_paymethod  = $db->escape($_POST['customer-paymethod']);
 		}
 
-	if ( ! find_by_name('customers',$c_name) )
-	{	
-		$query  = "INSERT INTO customers (";
-		$query .=" name,address,city,region,postcode,telephone,email,paymethod";
-		$query .=") VALUES (";
-		$query .=" '{$c_name}', '{$c_address}', '{$c_city}', '{$c_region}', '{$c_postcode}', '{$c_telephone}', '{$c_email}', '{$c_paymethod}'";
-		$query .=")";
-		$result = $db->query($query);
-		if ($result && $db->affected_rows() === 1) {
-			$session->msg('s', 'Customer Added!');
-			redirect('../customers/customers.php', false);
+		if ( ! find_by_name('customers', $c_name) ) {
+			$query  = "INSERT INTO customers (";
+			$query .=" name,address,city,region,postcode,telephone,email,paymethod";
+			$query .=") VALUES (";
+			$query .=" '{$c_name}', '{$c_address}', '{$c_city}', '{$c_region}', '{$c_postcode}', '{$c_telephone}', '{$c_email}', '{$c_paymethod}'";
+			$query .=")";
+			$result = $db->query($query);
+			if ($result && $db->affected_rows() === 1) {
+				$session->msg('s', 'Customer Added!');
+				redirect('../customers/customers.php', false);
+			} else {
+				$session->msg('d', 'Failure to Add!');
+				redirect('../customers/customers.php', false);
+			}
 		} else {
-			$session->msg('d', 'Failure to Add!');
-			redirect('../customers/customers.php', false);
-		}
-	} else {
 			$session->msg('d', 'Customer Already Added!');
 			redirect('../customers/customers.php', false);
-	}
+		}
 
 
 	} else {
@@ -179,7 +178,7 @@ if (isset($_POST['add_customer'])) {
           </form>
          </div>
         </div>
-    
+
       </div>
     </div>
   </div>

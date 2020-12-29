@@ -4,6 +4,8 @@
  *
  * @package default
  */
+
+
 $page_title = 'All Product';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
@@ -12,8 +14,7 @@ page_require_level(2);
 $all_categories = find_all('categories');
 $selected_category = 0;
 if ( isset( $_POST['product-category'] ) ) { $selected_category = (int)$_POST['product-category']; }
-if ( ( isset($_POST['update_category'] ) ) && ( $selected_category > 0 ) )
-{
+if ( ( isset($_POST['update_category'] ) ) && ( $selected_category > 0 ) ) {
 	$products = find_products_by_category($selected_category);
 } else {
 	$products = join_product_table();
@@ -32,13 +33,13 @@ if ( ( isset($_POST['update_category'] ) ) && ( $selected_category > 0 ) )
                     <select class="form-control" name="product-category">
                       <option value="0">Select Product Category</option>
 		    <?php
-		    foreach ($all_categories as $cat) {
-		      echo "<option value=\"";
-		      echo (int)$cat['id'];
-		      if ( (int)$cat['id'] == $selected_category ) { echo "\" selected>"; } else { echo "\">"; }
-                      echo $cat['name'];
-		    }
-		    ?>
+foreach ($all_categories as $cat) {
+	echo "<option value=\"";
+	echo (int)$cat['id'];
+	if ( (int)$cat['id'] == $selected_category ) { echo "\" selected>"; } else { echo "\">"; }
+	echo $cat['name'];
+}
+?>
                     </select>
 
          </div>
@@ -65,7 +66,7 @@ if ( ( isset($_POST['update_category'] ) ) && ( $selected_category > 0 ) ) {
 } else {
 	echo "All Products";
 }
-?>           
+?>
             </span>
           </strong>
           <div class="pull-right">

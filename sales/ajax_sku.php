@@ -17,7 +17,7 @@ if (isset($_POST['product_sku']) && strlen($_POST['product_sku'])) {
 	$products = find_product_by_sku($_POST['product_sku']);
 	if ($products) {
 		foreach ($products as $product):
-		$html .= "<li class=\"list-group-item\">";
+			$html .= "<li class=\"list-group-item\">";
 		$html .= $product['sku'];
 		$html .= "</li>";
 		endforeach;

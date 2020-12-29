@@ -162,7 +162,7 @@ if (isset($_POST['edit_product'])) {
                   </div>
                 </div>
               </div>
-	      
+
 	      <div class="form-group">
                <div class="row">
                  <div class="col-md-4">

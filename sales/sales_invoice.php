@@ -4,6 +4,8 @@
  *
  * @package default
  */
+
+
 $page_title = 'Sales Invoice';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
@@ -83,23 +85,23 @@ $products_available = join_product_table();
        </div>
        <div class="sale-head pull-left">
        <?php
-            echo "<h1>";
-            echo ucfirst($order['customer']);
-            echo "</h1>";            
-            echo $customer['address'];
-            echo "<br>";
-            echo $customer['city'];
-            echo "&nbsp;&nbsp;";
-            echo $customer['region'];
-            echo "&nbsp;&nbsp;";
-            echo $customer['postcode'];
-            echo "<br>";
+echo "<h1>";
+echo ucfirst($order['customer']);
+echo "</h1>";
+echo $customer['address'];
+echo "<br>";
+echo $customer['city'];
+echo "&nbsp;&nbsp;";
+echo $customer['region'];
+echo "&nbsp;&nbsp;";
+echo $customer['postcode'];
+echo "<br>";
 
-            echo "&nbsp;&nbsp;";
-            echo $customer['telephone']; echo "&nbsp; | &nbsp;"; echo $customer['email'];
-            echo "&nbsp;&nbsp;";
-       ?>
-       </div>       
+echo "&nbsp;&nbsp;";
+echo $customer['telephone']; echo "&nbsp; | &nbsp;"; echo $customer['email'];
+echo "&nbsp;&nbsp;";
+?>
+       </div>
       <table class="table table-border">
         <thead>
           <tr>
@@ -116,17 +118,16 @@ $products_available = join_product_table();
               <td class="text-center"><?php echo ucfirst($sale['name']);?></td>
               <td class="text-center">
                <?php
-              foreach ( $products_available as $product ) {
-                            if ( $product['name'] == $sale['name'] )
-                            {
-                            echo formatcurrency( $product['sale_price'], $CURRENCY_CODE);
-                            }
-              }
-              ?>                    
+foreach ( $products_available as $product ) {
+	if ( $product['name'] == $sale['name'] ) {
+		echo formatcurrency( $product['sale_price'], $CURRENCY_CODE);
+	}
+}
+?>
               </td>
               <td class="text-center"><?php echo formatcurrency( $sale['price'], $CURRENCY_CODE); ?></td>
 <?php
-	$order_total = $order_total + $sale['price'];
+$order_total = $order_total + $sale['price'];
 ?>
           </tr>
         <?php endforeach; ?>

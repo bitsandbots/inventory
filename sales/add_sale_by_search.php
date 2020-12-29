@@ -126,15 +126,15 @@ if (isset($_POST['search']) && strlen($_POST['search'])) {
 	$product_search = remove_junk($db->escape($_POST['search']));
 	$products_available = find_all_product_info_by_search($product_search);
 
-foreach ( $products_available as $product ) {
-	$added_to_order = false;
-	foreach ( $sales as $sale ) {
-		if ( $product['name'] == $sale['name'] ) { // already added to order
-			$added_to_order = true;
+	foreach ( $products_available as $product ) {
+		$added_to_order = false;
+		foreach ( $sales as $sale ) {
+			if ( $product['name'] == $sale['name'] ) { // already added to order
+				$added_to_order = true;
+			}
 		}
-	}
 
-	if ( $added_to_order == false ) {
+		if ( $added_to_order == false ) {
 
 ?>
         <form method="post" action="../sales/add_sale_by_search.php?id=<?php echo $order_id; ?>">
@@ -185,8 +185,8 @@ Add Sale
 </tr>
        </form>
 <?php
+		}
 	}
-}
 }
 
 ?>

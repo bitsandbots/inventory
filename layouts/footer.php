@@ -1,3 +1,12 @@
+<?php
+/**
+ * layouts/footer.php
+ *
+ * @package default
+ */
+
+
+?>
      </div>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
@@ -7,4 +16,4 @@
   </body>
 </html>
 
-<?php if(isset($db)) { $db->db_disconnect(); } ?>
+<?php if (isset($db)) { $db->db_disconnect(); } ?>

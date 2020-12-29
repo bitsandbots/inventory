@@ -1,3 +1,12 @@
+<?php
+/**
+ * layouts/special_menu.php
+ *
+ * @package default
+ */
+
+
+?>
 <ul>
   <li>
     <a href="../users/home.php">
@@ -60,5 +69,5 @@
       <li><a href="../users/users.php">Manage Users</a> </li>
    </ul>
   </li>
-  
+
 </ul>

@@ -1,3 +1,12 @@
+<?php
+/**
+ * reports/stock_report.php
+ *
+ * @package default
+ */
+
+
+?>
 
 <?php
 /**
@@ -5,8 +14,6 @@
  *
  * @package default
  */
-
-
 $page_title = 'Stock Report';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
@@ -42,7 +49,7 @@ if ( isset($_POST['update_category'] ) ) {
                         <?php echo $cat['name'] ?></option>
                     <?php endforeach; ?>
                     </select>
-             </div> 
+             </div>
             <div class="form-group">
                  <button type="submit" name="submit" class="btn btn-primary">Generate Report</button>
             </div>
@@ -55,4 +62,3 @@ if ( isset($_POST['update_category'] ) ) {
 </div>
 
 <?php include_once '../layouts/footer.php'; ?>
-

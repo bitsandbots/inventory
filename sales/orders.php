@@ -4,6 +4,8 @@
  *
  * @package default
  */
+
+
 $page_title = 'All Orders';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
@@ -70,7 +72,7 @@ $orders = array_reverse($all_orders);
 						<?php echo $order['date'];?>
 					</td>
 
-  <?php $customer = find_by_name('customers',$order['customer']); ?>
+  <?php $customer = find_by_name('customers', $order['customer']); ?>
 
                     <td class="text-center">
                       <div class="btn-group">

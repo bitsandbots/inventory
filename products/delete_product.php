@@ -4,6 +4,8 @@
  *
  * @package default
  */
+
+
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
 page_require_level(2);
@@ -17,10 +19,9 @@ if (!$product) {
 
 $all_stock = find_all('stock');
 foreach ( $all_stock as $stock ) {
-	if ( $stock['product_id'] == $product['id'] )
-	{
-	$session->msg("d", "Please delete entries OR add negative quantity stock.");
-	redirect('../products/stock.php');
+	if ( $stock['product_id'] == $product['id'] ) {
+		$session->msg("d", "Please delete entries OR add negative quantity stock.");
+		redirect('../products/stock.php');
 	}
 }
 

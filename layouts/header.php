@@ -1,16 +1,25 @@
+<?php
+/**
+ * layouts/header.php
+ *
+ * @package default
+ */
+
+
+?>
 <!DOCTYPE html>
   <html lang="en">
     <head>
     <meta charset="UTF-8">
     <title>
     <?php
-    $user = current_user();
-     if (!empty($page_title))
-           echo remove_junk($page_title);
-            elseif(!empty($user))
-           echo ucfirst($user['name']);
-            else echo "Inventory Management System";
-    ?>
+$user = current_user();
+if (!empty($page_title))
+	echo remove_junk($page_title);
+elseif (!empty($user))
+	echo ucfirst($user['name']);
+else echo "Inventory Management System";
+?>
     </title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/css/datepicker3.min.css" />
@@ -23,7 +32,7 @@
 <!--
       <img src="/images/hydroMazing_trans_logo.gif" height="60" width="140">
 -->
-      
+
       </div>
       <div class="header-content">
       <div class="header-date pull-left">
@@ -62,17 +71,17 @@
      </div>
     </header>
     <div class="sidebar">
-      <?php if($user['user_level'] === '1'): ?>
+      <?php if ($user['user_level'] === '1'): ?>
         <!-- admin menu -->
-      <?php include_once('admin_menu.php');?>
+      <?php include_once 'admin_menu.php';?>
 
-      <?php elseif($user['user_level'] === '2'): ?>
+      <?php elseif ($user['user_level'] === '2'): ?>
         <!-- Special user -->
-      <?php include_once('special_menu.php');?>
+      <?php include_once 'special_menu.php';?>
 
-      <?php elseif($user['user_level'] === '3'): ?>
+      <?php elseif ($user['user_level'] === '3'): ?>
         <!-- User menu -->
-      <?php include_once('user_menu.php');?>
+      <?php include_once 'user_menu.php';?>
 
       <?php else: ?>
         <!-- You shouldn't be here -->

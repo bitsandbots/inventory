@@ -61,26 +61,25 @@ if (isset($_POST['edit_customer'])) {
 			$c_paymethod  = $db->escape($_POST['customer-paymethod']);
 		}
 
-	if ( find_by_name('customers',$c_name) )
-	{
+		if ( find_by_name('customers', $c_name) ) {
 
-		$query   = "UPDATE customers SET";
-		$query  .=" name ='{$c_name}', address ='{$c_address}', city ='{$c_city}', region ='{$c_region}', postcode ='{$c_postcode}', telephone ='{$c_telephone}', email ='{$c_email}',";
-		$query  .=" paymethod ='{$c_paymethod}'";
-		$query  .=" WHERE id ='{$customer['id']}'";
-		$result = $db->query($query);
-		if ($result && $db->affected_rows() === 1) {
-			$session->msg('s', 'Customer Updated!');
-			redirect('customers.php', false);
+			$query   = "UPDATE customers SET";
+			$query  .=" name ='{$c_name}', address ='{$c_address}', city ='{$c_city}', region ='{$c_region}', postcode ='{$c_postcode}', telephone ='{$c_telephone}', email ='{$c_email}',";
+			$query  .=" paymethod ='{$c_paymethod}'";
+			$query  .=" WHERE id ='{$customer['id']}'";
+			$result = $db->query($query);
+			if ($result && $db->affected_rows() === 1) {
+				$session->msg('s', 'Customer Updated!');
+				redirect('customers.php', false);
+			} else {
+				$session->msg('d', 'Failed to Update!');
+				redirect('../customers/edit_customer.php?id='.$customer['id'], false);
+			}
+
 		} else {
-			$session->msg('d', 'Failed to Update!');
-			redirect('../customers/edit_customer.php?id='.$customer['id'], false);
-		}
-
-	} else {
 			$session->msg('d', 'Failed to Update, Please Add!');
 			redirect('../customers/edit_customer.php?id='.$customer['id'], false);
-	}
+		}
 
 
 	} else {
