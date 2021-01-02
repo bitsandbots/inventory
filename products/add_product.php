@@ -13,7 +13,7 @@ page_require_level(2);
 
 $all_categories = find_all('categories');
 $all_photo = find_all('media');
-
+			
 if (isset($_POST['add_product'])) {
 	$req_fields = array('product-title', 'product-category', 'product-quantity', 'cost-price', 'sale-price' );
 	validate_fields($req_fields);
@@ -108,7 +108,7 @@ if (isset($_POST['add_product'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-th-large"></i>
                   </span>
-                  <input type="text" class="form-control" name="product-title" value="<?php echo remove_junk($product['name']);?>" placeholder="Name">
+                  <input type="text" class="form-control" name="product-title" value="" placeholder="Name">
                </div>
               </div>
 
@@ -118,7 +118,7 @@ if (isset($_POST['add_product'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-th-large"></i>
                   </span>
-                  <input type="text" class="form-control" name="product-desc" value="<?php echo remove_junk($product['description']);?>" placeholder="Description">
+                  <input type="text" class="form-control" name="product-desc" value="" placeholder="Description">
                </div>
               </div>
               <div class="form-group">
@@ -126,7 +126,7 @@ if (isset($_POST['add_product'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-th-large"></i>
                   </span>
-                  <input type="text" class="form-control" name="product-sku" value="<?php echo remove_junk($product['sku']);?>" placeholder="SKU">
+                  <input type="text" class="form-control" name="product-sku" value="" placeholder="SKU">
                </div>
               </div>
               <div class="form-group">
@@ -134,7 +134,7 @@ if (isset($_POST['add_product'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-th-large"></i>
                   </span>
-                  <input type="text" class="form-control" name="product-location" value="<?php echo remove_junk($product['location']);?>" placeholder="Location">
+                  <input type="text" class="form-control" name="product-location" value="" placeholder="Location">
                </div>
               </div>
 
@@ -145,7 +145,7 @@ if (isset($_POST['add_product'])) {
                     <select class="form-control" name="product-category">
                     <option value=""> Select a category</option>
                    <?php  foreach ($all_categories as $cat): ?>
-                     <option value="<?php echo (int)$cat['id']; ?>" <?php if ($product['category_id'] === $cat['id']): echo "selected"; endif; ?> >
+                     <option value="<?php echo (int)$cat['id']; ?>">
                        <?php echo remove_junk($cat['name']); ?></option>
                    <?php endforeach; ?>
                  </select>
@@ -154,7 +154,7 @@ if (isset($_POST['add_product'])) {
                     <select class="form-control" name="product-photo">
                       <option value=""> No image</option>
                       <?php  foreach ($all_photo as $photo): ?>
-                        <option value="<?php echo (int)$photo['id'];?>" <?php if ($product['media_id'] === $photo['id']): echo "selected"; endif; ?> >
+                        <option value="<?php echo (int)$photo['id'];?>">
                           <?php echo $photo['file_name'] ?></option>
                       <?php endforeach; ?>
                     </select>
@@ -171,7 +171,7 @@ if (isset($_POST['add_product'])) {
                       <span class="input-group-addon">
                        <i class="glyphicon glyphicon-shopping-cart"></i>
                       </span>
-                      <input type="number" class="form-control" name="product-quantity" value="<?php echo remove_junk($product['quantity']); ?>">
+                      <input type="number" class="form-control" name="product-quantity" value="">
                    </div>
                   </div>
                  </div>
@@ -182,7 +182,7 @@ if (isset($_POST['add_product'])) {
                       <span class="input-group-addon">
                         <i class="glyphicon glyphicon-piggy-bank"></i>
                       </span>
-                      <input type="number" min="0" step="any" class="form-control" name="cost-price" value="<?php echo remove_junk($product['buy_price']);?>">
+                      <input type="number" min="0" step="any" class="form-control" name="cost-price" value="">
                    </div>
                   </div>
                  </div>
@@ -193,7 +193,7 @@ if (isset($_POST['add_product'])) {
                        <span class="input-group-addon">
                          <i class="glyphicon glyphicon-piggy-bank"></i>
                        </span>
-                       <input type="number" min="0" step="any" class="form-control" name="sale-price" value="<?php echo remove_junk($product['sale_price']);?>">
+                       <input type="number" min="0" step="any" class="form-control" name="sale-price" value="">
                     </div>
                    </div>
                   </div>
