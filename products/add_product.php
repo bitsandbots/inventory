@@ -44,8 +44,6 @@ if (isset($_POST['add_product'])) {
 			$product_id = $product['id'];
 			if ( $product_id == 0 ) {
 				$session->msg('d', ' Sorry, Failed to Add!');
-				$log_action = "failed";
-				logAction( $log_action );
 				redirect('../products/add_product.php', false);
 			}
 
@@ -58,21 +56,15 @@ if (isset($_POST['add_product'])) {
 			$result = $db->query($sql);
 			if ( $result && $db->affected_rows() === 1) {
 				$session->msg('s', "Product Added ");
-				$log_action = "success";
-				logAction( $log_action );
 				redirect('../products/products.php', false);
 			}
 		} else {
 			$session->msg('d', ' Sorry, Failed to Add!');
-			$log_action = "failed";
-			logAction( $log_action );
 			redirect('../products/add_product.php', false);
 		}
 
 	} else {
 		$session->msg("d", $errors);
-		$log_action = $errors;
-		logAction( $log_action );
 		redirect('../products/add_product.php', false);
 	}
 

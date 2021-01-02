@@ -16,8 +16,6 @@ $all_categories = find_all('categories');
 $all_photo = find_all('media');
 if (!$product) {
 	$session->msg("d", "Missing product id.");
-	$log_action = "missing id";
-	logAction( $log_action );
 	redirect('../products/products.php');
 }
 
@@ -62,21 +60,14 @@ if (isset($_POST['edit_product'])) {
 		$result = $db->query($query);
 		if ($result && $db->affected_rows() === 1) {
 			$session->msg('s', "Product Updated ");
-			$log_action = "success";
-			logAction( $log_action );
 			redirect('../products/products.php', false);
 		} else {
 			$session->msg('d', ' Sorry Failed to Update!');
-			$log_action = "failed";
-			logAction( $log_action );
 			redirect('../products/edit_product.php?id='.$product['id'], false);
 		}
 
 	} else {
 		$session->msg("d", $errors);
-		$log_action = $errors;
-		logAction( $log_action );
-
 		redirect('../products/edit_product.php?id='.$product['id'], false);
 	}
 
