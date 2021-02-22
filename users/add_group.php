@@ -8,8 +8,12 @@
 
 $page_title = 'Add Group';
 require_once '../includes/load.php';
+
+// Setting language var
+$lang->set('users.php');
+
 // Checkin What level user has permission to view this page
-page_require_level(1);
+page_require_level(1); 
 ?>
 <?php
 if (isset($_POST['add'])) {
@@ -36,11 +40,11 @@ if (isset($_POST['add'])) {
 		$query .=")";
 		if ($db->query($query)) {
 			//sucess
-			$session->msg('s', "Group has been creted! ");
+			$session->msg('s', $lang->get('NAME_GROUP_NO_DATABASE'));
 			redirect('../users/add_group.php', false);
 		} else {
 			//failed
-			$session->msg('d', ' Sorry failed to create Group!');
+			$session->msg('d', $lang->get('LEVEL_GROUP_NO_DATABASE'));
 			redirect('../users/add_group.php', false);
 		}
 	} else {
@@ -52,27 +56,27 @@ if (isset($_POST['add'])) {
 <?php include_once '../layouts/header.php'; ?>
 <div class="login-page">
     <div class="text-center">
-       <h3>Add new user Group</h3>
+       <h3><?php echo $lang->get('ADD_NEW_USER_GROUP') ?></h3>
      </div>
      <?php echo display_msg($msg); ?>
       <form method="post" action="../users/add_group.php" class="clearfix">
         <div class="form-group">
-              <label for="name" class="control-label">Group Name</label>
+              <label for="name" class="control-label"><?php echo $lang->get('GROUP_NAME') ?></label>
               <input type="name" class="form-control" name="group-name">
         </div>
         <div class="form-group">
-              <label for="level" class="control-label">Group Level</label>
+              <label for="level" class="control-label"><?php echo $lang->get('GROUP_LEVEL') ?></label>
               <input type="number" class="form-control" name="group-level">
         </div>
         <div class="form-group">
-          <label for="status">Status</label>
+          <label for="status"><?php echo $lang->get('STATUS_NAME') ?></label>
             <select class="form-control" name="status">
-              <option value="1">Active</option>
-              <option value="0">Deactive</option>
+              <option value="1"><?php echo $lang->get('STATUS_ACTIVE') ?></option>
+              <option value="0"><?php echo $lang->get('STATUS_DESACTIVE') ?></option>
             </select>
         </div>
         <div class="form-group clearfix">
-                <button type="submit" name="add" class="btn btn-info">Update</button>
+                <button type="submit" name="add" class="btn btn-info"><?php echo $lang->get('UPDATE_NAME') ?></button>
         </div>
     </form>
 </div>

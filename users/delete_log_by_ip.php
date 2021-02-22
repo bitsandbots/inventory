@@ -10,6 +10,10 @@ require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
 page_require_level(2);
 
+// Setting language var
+$lang->set('users.php');
+
+
 if ( isset($_GET['ip']) ) {
 	$remote_ip = filter_var($_GET['ip'], FILTER_VALIDATE_IP);
 

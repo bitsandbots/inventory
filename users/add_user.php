@@ -8,6 +8,10 @@
 
 $page_title = 'Add User';
 require_once '../includes/load.php';
+
+// Setting language var
+$lang->set('users.php');
+
 // Checkin What level user has permission to view this page
 page_require_level(1);
 

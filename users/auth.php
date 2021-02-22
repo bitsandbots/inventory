@@ -8,6 +8,9 @@
 
 include_once '../includes/load.php';
 
+// Setting language var
+$lang->set('users.php');
+
 $req_fields = array('username', 'password' );
 validate_fields($req_fields);
 $username = remove_junk($_POST['username']);
