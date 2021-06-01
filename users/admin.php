@@ -97,7 +97,7 @@ function closePanel()
        </div>
     </div>
     </div>
-    
+
   <div class="row" id="myDIV">
    <div class="col-md-12">
       <div class="panel">
