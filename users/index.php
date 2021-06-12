@@ -9,32 +9,56 @@ ob_start();
 require_once '../includes/load.php';
 if ($session->isUserLoggedIn()) { redirect('../users/home.php', false);}
 ?>
-<?php include_once '../layouts/header.php'; ?>
 
-<!--style -->
-<link rel="stylesheet" href="../style.css">
+<?php include_once 'header.php'; ?>
 
-<div class="login-page">
-    <div class="text-center">
-       <h1>Welcome</h1>
-       <p>Sign in to start your session</p>
-     </div>
-     <?php echo display_msg($msg); ?>
+<head>
+	<title>Login Form</title>
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+	<link href="https://fonts.googleapis.com/css?family=Poppins:600&display=swap" rel="stylesheet">
+	<script src="https://kit.fontawesome.com/a81368914c.js"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+	<img class="wave" src="img/wave.png">
+	<div class="container">
+		<div class="img">
+			<img src="img/bg.svg">
+		</div>
+		<div class="login-content">
+      
+  
+
+          <!--start modify -->
+      <?php echo display_msg($msg); ?>
       <form method="post" action="../users/auth.php" class="clearfix">
-        <div class="form-group">
-              <label for="username" class="control-label">Username</label>
-              <input type="name" class="form-control" name="username" value="" placeholder="Username">  <?php// echo $username;?>
+				<img src="img/inventory.png">
+				<h2 class="title">Welcome</h2>
+           		<div class="input-div one">
+           		   <div class="i">
+           		   		<i class="fas fa-user"></i>
+           		   </div>
+           		   <div class="div">
+                  
+                      <input type="name" class="form-control" name="username" value="" placeholder=""> 
+           		   </div>
+           		</div>
+           		<div class="input-div pass">
+           		   <div class="i"> 
+           		    	<i class="fas fa-lock"></i>
+           		   </div>
+           		   <div class="div">
+           		    	
+           		    	 <input type="password" class="form-control" name="password" value="" placeholder="">
+            	   </div>
+            	</div>
+            	<a href="#">Forgot Password?</a>
+            	
+              <button type="submit" class="btn btn-info  pull-right">Login</button>
+            </form>
         </div>
-        <div class="form-group">
-            <label for="Password" class="control-label">Password</label>
-            <input type="password" class="form-control" name="password" value="" placeholder="Password"> <?php// echo $password;?>
-        </div>
-        <div class="form-group">
-                <button type="submit" class="btn btn-info  pull-right">Login</button>
-        </div>
-    </form>
-    <div class="text-center">
-       <p></p>
-     </div>
-</div>
+    </div>
+    <script type="text/javascript" src="js/main.js"></script>
+</body>
 <?php include_once '../layouts/footer.php'; ?>
+
