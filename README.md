@@ -34,6 +34,8 @@ If you find this project useful...
 ****
 
 Enhanced by Cory J. Potter aka CoreConduit Consulting Services 2018 - 2020
+Core Contributor: Juan Gimpaya
+
 
 The application was initially created by Siamon Hasan, using [php](http:php.net),
 [mysql](https://www.mysql.com) and [bootstrap](http://getbootstrap.com).
