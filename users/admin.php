@@ -9,6 +9,9 @@
 $page_title = 'Admin Home Page';
 require_once '../includes/load.php';
 
+// Setting language var
+$lang->set('users.php');
+
 page_require_level(1);
 
 $c_categories     = count_by_id('categories');
