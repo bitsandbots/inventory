@@ -188,9 +188,12 @@ function tableExists($table){
 
   /*--------------------------------------------------------------*/
   /* Function to log the action of a user
-  /*--------------------------------------------------------------*/
 
- function logAction($user_id, $remote_ip, $action)
+   (old version)function logAction($user_id, $remote_ip, $action )
+  
+ 
+  /*--------------------------------------------------------------*/
+  function logAction($user_id = null, $remote_ip = null, $action = null)
 	{
 		global $db;
     $date = make_date();
