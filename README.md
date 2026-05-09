@@ -1,3 +1,9 @@
+
+# Refactored:
+https://github.com/bitsandbots/cc-inventory
+
+### DEPRECATED ###
+
 # inventory
 Inventory Management System with invoices and picklists.
 
