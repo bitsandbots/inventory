@@ -1,0 +1,17 @@
+[Unit]
+Description=Apache Web Server (Inventory Management System)
+Documentation=https://github.com/bitsandbots/inventory
+After=network.target mysql.service mariadb.service
+Wants=mysql.service
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/apache2ctl start
+ExecStop=/usr/sbin/apache2ctl graceful-stop
+ExecReload=/usr/sbin/apache2ctl graceful
+Restart=on-failure
+RestartSec=10
+PIDFile=/run/apache2/apache2.pid
+
+[Install]
+WantedBy=multi-user.target

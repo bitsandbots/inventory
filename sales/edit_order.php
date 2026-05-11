@@ -19,8 +19,9 @@ if (!$order) {
 	redirect('../sales/orders.php');
 }
 
-if (isset($_POST['edit_order'])) {
-	$req_fields = array('customer-name', 'paymethod' );
+if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
+  if (isset($_POST['edit_order'])) {
+$req_fields = array('customer-name', 'paymethod' );
 	validate_fields($req_fields);
 	$customer_name = $db->escape($_POST['customer-name']);
 	$paymethod = $db->escape($_POST['paymethod']);
@@ -83,7 +84,8 @@ if (isset($_POST['edit_order'])) {
         </strong>
        </div>
        <div class="panel-body">
-         <form method="post" action="../sales/edit_order.php?id=<?php echo (int)$order['id'];?>">
+         <form method="post" action="../sales/edit_order.php?id=<?php echo (int)$order['id'];?>
+              <?php echo csrf_field(); ?>">
            <div class="form-group">
                <input type="text" class="form-control" name="customer-name" value="<?php echo ucfirst($order['customer']);?>">
            </div>

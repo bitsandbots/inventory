@@ -27,8 +27,9 @@ if (!$e_user) {
 
 <?php
 //Update User basic info
-if (isset($_POST['update'])) {
-	$req_fields = array('name', 'username', 'level');
+if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
+  if (isset($_POST['update'])) {
+$req_fields = array('name', 'username', 'level');
 	validate_fields($req_fields);
 	if (empty($errors)) {
 		$id = (int)$e_user['id'];
@@ -58,15 +59,19 @@ if (isset($_POST['update'])) {
 <?php
 // Update user password
 if (isset($_POST['update-pass'])) {
-	$req_fields = array('password');
+$req_fields = array('password');
 	validate_fields($req_fields);
 	if (empty($errors)) {
 		$id = (int)$e_user['id'];
-		$password = remove_junk($db->escape($_POST['password']));
-		$h_pass   = sha1($password);
-		$sql = "UPDATE users SET password='{$h_pass}' WHERE id='{$db->escape($id)}'";
-		$result = $db->query($sql);
-		if ($result && $db->affected_rows() === 1) {
+		$password = $_POST['password'];
+		$h_pass   = password_hash($password, PASSWORD_BCRYPT);
+		$stmt = $db->prepare_query(
+			"UPDATE users SET password = ? WHERE id = ?",
+			"si", $h_pass, $id
+		);
+		$affected = $stmt->affected_rows;
+		$stmt->close();
+		if ($affected === 1) {
 			$session->msg('s', "User password has been updated ");
 			redirect('../users/edit_user.php?id='.(int)$e_user['id'], false);
 		} else {
@@ -103,7 +108,8 @@ if (isset($_POST['update-pass'])) {
 
        <div class="panel-body">
 
-          <form method="post" action="../users/edit_user.php?id=<?php echo (int)$e_user['id'];?>" class="clearfix">
+          <form method="post" action="../users/edit_user.php?id=<?php echo (int)$e_user['id'];?>
+              <?php echo csrf_field(); ?>" class="clearfix">
 <!--     *************************     -->
             <div class="form-group">
                   <label for="name" class="control-label">Name</label>

@@ -14,8 +14,9 @@ page_require_level(2);
 $all_categories = find_all('categories');
 $all_photo = find_all('media');
 			
-if (isset($_POST['add_product'])) {
-	$req_fields = array('product-title', 'product-category', 'product-quantity', 'cost-price', 'sale-price' );
+if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
+  if (isset($_POST['add_product'])) {
+$req_fields = array('product-title', 'product-category', 'product-quantity', 'cost-price', 'sale-price' );
 	validate_fields($req_fields);
 	if (empty($errors)) {
 		$p_name  = $db->escape(remove_junk($_POST['product-title']));
@@ -95,6 +96,7 @@ if (isset($_POST['add_product'])) {
          <div class="col-md-12">
 <!--     *************************     -->
           <form method="post" action="../products/add_product.php" class="clearfix">
+              <?php echo csrf_field(); ?>
               <div class="form-group">
                 <div class="input-group">
                   <span class="input-group-addon">

@@ -30,7 +30,7 @@ $products_available = join_product_table();
  <head>
    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
    <title>Order Picklist</title>
-     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"/>
+     <link rel="stylesheet" href="../libs/bootstrap/css/bootstrap.min.css"/>
    <style>
    @media print {
      html,body{
@@ -84,7 +84,7 @@ $products_available = join_product_table();
            <strong><?php echo $order['date'];?> </strong>
        </div>
        <div class="sale-head pull-left">
-           <h1><?php echo ucfirst($order['customer']);?> </h1>
+           <h1><?php echo h(ucfirst($order['customer']));?> </h1>
        </div>
 
       <table class="table table-border">
@@ -107,13 +107,13 @@ $products_available = join_product_table();
               <?php
 	foreach ( $products_available as $product ) {
 		if ( $product['name'] == $sale['name'] ) {
-			echo $product['sku'];
+			echo h($product['sku']);
 		}
 	}
 ?>
               </td>
-              <td class="text-center"><?php echo ucfirst($sale['name']);?></td>
-              <td class="text-center"><?php echo $sale['location'];?></td>
+              <td class="text-center"><?php echo h(ucfirst($sale['name']));?></td>
+              <td class="text-center"><?php echo h($sale['location']);?></td>
               <td class="text-center">
               <?php
 foreach ( $products_available as $product ) {

@@ -173,9 +173,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `username`, `password`, `user_level`, `image`, `status`, `last_login`) VALUES
-(1, 'Admin User', 'admin', 'd033e22ae348aeb5660fc2140aec35850c4da997', 1, 'no_image.jpg', 1, '2019-02-14 17:29:10'),
-(2, 'Supervisor', 'Special', 'ba36b97a41e7faf742ab09bf88405ac04f99599a', 2, 'no_image.jpg', 1, '2019-02-06 11:44:19'),
-(3, 'Default User', 'user', '12dea96fec20593566ab75692c9949596833adc9', 3, 'no_image.jpg', 1, '2019-02-06 11:43:15');
+(1, 'Admin User', 'admin', '$2y$12$4lTB/7sYLDGYxCcxgcPDmefdGGjOHByyiK3mP0gvgbZdChUbv6WbO', 1, 'no_image.jpg', 1, '2019-02-14 17:29:10'),
+(2, 'Supervisor', 'Special', '$2y$12$g6GUH5/jxNLBjm64L7Q3du/QjSvFCTlOhQne/urW8x/f88H2/K40K', 2, 'no_image.jpg', 1, '2019-02-06 11:44:19'),
+(3, 'Default User', 'user', '$2y$12$HqXlq2jMgODWwyShwvXKVun3RaQTHwAoT9o0tnpGGmBryFvWwh9aq', 3, 'no_image.jpg', 1, '2019-02-06 11:43:15');
 
 -- --------------------------------------------------------
 

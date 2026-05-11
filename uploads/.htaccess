@@ -1,0 +1,11 @@
+Options -Indexes
+
+# Deny execution of PHP scripts in uploads directory
+<FilesMatch "\.php$">
+    Deny from all
+</FilesMatch>
+
+# Allow image files only
+<FilesMatch "\.(gif|jpg|jpeg|png|svg|webp)$">
+    Allow from all
+</FilesMatch>

@@ -1,46 +1,85 @@
+# Inventory
 
-# Refactored:
-https://github.com/bitsandbots/cc-inventory
+Inventory Management System with invoices, picklists, and sales reporting.
 
-### DEPRECATED ###
+**Source**: https://github.com/bitsandbots/inventory
 
-# inventory
-Inventory Management System with invoices and picklists.
+## Documentation
 
-# Documentation
--[Install L.A.M.P. stack](https://projects.raspberrypi.org/en/projects/lamp-web-server-with-wordpress/) ( MySQL is now MariaDB ) ~ optionally install Wordpress
+Full documentation is in the [`docs/`](docs/README.md) directory:
 
-* Download the latest version.
+| Document | Description |
+|----------|-------------|
+| [Architecture](docs/architecture.md) | Directory map, request lifecycle, RBAC model |
+| [Tech Stack](docs/tech-stack.md) | PHP 8.x, MariaDB 10.x, Bootstrap 5, security features |
+| [Setup & Usage](docs/setup-and-usage.md) | Installation, daily workflows per role |
+| [API & Components](docs/api-components.md) | Core module reference for developers |
+| [Gap Analysis](docs/gap-analysis.md) | Feature inventory, test coverage, recommendations |
 
-* Not sure how this works?  Start with a clean ( empty ) database, then import **demo_inv.sql** and you've got some basic data to get    started! OR, try a clean database: import/load **inventory.sql** into your mysql database. This should set up the basic structure of the database system.
+A standalone offline blueprint is also available: [`Blueprint_Overview.html`](Blueprint_Overview.html)
 
-* Modify the includes/config.php and change the variables to match your host, database, username and passwords.
+## Quick Start (v2.0+)
 
-* Change all Folder permission inside uploads folder either add them to group call `www-data` if available or `777`.
+### Automated
 
-* Then logging in by typing **username** and **password**:
+```bash
+bash install.sh
+```
 
+### Manual
 
-   Administrator        | Special User           | Default User
-   ---------------------| -----------------------| -------------------
-   **Username** : admin | **Username** : special | **Username** : user
-   **Password** : admin | **Password** : special | **Password** : user
-   
-****
--Additional documentation and configuration for your Inventory Management System:
+### 1. Database Setup
 
--[Hackster.io](https://www.hackster.io/bitsandbots/serving-your-own-inventory-management-system-6e8b53)
--[Blog](https://coreconduit.com/2019/02/07/using-a-raspberry-pi-for-your-own-inventory-management-system/)
+Import **schema.sql** to create the table structure (9 tables with indexes, constraints, and seed data):
 
-# [Support](https://coreconduit.com/contact/)
-Contact Cory:  
-****
+```bash
+mysql -u root -p < schema.sql
+```
+
+### 2. Configuration (.env)
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` to match your database credentials and generate an `APP_SECRET`:
+
+```bash
+openssl rand -hex 32
+```
+
+### 3. Permissions
+
+```bash
+sudo chmod -R 775 uploads/
+sudo chown -R www-data:www-data uploads/
+```
+
+### 4. Login
+
+Default accounts (bcrypt-hashed — change passwords immediately):
+
+| Administrator | Supervisor | Default User |
+|---|---|---|
+| **Username**: admin | **Username**: special | **Username**: user |
+| **Password**: admin | **Password**: special | **Password**: user |
+
+### Security Notes (v2.0)
+
+- Passwords stored using **bcrypt** (`PASSWORD_BCRYPT`). SHA1 hashes from older versions are automatically upgraded on first login.
+- All database queries use **prepared statements** (parameterized) to prevent SQL injection.
+- **CSRF protection** is enabled on all forms.
+- All assets (Bootstrap, jQuery, Datepicker) are **bundled locally** — no CDN dependency for offline operation.
+- Directory listings are disabled via `.htaccess` files.
+
+## Support
+
+[Contact Cory](https://coreconduit.com/contact/)
+
 If you find this project useful...
 [Donate](https://www.paypal.com/biz/fund?id=ZDR2NTBSKK7JE)
-****
 
-Enhanced by Cory J. Potter aka CoreConduit Consulting Services 2018 - 2020
+Enhanced by Cory J. Potter aka CoreConduit Consulting Services 2018 - 2020 (v2.0: 2026)
 
-The application was initially created by Siamon Hasan, using [php](http:php.net),
-[mysql](https://www.mysql.com) and [bootstrap](http://getbootstrap.com).
-****
+The application was initially created by Siamon Hasan, using [PHP](http://php.net),
+[MySQL](https://www.mysql.com) and [Bootstrap](http://getbootstrap.com).

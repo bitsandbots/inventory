@@ -19,6 +19,16 @@ define("DS", DIRECTORY_SEPARATOR);
 defined('SITE_ROOT')? null: define('SITE_ROOT', realpath(dirname(__FILE__)));
 define("LIB_PATH_INC", SITE_ROOT.DS);
 
+// -----------------------------------------------------------------------
+// Session security hardening — must run before session_start()
+// -----------------------------------------------------------------------
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_samesite', 'Lax');
+ini_set('session.use_strict_mode', 1);
+if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+    ini_set('session.cookie_secure', 1);
+}
+
 require_once LIB_PATH_INC.'config.php';
 require_once LIB_PATH_INC.'functions.php';
 require_once LIB_PATH_INC.'session.php';
@@ -35,33 +45,49 @@ $CURRENCY_CODE = 'USD';
 
 
 /*--------------------------------------------------------------*/
-/* Log user actions
+/* Initialize CSRF token
+/*--------------------------------------------------------------*/
+csrf_token();
+
+
+/*--------------------------------------------------------------*/
+/* Log user actions (skip static asset requests)
 /*--------------------------------------------------------------*/
 $user_id = 0;
 $remote_ip = 0;
 $action =  '';
-if (isset( $_SESSION['user_id'] )) {
-	$user_id = $_SESSION['user_id'];
-}
-if ( isset($_SERVER['HTTP_X_FORWARDED_FOR']) ) {
-	$remote_ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-	if ( strpos( $remote_ip, "," ) > 0 ) {
-		$remote_ip_for = explode( ",", $remote_ip );
-		$remote_ip = $remote_ip_for[0];
-	}
-} else {
 
-	if (isset( $_SERVER['REMOTE_ADDR'] )) {
-		$remote_ip = $_SERVER['REMOTE_ADDR'];
-	}
-
+// Determine if this is a page request (not a static asset)
+$is_page_request = true;
+if (isset($_SERVER['REQUEST_URI'])) {
+    $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    $static_extensions = ['css', 'js', 'jpg', 'jpeg', 'png', 'gif', 'svg', 'ico', 'woff', 'woff2', 'ttf', 'eot', 'map'];
+    if (in_array($ext, $static_extensions)) {
+        $is_page_request = false;
+    }
 }
 
-if (isset( $_SERVER['REQUEST_URI'] )) {
-	$action = $_SERVER['REQUEST_URI'];
-	$action = preg_replace('/^.+[\\\\\\/]/', '', $action);
-	//$action = preg_replace('/^\/inventory/', '', $action);
-}
+if ($is_page_request) {
+    if (isset( $_SESSION['user_id'] )) {
+        $user_id = $_SESSION['user_id'];
+    }
+    if ( isset($_SERVER['HTTP_X_FORWARDED_FOR']) ) {
+        $remote_ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        if ( strpos( $remote_ip, "," ) > 0 ) {
+            $remote_ip_for = explode( ",", $remote_ip );
+            $remote_ip = $remote_ip_for[0];
+        }
+    } else {
+        if (isset( $_SERVER['REMOTE_ADDR'] )) {
+            $remote_ip = $_SERVER['REMOTE_ADDR'];
+        }
+    }
 
-logAction( $user_id, $remote_ip, $action );
-?>
+    if (isset( $_SERVER['REQUEST_URI'] )) {
+        $action = $_SERVER['REQUEST_URI'];
+        $action = preg_replace('/^.+[\\\\\\/]/', '', $action);
+    }
+
+    logAction( $user_id, $remote_ip, $action );
+}

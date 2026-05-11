@@ -21,8 +21,9 @@ if (isset($_GET['id'])) {
 
 
 
-if (isset($_POST['add_sale'])) {
-	$req_fields = array('s_id', 'order_id', 'quantity', 'sale_price');
+if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
+  if (isset($_POST['add_sale'])) {
+$req_fields = array('s_id', 'order_id', 'quantity', 'sale_price');
 	validate_fields($req_fields);
 	if (empty($errors)) {
 		$p_id      = $db->escape((int)$_POST['s_id']);
@@ -50,14 +51,14 @@ if (isset($_POST['add_sale'])) {
 		if ($db->query($sql)) {
 			decrease_product_qty($s_qty, $p_id);
 			$session->msg('s', "Sale added. ");
-			redirect( ( '../sales/sales_by_order.php?id=' . $order_id ) , false);
+			redirect('../sales/orders.php', false);
 		} else {
 			$session->msg('d', ' Sorry failed to add!');
-			redirect( ( '../sales/sales_by_order.php?id=' . $order_id ) , false);
+			redirect('../sales/orders.php', false);
 		}
 	} else {
 		$session->msg("d", $errors);
-		redirect( ( '../sales/sales_by_order.php?id=' . $order_id ) , false);
+		redirect('../sales/orders.php', false);
 	}
 }
 
@@ -70,7 +71,8 @@ $all_categories = find_all('categories');
 <div class="row">
   <div class="col-md-6">
     <?php echo display_msg($msg); ?>
-    <form method="post" action="../sales/add_sale_by_search.php?id=<?php echo $order_id; ?>">
+    <form method="post" action="../sales/add_sale_by_search.php?id=<?php echo $order_id; ?>
+              <?php echo csrf_field(); ?>">
         <div class="form-group">
           <div class="input-group">
             <span class="input-group-btn">
@@ -137,11 +139,12 @@ if (isset($_POST['search']) && strlen($_POST['search'])) {
 		if ( $added_to_order == false ) {
 
 ?>
-        <form method="post" action="../sales/add_sale_by_search.php?id=<?php echo $order_id; ?>">
+        <form method="post" action="../sales/add_sale_by_search.php?id=<?php echo $order_id; ?>
+              <?php echo csrf_field(); ?>">
 
 <tr>
 <td id="s_name">
-<?php echo $product['name'];?>
+<?php echo h($product['name']);?>
 </td>
                 <td>
                   <?php if ($product['media_id'] === '0'): ?>
@@ -151,17 +154,17 @@ if (isset($_POST['search']) && strlen($_POST['search'])) {
                 <?php endif; ?>
                 </td>
 <td class="text-center">
-<?php echo $product['sku']; ?>
+<?php echo h($product['sku']); ?>
 </td>
 <td class="text-center">
-<?php echo $product['location']; ?>
+<?php echo h($product['location']); ?>
 </td>
 <input type="hidden" name="s_id" value="<?php echo $product['id']; ?>">
 <input type="hidden" name="order_id" value="<?php echo $order_id; ?>">
 <input type="hidden" class="form-control" name="sale_price" value="<?php echo $product['sale_price']; ?>">
 
 <td class="text-center">
-<?php echo $product['quantity']; ?>
+<?php echo h($product['quantity']); ?>
 </td>
 <td id="s_qty">
 

@@ -25,8 +25,9 @@ $all_products = find_all('products');
 <!--     *************************     -->
 
 <?php
-if (isset($_POST['add_stock'])) {
-	$req_field = array('product_id', 'quantity');
+if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
+  if (isset($_POST['add_stock'])) {
+$req_field = array('product_id', 'quantity');
 	validate_fields($req_field);
 	$product_id = remove_junk($db->escape($_POST['product_id']));
 	$quantity = remove_junk($db->escape($_POST['quantity']));
@@ -74,6 +75,7 @@ if (isset($_POST['add_stock'])) {
         </div>
 
       <form method="post" action="" class="clearfix">
+              <?php echo csrf_field(); ?>
         <div class="form-group">
 <!--
 <label for="name" class="control-label">Product</label>

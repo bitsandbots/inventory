@@ -31,7 +31,7 @@ if (isset($_POST['submit'])) {
  <head>
    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
    <title>Stock Report</title>
-     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"/>
+     <link rel="stylesheet" href="../libs/bootstrap/css/bootstrap.min.css"/>
    <style>
    @media print {
      html,body{
@@ -96,10 +96,10 @@ if (isset($_POST['submit'])) {
         <tbody>
           <?php foreach ($products as $product): ?>
            <tr>
-              <td class="text-center"><?php echo $product['sku'];?></td>
-              <td class="text-center"><?php echo ucfirst($product['name']);?></td>
-              <td class="text-center"><?php echo $product['category'];?></td>
-              <td class="text-center"><?php echo $product['quantity'];?></td>
+              <td class="text-center"><?php echo h($product['sku']);?></td>
+              <td class="text-center"><?php echo ucfirst(h($product['name']));?></td>
+              <td class="text-center"><?php echo h($product['category']);?></td>
+              <td class="text-center"><?php echo h($product['quantity']);?></td>
               <td class="text-center"><?php echo formatcurrency($product['buy_price'], $CURRENCY_CODE);?></td>
           </tr>
         <?php endforeach; ?>

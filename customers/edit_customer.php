@@ -19,8 +19,9 @@ if (!$customer) {
 }
 ?>
 <?php
-if (isset($_POST['edit_customer'])) {
-	$req_fields = array('customer-name' );
+if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
+  if (isset($_POST['edit_customer'])) {
+$req_fields = array('customer-name' );
 	validate_fields($req_fields);
 
 	if (empty($errors)) {
@@ -107,14 +108,15 @@ if (isset($_POST['edit_customer'])) {
         </div>
         <div class="panel-body">
          <div class="col-md-7">
-           <form method="post" action="../customers/edit_customer.php?id=<?php echo (int)$customer['id'] ?>">
+           <form method="post" action="../customers/edit_customer.php?id=<?php echo (int)$customer['id'] ?>
+              <?php echo csrf_field(); ?>">
               <div class="form-group">
                 <div class="input-group">
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-user"></i>
                   </span>
-                  <input type="text" class="form-control" name="customer-name" value="<?php echo $customer['name'];?>" disabled>
-                  <input type="hidden" class="form-control" name="customer-name" value="<?php echo $customer['name'];?>">
+                  <input type="text" class="form-control" name="customer-name" value="<?php echo h($customer['name']);?>" disabled>
+                  <input type="hidden" class="form-control" name="customer-name" value="<?php echo h($customer['name']);?>">
                </div>
               </div>
 
@@ -124,7 +126,7 @@ if (isset($_POST['edit_customer'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-home"></i>
                   </span>
-                  <input type="text" class="form-control" name="customer-address" value="<?php echo $customer['address'];?>" placeholder="Address">
+                  <input type="text" class="form-control" name="customer-address" value="<?php echo h($customer['address']);?>" placeholder="Address">
                </div>
               </div>
               <div class="form-group">
@@ -132,7 +134,7 @@ if (isset($_POST['edit_customer'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-home"></i>
                   </span>
-                  <input type="text" class="form-control" name="customer-city" value="<?php echo $customer['city'];?>" placeholder="City">
+                  <input type="text" class="form-control" name="customer-city" value="<?php echo h($customer['city']);?>" placeholder="City">
                </div>
               </div>
               <div class="form-group">
@@ -140,7 +142,7 @@ if (isset($_POST['edit_customer'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-home"></i>
                   </span>
-                  <input type="text" class="form-control" name="customer-region" value="<?php echo $customer['region'];?>" placeholder="State / Province / Region">
+                  <input type="text" class="form-control" name="customer-region" value="<?php echo h($customer['region']);?>" placeholder="State / Province / Region">
                </div>
               </div>
 
@@ -149,7 +151,7 @@ if (isset($_POST['edit_customer'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-envelope"></i>
                   </span>
-                  <input type="text" class="form-control" name="customer-postcode" value="<?php echo $customer['postcode'];?>" placeholder="Postal Code">
+                  <input type="text" class="form-control" name="customer-postcode" value="<?php echo h($customer['postcode']);?>" placeholder="Postal Code">
                </div>
               </div>
               <div class="form-group">
@@ -157,7 +159,7 @@ if (isset($_POST['edit_customer'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-phone"></i>
                   </span>
-                  <input type="text" class="form-control" name="customer-telephone" value="<?php echo $customer['telephone'];?>" placeholder="Telephone">
+                  <input type="text" class="form-control" name="customer-telephone" value="<?php echo h($customer['telephone']);?>" placeholder="Telephone">
                </div>
               </div>
               <div class="form-group">
@@ -165,7 +167,7 @@ if (isset($_POST['edit_customer'])) {
                   <span class="input-group-addon">
                    <i class="glyphicon glyphicon-globe"></i>
                   </span>
-                  <input type="text" class="form-control" name="customer-email" value="<?php echo $customer['email'];?>" placeholder="Email">
+                  <input type="text" class="form-control" name="customer-email" value="<?php echo h($customer['email']);?>" placeholder="Email">
                </div>
               </div>
 

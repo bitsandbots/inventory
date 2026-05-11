@@ -17,6 +17,7 @@ page_require_level(3);
   <div class="col-md-6">
     <?php echo display_msg($msg); ?>
     <form method="post" action="ajax_product.php" autocomplete="off" id="sug-search-form">
+              <?php echo csrf_field(); ?>
         <div class="form-group">
           <div class="input-group">
             <span class="input-group-btn">
@@ -41,6 +42,7 @@ page_require_level(3);
       </div>
       <div class="panel-body">
         <form method="post" action="">
+              <?php echo csrf_field(); ?>
          <table class="table table-bordered">
            <thead>
                 <th> Product Name </th>

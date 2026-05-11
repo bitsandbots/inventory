@@ -33,11 +33,14 @@ class Session {
 
 
 	/**
+	 * Log in a user by ID. Regenerates session ID to prevent
+	 * session fixation attacks.
 	 *
 	 * @param unknown $user_id
 	 */
 	public function login($user_id) {
 		$_SESSION['user_id'] = $user_id;
+		session_regenerate_id(true);
 	}
 
 
@@ -99,5 +102,3 @@ class Session {
 
 $session = new Session();
 $msg = $session->msg();
-
-?>

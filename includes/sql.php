@@ -27,7 +27,7 @@ function find_all($table) {
 
 
 /*--------------------------------------------------------------*/
-/* Function for Perform queries
+/* Function for Perform queries (legacy — prefer prepare_select)
 /*--------------------------------------------------------------*/
 
 
@@ -57,14 +57,13 @@ function find_by_sql($sql) {
  */
 function find_by_id($table, $id) {
 	global $db;
-	$id = (int)$id;
 	if (tableExists($table)) {
-		$sql = $db->query("SELECT * FROM {$db->escape($table)} WHERE id='{$db->escape($id)}' LIMIT 1");
-		if ($result = $db->fetch_assoc($sql))
-			return $result;
-		else
-			return null;
+		return $db->prepare_select_one(
+			"SELECT * FROM {$db->escape($table)} WHERE id = ? LIMIT 1",
+			"i", (int)$id
+		);
 	}
+	return null;
 }
 
 
@@ -82,12 +81,12 @@ function find_by_id($table, $id) {
 function find_by_name($table, $name) {
 	global $db;
 	if (tableExists($table)) {
-		$sql = $db->query("SELECT * FROM {$db->escape($table)} WHERE name='{$db->escape($name)}' LIMIT 1");
-		if ($result = $db->fetch_assoc($sql))
-			return $result;
-		else
-			return null;
+		return $db->prepare_select_one(
+			"SELECT * FROM {$db->escape($table)} WHERE name = ? LIMIT 1",
+			"s", $name
+		);
 	}
+	return null;
 }
 
 
@@ -105,11 +104,13 @@ function find_by_name($table, $name) {
 function delete_by_id($table, $id) {
 	global $db;
 	if (tableExists($table)) {
-		$sql = "DELETE FROM ".$db->escape($table);
-		$sql .= " WHERE id=". $db->escape($id);
-		$sql .= " LIMIT 1";
-		$db->query($sql);
-		return ($db->affected_rows() === 1) ? true : false;
+		$stmt = $db->prepare_query(
+			"DELETE FROM ".$db->escape($table)." WHERE id = ? LIMIT 1",
+			"i", (int)$id
+		);
+		$affected = $stmt->affected_rows;
+		$stmt->close();
+		return ($affected === 1);
 	}
 }
 
@@ -128,11 +129,13 @@ function delete_by_id($table, $id) {
 function delete_by_ip($table, $remote_ip) {
 	global $db;
 	if (tableExists($table)) {
-		$sql = "DELETE FROM ".$db->escape($table);
-		$sql .= " WHERE remote_ip='". $db->escape($remote_ip)."'";
-
-		$db->query($sql);
-		return ($db->affected_rows() >= 1) ? true : false;
+		$stmt = $db->prepare_query(
+			"DELETE FROM ".$db->escape($table)." WHERE remote_ip = ?",
+			"s", $remote_ip
+		);
+		$affected = $stmt->affected_rows;
+		$stmt->close();
+		return ($affected >= 1);
 	}
 }
 
@@ -206,22 +209,47 @@ function tableExists($table) {
 
 
 /**
+ * Authenticate a user by username and password.
+ * Uses password_verify() for bcrypt hashes with automatic rehash on login
+ * for users whose passwords were hashed with the old sha1 method.
  *
- * @param unknown $username (optional)
- * @param unknown $password (optional)
- * @return unknown
+ * @param string $username
+ * @param string $password
+ * @return int|false  User ID on success, false on failure
  */
 function authenticate($username='', $password='') {
 	global $db;
-	$username = $db->escape($username);
-	$password = $db->escape($password);
-	$sql  = sprintf("SELECT id,username,password,user_level FROM users WHERE username ='%s' LIMIT 1", $username);
-	$result = $db->query($sql);
-	if ($db->num_rows($result)) {
-		$user = $db->fetch_assoc($result);
-		$password_request = sha1($password);
-		if ($password_request === $user['password'] ) {
-			return $user['id'];
+	$sql  = "SELECT id,username,password,user_level FROM users WHERE username = ? LIMIT 1";
+	$result = $db->prepare_select_one($sql, "s", $username);
+
+	if ($result) {
+		$stored_hash = $result['password'];
+
+		// Check if stored hash is a legacy SHA1 hash (40-char hex string)
+		if (strlen($stored_hash) === 40 && ctype_xdigit($stored_hash)) {
+			// Legacy SHA1 comparison
+			if (sha1($password) === $stored_hash) {
+				// Rehash with bcrypt for future logins
+				$new_hash = password_hash($password, PASSWORD_BCRYPT);
+				$db->prepare_query(
+					"UPDATE users SET password = ? WHERE id = ?",
+					"si", $new_hash, $result['id']
+				);
+				return $result['id'];
+			}
+		} else {
+			// Modern bcrypt comparison
+			if (password_verify($password, $stored_hash)) {
+				// Check if hash needs rehash (cost factor change, etc.)
+				if (password_needs_rehash($stored_hash, PASSWORD_BCRYPT)) {
+					$new_hash = password_hash($password, PASSWORD_BCRYPT);
+					$db->prepare_query(
+						"UPDATE users SET password = ? WHERE id = ?",
+						"si", $new_hash, $result['id']
+					);
+				}
+				return $result['id'];
+			}
 		}
 	}
 	return false;
@@ -243,7 +271,7 @@ function current_user() {
 	if (!$current_user) {
 		if (isset($_SESSION['user_id'])):
 			$user_id = intval($_SESSION['user_id']);
-		$current_user = find_by_id('users', $user_id);
+			$current_user = find_by_id('users', $user_id);
 		endif;
 	}
 	return $current_user;
@@ -262,14 +290,12 @@ function current_user() {
  */
 function find_all_user() {
 	global $db;
-	$results = array();
 	$sql = "SELECT u.id,u.name,u.username,u.user_level,u.status,u.last_login,";
 	$sql .="g.group_name ";
 	$sql .="FROM users u ";
 	$sql .="LEFT JOIN user_groups g ";
 	$sql .="ON g.group_level=u.user_level ORDER BY u.name ASC";
-	$results = find_by_sql($sql);
-	return $results;
+	return find_by_sql($sql);
 }
 
 
@@ -286,9 +312,13 @@ function find_all_user() {
 function updateLastLogIn($user_id) {
 	global $db;
 	$date = make_date();
-	$sql = "UPDATE users SET last_login='{$date}' WHERE id ='{$user_id}' LIMIT 1";
-	$result = $db->query($sql);
-	return $result && $db->affected_rows() === 1 ? true : false;
+	$stmt = $db->prepare_query(
+		"UPDATE users SET last_login = ? WHERE id = ? LIMIT 1",
+		"si", $date, $user_id
+	);
+	$affected = $stmt->affected_rows;
+	$stmt->close();
+	return ($affected === 1);
 }
 
 
@@ -307,10 +337,13 @@ function updateLastLogIn($user_id) {
 function logAction($user_id, $remote_ip, $action) {
 	global $db;
 	$date = make_date();
-	$sql  = "INSERT INTO log (user_id,remote_ip,action,date)";
-	$sql .= " VALUES ('{$user_id}','{$remote_ip}','{$action}','{$date}')";
-	$result = $db->query($sql);
-	return $result && $db->affected_rows() === 1 ? true : false;
+	$stmt = $db->prepare_query(
+		"INSERT INTO log (user_id, remote_ip, action, date) VALUES (?, ?, ?, ?)",
+		"isss", $user_id, $remote_ip, $action, $date
+	);
+	$affected = $stmt->affected_rows;
+	$stmt->close();
+	return ($affected === 1);
 }
 
 
@@ -326,9 +359,9 @@ function logAction($user_id, $remote_ip, $action) {
  */
 function find_by_groupName($val) {
 	global $db;
-	$sql = "SELECT group_name FROM user_groups WHERE group_name = '{$db->escape($val)}' LIMIT 1 ";
-	$result = $db->query($sql);
-	return $db->num_rows($result) === 0 ? true : false;
+	$sql = "SELECT group_name FROM user_groups WHERE group_name = ? LIMIT 1";
+	$result = $db->prepare_select($sql, "s", $val);
+	return count($result) === 0;
 }
 
 
@@ -344,12 +377,8 @@ function find_by_groupName($val) {
  */
 function find_by_groupLevel($level) {
 	global $db;
-	$sql = " ";
-	$sql = $db->query("SELECT group_status FROM user_groups WHERE group_level = '{$db->escape($level)}' LIMIT 1");
-	if ($result = $db->fetch_assoc($sql))
-		return $result;
-	else
-		return null;
+	$sql = "SELECT group_status FROM user_groups WHERE group_level = ? LIMIT 1";
+	return $db->prepare_select_one($sql, "i", (int)$level);
 }
 
 
@@ -370,20 +399,20 @@ function page_require_level($require_level) {
 	//if user not login
 	if (!$session->isUserLoggedIn()):
 		$session->msg('d', 'Please login...');
-	redirect('index.php', false);
+		redirect('index.php', false);
 	//if Group status Deactive
 	elseif ($current_user['status'] === '0'):
 		$session->msg('d', 'Your account has been disabled!');
-	redirect('../users/home.php', false);
+		redirect('../users/home.php', false);
 	elseif ($login_level['group_status'] === '0'):
 		$session->msg('d', 'Your group has been disabled!');
-	redirect('../users/home.php', false);
+		redirect('../users/home.php', false);
 	//cheackin log in User level and Require level is Less than or equal to
 	elseif ($current_user['user_level'] <= (int)$require_level):
 		return true;
 	else:
 		$session->msg("d", "Sorry! you dont have permission to view the page.");
-	redirect('../users/home.php', false);
+		redirect('../users/home.php', false);
 	endif;
 
 }
@@ -426,9 +455,11 @@ function join_product_table() {
 function find_product_by_title($product_name) {
 	global $db;
 	$p_name = remove_junk($db->escape($product_name));
-	$sql = "SELECT name FROM products WHERE name like '%$p_name%' LIMIT 5";
-	$result = find_by_sql($sql);
-	return $result;
+	$search = "%{$p_name}%";
+	return $db->prepare_select(
+		"SELECT name FROM products WHERE name LIKE ? LIMIT 5",
+		"s", $search
+	);
 }
 
 
@@ -445,10 +476,10 @@ function find_product_by_title($product_name) {
  */
 function find_all_product_info_by_title($title) {
 	global $db;
-	$sql  = "SELECT * FROM products ";
-	$sql .= " WHERE name ='{$title}'";
-	$sql .=" LIMIT 1";
-	return find_by_sql($sql);
+	return $db->prepare_select(
+		"SELECT * FROM products WHERE name = ? LIMIT 1",
+		"s", $title
+	);
 }
 
 
@@ -465,10 +496,11 @@ function find_all_product_info_by_title($title) {
  */
 function find_product_by_sku($product_sku) {
 	global $db;
-	$p_sku = $db->escape($product_sku);
-	$sql = "SELECT sku FROM products WHERE sku like '%$p_sku%' LIMIT 5";
-	$result = find_by_sql($sql);
-	return $result;
+	$search = "%{$product_sku}%";
+	return $db->prepare_select(
+		"SELECT sku FROM products WHERE sku LIKE ? LIMIT 5",
+		"s", $search
+	);
 }
 
 
@@ -485,10 +517,10 @@ function find_product_by_sku($product_sku) {
  */
 function find_all_product_info_by_sku($product_sku) {
 	global $db;
-	$sql  = "SELECT * FROM products ";
-	$sql .= " WHERE sku ='{$product_sku}'";
-	$sql .=" LIMIT 1";
-	return find_by_sql($sql);
+	return $db->prepare_select(
+		"SELECT * FROM products WHERE sku = ? LIMIT 1",
+		"s", $product_sku
+	);
 }
 
 
@@ -506,9 +538,11 @@ function find_all_product_info_by_sku($product_sku) {
 function find_customer_by_name($customer_name) {
 	global $db;
 	$customer = remove_junk($db->escape($customer_name));
-	$sql = "SELECT name FROM customers WHERE name like '%$customer%' LIMIT 5";
-	$result = find_by_sql($sql);
-	return $result;
+	$search = "%{$customer}%";
+	return $db->prepare_select(
+		"SELECT name FROM customers WHERE name LIKE ? LIMIT 5",
+		"s", $search
+	);
 }
 
 
@@ -525,10 +559,10 @@ function find_customer_by_name($customer_name) {
  */
 function find_all_customer_info_by_name($customer_name) {
 	global $db;
-	$sql  = "SELECT * FROM customers ";
-	$sql .= " WHERE name ='{$customer_name}'";
-	$sql .=" LIMIT 1";
-	return find_by_sql($sql);
+	return $db->prepare_select(
+		"SELECT * FROM customers WHERE name = ? LIMIT 1",
+		"s", $customer_name
+	);
 }
 
 
@@ -546,9 +580,11 @@ function find_all_customer_info_by_name($customer_name) {
 function find_products_by_search($product_search) {
 	global $db;
 	$p_search = remove_junk($db->escape($product_search));
-	$sql = "SELECT * FROM products WHERE ( name like '%$p_search%' OR sku like '%$p_search%' OR description like '%$p_search%' ) LIMIT 5";
-	$result = find_by_sql($sql);
-	return $result;
+	$search = "%{$p_search}%";
+	return $db->prepare_select(
+		"SELECT * FROM products WHERE (name LIKE ? OR sku LIKE ? OR description LIKE ?) LIMIT 5",
+		"sss", $search, $search, $search
+	);
 }
 
 
@@ -566,16 +602,17 @@ function find_products_by_search($product_search) {
 function find_all_product_info_by_search($search) {
 	global $db;
 	$p_search = remove_junk($db->escape($search));
+	$like = "%{$p_search}%";
+
 	$sql  =" SELECT p.id,p.name,p.sku,p.location,p.quantity,p.buy_price,p.sale_price,p.media_id,p.date,c.name";
 	$sql  .=" AS category,m.file_name AS image";
 	$sql  .=" FROM products p";
 	$sql  .=" LEFT JOIN categories c ON c.id = p.category_id";
 	$sql  .=" LEFT JOIN media m ON m.id = p.media_id";
-	$sql  .=" WHERE ( p.name like '%$p_search%' OR p.sku like '%$p_search%' OR p.description like '%$p_search%' )";
+	$sql  .=" WHERE ( p.name LIKE ? OR p.sku LIKE ? OR p.description LIKE ? )";
 	$sql  .=" ORDER BY p.id ASC";
 
-
-	return find_by_sql($sql);
+	return $db->prepare_select($sql, "sss", $like, $like, $like);
 }
 
 
@@ -596,9 +633,9 @@ function find_products_by_category($cat) {
 	$sql  .=" FROM products p";
 	$sql  .=" LEFT JOIN categories c ON c.id = p.category_id";
 	$sql  .=" LEFT JOIN media m ON m.id = p.media_id";
-	$sql  .=" WHERE c.id = '{$cat}'";
+	$sql  .=" WHERE c.id = ?";
 	$sql  .=" ORDER BY p.id ASC";
-	return find_by_sql($sql);
+	return $db->prepare_select($sql, "i", (int)$cat);
 }
 
 
@@ -616,11 +653,14 @@ function find_products_by_category($cat) {
 function increase_product_qty($qty, $p_id) {
 	global $db;
 	$qty = (int) $qty;
-	$id  = (int)$p_id;
-	$sql = "UPDATE products SET quantity=quantity +'{$qty}' WHERE id = '{$id}'";
-	$result = $db->query($sql);
-	return $db->affected_rows() === 1 ? true : false;
-
+	$id  = (int) $p_id;
+	$stmt = $db->prepare_query(
+		"UPDATE products SET quantity = quantity + ? WHERE id = ?",
+		"ii", $qty, $id
+	);
+	$affected = $stmt->affected_rows;
+	$stmt->close();
+	return ($affected === 1);
 }
 
 
@@ -638,11 +678,14 @@ function increase_product_qty($qty, $p_id) {
 function decrease_product_qty($qty, $p_id) {
 	global $db;
 	$qty = (int) $qty;
-	$id  = (int)$p_id;
-	$sql = "UPDATE products SET quantity=quantity -'{$qty}' WHERE id = '{$id}'";
-	$result = $db->query($sql);
-	return $db->affected_rows() === 1 ? true : false;
-
+	$id  = (int) $p_id;
+	$stmt = $db->prepare_query(
+		"UPDATE products SET quantity = quantity - ? WHERE id = ?",
+		"ii", $qty, $id
+	);
+	$affected = $stmt->affected_rows;
+	$stmt->close();
+	return ($affected === 1);
 }
 
 
@@ -743,9 +786,9 @@ function find_sales_by_order_id($id) {
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN orders o ON s.order_id = o.id";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
-	$sql .= " WHERE s.order_id = " . $db->escape((int)$id);
+	$sql .= " WHERE s.order_id = ?";
 	$sql .= " ORDER BY s.date DESC";
-	return find_by_sql($sql);
+	return $db->prepare_select($sql, "i", (int)$id);
 }
 
 
@@ -793,10 +836,10 @@ function find_sale_by_dates($start_date, $end_date) {
 	$sql .= "SUM(p.buy_price * s.qty) AS total_buying_price ";
 	$sql .= "FROM sales s ";
 	$sql .= "LEFT JOIN products p ON s.product_id = p.id";
-	$sql .= " WHERE s.date BETWEEN '{$start_date}' AND '{$end_date}'";
+	$sql .= " WHERE s.date BETWEEN ? AND ?";
 	$sql .= " GROUP BY DATE(s.date),p.name";
 	$sql .= " ORDER BY DATE(s.date) DESC";
-	return $db->query($sql);
+	return $db->prepare_select($sql, "ss", $start_date, $end_date);
 }
 
 
@@ -813,14 +856,15 @@ function find_sale_by_dates($start_date, $end_date) {
  */
 function dailySales($year, $month) {
 	global $db;
+	$year_month = "{$year}-{$month}";
 	$sql  = "SELECT s.qty,";
 	$sql .= " DATE_FORMAT(s.date, '%Y-%m-%e') AS date,p.name,";
 	$sql .= "SUM(p.sale_price * s.qty) AS total_selling_price";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
-	$sql .= " WHERE DATE_FORMAT(s.date, '%Y-%m' ) = '{$year}-{$month}'";
+	$sql .= " WHERE DATE_FORMAT(s.date, '%Y-%m' ) = ?";
 	$sql .= " GROUP BY DATE_FORMAT( s.date,  '%e' ),s.product_id";
-	return find_by_sql($sql);
+	return $db->prepare_select($sql, "s", $year_month);
 }
 
 
@@ -841,11 +885,8 @@ function monthlySales($year) {
 	$sql .= "SUM(p.sale_price * s.qty) AS total_selling_price";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
-	$sql .= " WHERE DATE_FORMAT(s.date, '%Y' ) = '{$year}'";
+	$sql .= " WHERE DATE_FORMAT(s.date, '%Y' ) = ?";
 	$sql .= " GROUP BY DATE_FORMAT( s.date,  '%c' ),s.product_id";
 	$sql .= " ORDER BY date_format(s.date, '%c' ) ASC";
-	return find_by_sql($sql);
+	return $db->prepare_select($sql, "s", $year);
 }
-
-
-?>

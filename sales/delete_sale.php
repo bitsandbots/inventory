@@ -17,10 +17,18 @@ if (!$d_sale) {
 	$session->msg("d", "Missing sale id.");
 	redirect('../sales/sales.php');
 }
-// increase - add inventory back to stock
-if ( increase_product_qty( $d_sale['qty'], $d_sale['product_id']) ) {
-	$delete_id = delete_by_id('sales', (int)$d_sale['id']);
+
+// Check if the associated product still exists before restoring stock
+$product = find_by_id('products', $d_sale['product_id']);
+if ($product) {
+	// Product exists — restore stock
+	increase_product_qty( $d_sale['qty'], $d_sale['product_id'] );
+} else {
+	// Product was deleted (CASCADE) — log and continue with sale deletion
+	error_log("Sale #{$d_sale['id']} deleted but product #{$d_sale['product_id']} no longer exists. Stock not restored.");
 }
+
+$delete_id = delete_by_id('sales', (int)$d_sale['id']);
 
 if ($delete_id) {
 	$session->msg("s", "sale deleted.");
@@ -29,5 +37,3 @@ if ($delete_id) {
 	$session->msg("d", "sale deletion failed.");
 	redirect('../sales/sales.php');
 }
-
-?>

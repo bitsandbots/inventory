@@ -17,6 +17,7 @@ if ($session->isUserLoggedIn()) { redirect('../users/home.php', false);}
      </div>
      <?php echo display_msg($msg); ?>
       <form method="post" action="../users/auth.php" class="clearfix">
+              <?php echo csrf_field(); ?>
         <div class="form-group">
               <label for="username" class="control-label">Username</label>
               <input type="name" class="form-control" name="username" value="<?php echo $username;?>" placeholder="Username">

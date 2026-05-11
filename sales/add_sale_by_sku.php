@@ -14,8 +14,9 @@ page_require_level(3);
 $order_id = last_id('orders');
 $o_id = $order_id['id'];
 
-if (isset($_POST['add_sale'])) {
-	$req_fields = array('s_id', 'quantity', 'price', 'total' );
+if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
+  if (isset($_POST['add_sale'])) {
+$req_fields = array('s_id', 'quantity', 'price', 'total' );
 	validate_fields($req_fields);
 	if (empty($errors)) {
 		$p_id      = $db->escape((int)$_POST['s_id']);
@@ -55,6 +56,7 @@ if (isset($_POST['add_sale'])) {
   <div class="col-md-6">
     <?php echo display_msg($msg); ?>
     <form method="post" action="../sales/ajax_sku.php" autocomplete="off" id="sug-sku-form">
+              <?php echo csrf_field(); ?>
         <div class="form-group">
           <div class="input-group">
             <span class="input-group-btn">
@@ -91,6 +93,7 @@ if (isset($_POST['add_sale'])) {
       </div>
       <div class="panel-body">
         <form method="post" action="../sales/add_sale_by_sku.php">
+              <?php echo csrf_field(); ?>
          <table class="table table-bordered">
            <thead>
             <th class="text-center" style="width: 100px;">Product </th>

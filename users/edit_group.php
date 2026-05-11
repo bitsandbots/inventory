@@ -25,9 +25,9 @@ if (!$e_group) {
 <!--     *************************     -->
 
 <?php
-if (isset($_POST['update'])) {
-
-	$req_fields = array('group-name', 'group-level');
+if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
+  if (isset($_POST['update'])) {
+$req_fields = array('group-name', 'group-level');
 	validate_fields($req_fields);
 	if (empty($errors)) {
 		$name = remove_junk($db->escape($_POST['group-name']));
@@ -66,7 +66,8 @@ if (isset($_POST['update'])) {
 <!--     *************************     -->
      </div>
      <?php echo display_msg($msg); ?>
-      <form method="post" action="../users/edit_group.php?id=<?php echo (int)$e_group['id'];?>" class="clearfix">
+      <form method="post" action="../users/edit_group.php?id=<?php echo (int)$e_group['id'];?>
+              <?php echo csrf_field(); ?>" class="clearfix">
 <!--     *************************     -->
         <div class="form-group">
               <label for="name" class="control-label">Group Name</label>

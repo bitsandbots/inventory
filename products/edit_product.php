@@ -19,8 +19,9 @@ if (!$product) {
 	redirect('../products/products.php');
 }
 
-if (isset($_POST['edit_product'])) {
-	$req_fields = array('product-title', 'product-category', 'product-quantity', 'cost-price', 'sale-price' );
+if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
+  if (isset($_POST['edit_product'])) {
+$req_fields = array('product-title', 'product-category', 'product-quantity', 'cost-price', 'sale-price' );
 	validate_fields($req_fields);
 
 	if (empty($errors)) {
@@ -94,7 +95,8 @@ if (isset($_POST['edit_product'])) {
         </div>
         <div class="panel-body">
          <div class="col-md-12">
-           <form method="post" action="../products/edit_product.php?id=<?php echo (int)$product['id'] ?>">
+           <form method="post" action="../products/edit_product.php?id=<?php echo (int)$product['id'] ?>
+              <?php echo csrf_field(); ?>">
               <div class="form-group">
                 <div class="input-group">
                   <span class="input-group-addon">

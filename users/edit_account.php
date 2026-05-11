@@ -12,8 +12,9 @@ page_require_level(3);
 ?>
 <?php
 //update user image
-if (isset($_POST['submit'])) {
-	$photo = new Media();
+if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
+  if (isset($_POST['submit'])) {
+$photo = new Media();
 	$user_id = (int)$_POST['user_id'];
 	$photo->upload($_FILES['file_upload']);
 	if ($photo->process_user($user_id)) {
@@ -28,7 +29,7 @@ if (isset($_POST['submit'])) {
 <?php
 //update user other info
 if (isset($_POST['update'])) {
-	$req_fields = array('name', 'username' );
+$req_fields = array('name', 'username' );
 	validate_fields($req_fields);
 	if (empty($errors)) {
 		$id = (int)$_SESSION['user_id'];
@@ -63,10 +64,11 @@ if (isset($_POST['update'])) {
         <div class="panel-body">
           <div class="row">
             <div class="col-md-4">
-                <img class="img-circle img-size-2" src="../uploads/users/<?php echo $user['image'];?>" alt="">
+                <img class="img-circle img-size-2" src="../uploads/users/<?php echo h($user['image']);?>" alt="">
             </div>
             <div class="col-md-8">
               <form class="form" action="../users/edit_account.php" method="POST" enctype="multipart/form-data">
+              <?php echo csrf_field(); ?>
               <div class="form-group">
                 <input type="file" name="file_upload" multiple="multiple" class="btn btn-default btn-file"/>
               </div>
@@ -87,14 +89,15 @@ if (isset($_POST['update'])) {
         <span>Edit My Account</span>
       </div>
       <div class="panel-body">
-          <form method="post" action="../users/edit_account.php?id=<?php echo (int)$user['id'];?>" class="clearfix">
+          <form method="post" action="../users/edit_account.php?id=<?php echo (int)$user['id'];?>
+              <?php echo csrf_field(); ?>" class="clearfix">
             <div class="form-group">
                   <label for="name" class="control-label">Name</label>
-                  <input type="name" class="form-control" name="name" value="<?php echo ucwords($user['name']); ?>">
+                  <input type="name" class="form-control" name="name" value="<?php echo h(ucwords($user['name'])); ?>">
             </div>
             <div class="form-group">
                   <label for="username" class="control-label">Username</label>
-                  <input type="text" class="form-control" name="username" value="<?php echo $user['username']; ?>">
+                  <input type="text" class="form-control" name="username" value="<?php echo h($user['username']); ?>">
             </div>
             <div class="form-group clearfix">
                     <a href="../users/change_password.php" title="change password" class="btn btn-danger pull-right">Change Password</a>

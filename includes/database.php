@@ -24,19 +24,25 @@ class MySqli_DB {
 
 	/*--------------------------------------------------------------*/
 	/* Function for Open database connection
-/*--------------------------------------------------------------*/
+	/*--------------------------------------------------------------*/
 
 	/**
 	 *
 	 */
 	public function db_connect() {
-		$this->con = mysqli_connect(DB_HOST, DB_USER, DB_PASS);
+		try {
+			$this->con = @mysqli_connect(DB_HOST, DB_USER, DB_PASS);
+		} catch (\mysqli_sql_exception $e) {
+			$this->con = false;
+		}
 		if (!$this->con) {
-			die(" Database connection failed:". mysqli_connect_error());
+			error_log("Database connection failed: " . mysqli_connect_error());
+			die(" Database connection failed. Please try again later.");
 		} else {
 			$select_db = $this->con->select_db(DB_NAME);
 			if (!$select_db) {
-				die("Failed to Select Database". mysqli_connect_error());
+				error_log("Failed to select database " . DB_NAME . ": " . $this->con->error);
+				die("Failed to select database. Please try again later.");
 			}
 		}
 	}
@@ -44,7 +50,7 @@ class MySqli_DB {
 
 	/*--------------------------------------------------------------*/
 	/* Function for Close database connection
-/*--------------------------------------------------------------*/
+	/*--------------------------------------------------------------*/
 
 	/**
 	 *
@@ -59,7 +65,7 @@ class MySqli_DB {
 
 	/*--------------------------------------------------------------*/
 	/* Function for mysqli query
-/*--------------------------------------------------------------*/
+	/*--------------------------------------------------------------*/
 
 	/**
 	 *
@@ -71,11 +77,10 @@ class MySqli_DB {
 		if (trim($sql != "")) {
 			$this->query_id = $this->con->query($sql);
 		}
-		if (!$this->query_id)
-			// only for Develope mode
-			die("Error on this Query :<pre> " . $sql ."</pre>");
-		// For production mode
-		//  die("Error on Query");
+		if (!$this->query_id) {
+			error_log("SQL Error: " . $this->con->error . " | Query: " . $sql);
+			die("A database error occurred. Please try again later.");
+		}
 
 		return $this->query_id;
 
@@ -83,8 +88,64 @@ class MySqli_DB {
 
 
 	/*--------------------------------------------------------------*/
+	/* Prepared statement — returns mysqli_stmt or false on failure
+	/*--------------------------------------------------------------*/
+
+	/**
+	 * Execute a prepared statement query (INSERT/UPDATE/DELETE).
+	 *
+	 * @param string $sql    SQL with ? placeholders
+	 * @param string $types  Bind types (e.g. "s" for string, "i" for int, "d" for double)
+	 * @param mixed  ...$params Values to bind
+	 * @return mysqli_stmt|false
+	 */
+	public function prepare_query($sql, $types, ...$params) {
+		$stmt = $this->con->prepare($sql);
+		if (!$stmt) {
+			error_log("Prepare failed: " . $this->con->error . " | SQL: " . $sql);
+			die("A database error occurred. Please try again later.");
+		}
+		$stmt->bind_param($types, ...$params);
+		$stmt->execute();
+		return $stmt;
+	}
+
+	/**
+	 * Execute a prepared SELECT and return all rows as an associative array.
+	 *
+	 * @param string $sql    SQL with ? placeholders
+	 * @param string $types  Bind types
+	 * @param mixed  ...$params Values to bind
+	 * @return array
+	 */
+	public function prepare_select($sql, $types, ...$params) {
+		$stmt = $this->prepare_query($sql, $types, ...$params);
+		$result = $stmt->get_result();
+		$rows = [];
+		while ($row = $result->fetch_assoc()) {
+			$rows[] = $row;
+		}
+		$stmt->close();
+		return $rows;
+	}
+
+	/**
+	 * Execute a prepared SELECT and return a single row, or null.
+	 *
+	 * @param string $sql
+	 * @param string $types
+	 * @param mixed  ...$params
+	 * @return array|null
+	 */
+	public function prepare_select_one($sql, $types, ...$params) {
+		$rows = $this->prepare_select($sql, $types, ...$params);
+		return $rows ? $rows[0] : null;
+	}
+
+
+	/*--------------------------------------------------------------*/
 	/* Function for Query Helper
-/*--------------------------------------------------------------*/
+	/*--------------------------------------------------------------*/
 
 	/**
 	 *
@@ -146,8 +207,8 @@ class MySqli_DB {
 
 	/*--------------------------------------------------------------*/
 	/* Function for Remove escapes special
- /* characters in a string for use in an SQL statement
- /*--------------------------------------------------------------*/
+	 /* characters in a string for use in an SQL statement
+	 /*--------------------------------------------------------------*/
 
 	/**
 	 *
@@ -161,7 +222,7 @@ class MySqli_DB {
 
 	/*--------------------------------------------------------------*/
 	/* Function for while loop
-/*--------------------------------------------------------------*/
+	/*--------------------------------------------------------------*/
 
 	/**
 	 *
@@ -182,5 +243,3 @@ class MySqli_DB {
 
 
 $db = new MySqli_DB();
-
-?>

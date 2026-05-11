@@ -30,7 +30,7 @@ $products_available = join_product_table();
  <head>
    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
    <title>Sales Invoice</title>
-     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"/>
+     <link rel="stylesheet" href="../libs/bootstrap/css/bootstrap.min.css"/>
    <style>
    @media print {
      html,body{
@@ -86,19 +86,19 @@ $products_available = join_product_table();
        <div class="sale-head pull-left">
        <?php
 echo "<h1>";
-echo ucfirst($order['customer']);
+echo h(ucfirst($order['customer']));
 echo "</h1>";
-echo $customer['address'];
+echo h($customer['address']);
 echo "<br>";
-echo $customer['city'];
+echo h($customer['city']);
 echo "&nbsp;&nbsp;";
-echo $customer['region'];
+echo h($customer['region']);
 echo "&nbsp;&nbsp;";
-echo $customer['postcode'];
+echo h($customer['postcode']);
 echo "<br>";
 
 echo "&nbsp;&nbsp;";
-echo $customer['telephone']; echo "&nbsp; | &nbsp;"; echo $customer['email'];
+echo h($customer['telephone']); echo "&nbsp; | &nbsp;"; echo h($customer['email']);
 echo "&nbsp;&nbsp;";
 ?>
        </div>
@@ -115,7 +115,7 @@ echo "&nbsp;&nbsp;";
           <?php foreach ($sales as $sale): ?>
            <tr>
               <td class="text-center"><?php echo $sale['qty'];?></td>
-              <td class="text-center"><?php echo ucfirst($sale['name']);?></td>
+              <td class="text-center"><?php echo h(ucfirst($sale['name']));?></td>
               <td class="text-center">
                <?php
 foreach ( $products_available as $product ) {

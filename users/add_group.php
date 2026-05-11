@@ -12,9 +12,9 @@ require_once '../includes/load.php';
 page_require_level(1);
 ?>
 <?php
-if (isset($_POST['add'])) {
-
-	$req_fields = array('group-name', 'group-level');
+if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
+  if (isset($_POST['add'])) {
+$req_fields = array('group-name', 'group-level');
 	validate_fields($req_fields);
 
 	if (find_by_groupName($_POST['group-name']) === false ) {
@@ -56,6 +56,7 @@ if (isset($_POST['add'])) {
      </div>
      <?php echo display_msg($msg); ?>
       <form method="post" action="../users/add_group.php" class="clearfix">
+              <?php echo csrf_field(); ?>
         <div class="form-group">
               <label for="name" class="control-label">Group Name</label>
               <input type="name" class="form-control" name="group-name">

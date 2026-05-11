@@ -11,8 +11,9 @@ require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
 page_require_level(2);
 
-if (isset($_POST['add_customer'])) {
-	$req_fields = array('customer-name' );
+if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
+  if (isset($_POST['add_customer'])) {
+$req_fields = array('customer-name' );
 	validate_fields($req_fields);
 
 	if (empty($errors)) {
@@ -102,6 +103,7 @@ if (isset($_POST['add_customer'])) {
          <div class="col-md-7">
 <!--     *************************     -->
           <form method="post" action="../customers/add_customer.php" class="clearfix">
+              <?php echo csrf_field(); ?>
 <!--     *************************     -->
               <div class="form-group">
                 <div class="input-group">

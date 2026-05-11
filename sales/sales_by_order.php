@@ -131,9 +131,9 @@ $order = find_by_id("orders", $order_id);
 
              <tr>
                <td class="text-center"><?php echo count_id();?></td>
-               <td><?php echo $sale['name']; ?></td>
-               <td class="text-center"><?php echo $sale['sku']; ?></td>
-               <td class="text-center"><?php echo $sale['location']; ?></td>
+               <td><?php echo h($sale['name']); ?></td>
+               <td class="text-center"><?php echo h($sale['sku']); ?></td>
+               <td class="text-center"><?php echo h($sale['location']); ?></td>
                <td class="text-center"><?php echo (int)$sale['qty']; ?></td>
                <td class="text-center"><?php echo formatcurrency($sale['price'], $CURRENCY_CODE); ?></td>
                <td class="text-center">

@@ -61,21 +61,21 @@ $all_customers = find_all('customers');
 						<?php echo ucfirst($customer['name']);?>
 					</td>
                     <td class="text-center">
-						<?php echo $customer['city'];?>
+						<?php echo h($customer['city']);?>
 					</td>
                     <td class="text-center">
-						<?php echo $customer['region'];?>
+						<?php echo h($customer['region']);?>
 					</td>
 
                     <td class="text-center">
-						<?php echo $customer['postcode'];?>
+						<?php echo h($customer['postcode']);?>
 					</td>
                    <td class="text-center">
-          					<a href="tel:<?php echo $customer['telephone'];?>"><?php echo $customer['telephone'];?></a>
+          					<a href="tel:<?php echo h($customer['telephone']);?>"><?php echo h($customer['telephone']);?></a>
           				</td>
 
                     <td class="text-center">
-          					<a href="mailto:<?php echo $customer['email'];?>"><?php echo $customer['email'];?></a>
+          					<a href="mailto:<?php echo h($customer['email']);?>"><?php echo h($customer['email']);?></a>
           				</td>
 
                     <td class="text-center">

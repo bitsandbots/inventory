@@ -17,8 +17,9 @@ $all_categories = find_all('categories')
 <!--     *************************     -->
 
 <?php
-if (isset($_POST['add_cat'])) {
-	$req_field = array('category-name');
+if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
+  if (isset($_POST['add_cat'])) {
+$req_field = array('category-name');
 	validate_fields($req_field);
 	$cat_name = remove_junk($db->escape($_POST['category-name']));
 	if (empty($errors)) {
@@ -60,6 +61,7 @@ if (isset($_POST['add_cat'])) {
         </div>
         <div class="panel-body">
           <form method="post" action="../products/categories.php">
+              <?php echo csrf_field(); ?>
             <div class="form-group">
 <!--     *************************     -->
                 <input type="text" class="form-control" name="category-name" placeholder="Category Name">

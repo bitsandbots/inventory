@@ -17,8 +17,9 @@ $new_order_id = $order_id['id'] + 1;
 
 ?>
 <?php
-if (isset($_POST['add_order'])) {
-	$req_fields = array('customer-name', 'paymethod' );
+if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
+  if (isset($_POST['add_order'])) {
+$req_fields = array('customer-name', 'paymethod' );
 	validate_fields($req_fields);
 	$customer_name = $db->escape($_POST['customer-name']);
 	$paymethod = $db->escape($_POST['paymethod']);
@@ -64,6 +65,7 @@ if (isset($_POST['add_order'])) {
   <div class="col-md-6">
     <?php echo display_msg($msg); ?>
     <form method="post" action="../sales/ajax_customer.php" autocomplete="off" id="sug-customer-form">
+              <?php echo csrf_field(); ?>
         <div class="form-group">
           <div class="input-group">
             <span class="input-group-btn">
@@ -98,6 +100,7 @@ if (isset($_POST['add_order'])) {
       </div>
       <div class="panel-body">
         <form method="post" action="../sales/add_order.php">
+              <?php echo csrf_field(); ?>
          <table class="table table-bordered">
            <thead>
                 <tr>

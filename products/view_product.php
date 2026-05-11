@@ -53,7 +53,7 @@ if ( isset( $_GET['id'] ) ) {
 <h4><?php echo first_character($product['name']);?></h4>
 
 <div><label>Description:</label></div>
-<div><?php echo $product['description'];?></div>
+<div><?php echo h($product['description']);?></div>
 
     </div>
 
@@ -120,9 +120,9 @@ foreach ($all_categories as $category ) {
 }
 ?>
  			    <td class="text-center"> <?php echo $category['name']; ?></td>
-                <td class="text-center"> <?php echo $product['location']; ?></td>
-                <td class="text-center"> <?php echo $product['sku']; ?></td>
-                <td class="text-center"> <?php echo $product['quantity']; ?></td>
+                <td class="text-center"> <?php echo h($product['location']); ?></td>
+                <td class="text-center"> <?php echo h($product['sku']); ?></td>
+                <td class="text-center"> <?php echo h($product['quantity']); ?></td>
                 <td class="text-center"> <?php echo formatcurrency( $product['buy_price'], $CURRENCY_CODE); ?></td>
                 <td class="text-center"> <?php echo formatcurrency( $product['sale_price'], $CURRENCY_CODE); ?></td>
                 <td class="text-center"> <?php echo read_date($product['date']); ?></td>

@@ -58,18 +58,18 @@ $orders = array_reverse($all_orders);
 					</td>
 
                     <td class="text-center">
-						<?php echo ucfirst($order['customer']);?>
+						<?php echo h(ucfirst($order['customer']));?>
 					</td>
                     <td class="text-center">
-						<?php echo ucfirst($order['paymethod']);?>
-					</td>
-
-                    <td class="text-center">
-						<?php echo $order['notes'];?>
+						<?php echo h(ucfirst($order['paymethod']));?>
 					</td>
 
                     <td class="text-center">
-						<?php echo $order['date'];?>
+						<?php echo h($order['notes']);?>
+					</td>
+
+                    <td class="text-center">
+						<?php echo h($order['date']);?>
 					</td>
 
   <?php $customer = find_by_name('customers', $order['customer']); ?>

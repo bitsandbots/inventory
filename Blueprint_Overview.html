@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory — Blueprint Overview</title>
+<style>
+  :root {
+    --navy: #0d1421;
+    --silver: #e9edf2;
+    --blue: #2b7de9;
+    --orange: #e07018;
+    --text: #1a1a2e;
+    --muted: #556;
+    --border: #d0d5dd;
+    --code-bg: #f4f5f7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: var(--text);
+    background: var(--silver);
+    line-height: 1.6;
+  }
+  header {
+    background: var(--navy);
+    color: #fff;
+    padding: 2rem 1.5rem 1.5rem;
+  }
+  header h1 { font-size: 1.8rem; font-weight: 600; }
+  header .subtitle { color: #8ea4c8; margin-top: 0.3rem; font-size: 0.95rem; }
+  .topbar-accent {
+    height: 3px;
+    background: linear-gradient(90deg, var(--blue), var(--orange));
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
+  h2 {
+    font-size: 1.3rem;
+    color: var(--navy);
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 0.3rem;
+    margin: 2rem 0 0.8rem;
+  }
+  h3 { font-size: 1.05rem; color: var(--navy); margin: 1.2rem 0 0.5rem; }
+  p { margin-bottom: 0.7rem; }
+  ul { margin: 0.5rem 0 1rem 1.5rem; }
+  li { margin-bottom: 0.25rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8rem 0 1.2rem;
+    font-size: 0.9rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--border);
+  }
+  th { background: var(--navy); color: #fff; font-weight: 500; }
+  tr:nth-child(even) { background: #f8f9fb; }
+  code {
+    background: var(--code-bg);
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    font-size: 0.88em;
+  }
+  pre {
+    background: var(--navy);
+    color: #c8d6e5;
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    margin: 0.8rem 0 1.2rem;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin: 0.8rem 0 1.2rem;
+  }
+  .card {
+    background: #fff;
+    border-radius: 6px;
+    padding: 1rem;
+    border-top: 3px solid var(--blue);
+  }
+  .card.orange { border-top-color: var(--orange); }
+  .card h4 { font-size: 0.95rem; color: var(--navy); margin-bottom: 0.4rem; }
+  .card p, .card li { font-size: 0.88rem; color: var(--muted); }
+  .badge {
+    display: inline-block;
+    padding: 0.15em 0.55em;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .badge-green { background: #d4edda; color: #155724; }
+  .badge-yellow { background: #fff3cd; color: #856404; }
+  .badge-red { background: #f8d7da; color: #721c24; }
+  .flow-box {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 0.8rem 0;
+    font-size: 0.88rem;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+  }
+  .flow-box .arrow { color: var(--blue); font-weight: bold; }
+  .flow-box .step { color: var(--orange); font-weight: 600; }
+  footer {
+    text-align: center;
+    padding: 2rem 1rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+  }
+  footer a { color: var(--blue); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Inventory — Blueprint Overview</h1>
+  <p class="subtitle">Self-hosted Inventory Management System · PHP 8.x + MariaDB 10.x · 79 PHP files · MIT License</p>
+</header>
+<div class="topbar-accent"></div>
+
+<div class="container">
+
+<!-- Executive Summary -->
+<h2>What Is This?</h2>
+<p>A complete, offline-capable inventory management system that runs on a Raspberry Pi or any LAMP server. Track products with SKUs and images, manage stock levels, process multi-line-item sales orders, print invoices and picklists, and generate sales reports — all through a responsive Bootstrap 5 interface with zero external dependencies.</p>
+
+<div class="card-grid">
+  <div class="card">
+    <h4>Inventory Core</h4>
+    <ul>
+      <li>Products with SKU, location, quantity, pricing</li>
+      <li>Category organization with image support</li>
+      <li>Stock adjustment with comment history</li>
+      <li>AJAX search by name, SKU, or description</li>
+    </ul>
+  </div>
+  <div class="card orange">
+    <h4>Sales & Orders</h4>
+    <ul>
+      <li>Multi-line-item orders per customer</li>
+      <li>Add sales by SKU or product search</li>
+      <li>Auto quantity decrease on sale</li>
+      <li>Printable invoices and picklists</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>Reporting</h4>
+    <ul>
+      <li>Date-range sales reports with profit calc</li>
+      <li>Daily and monthly breakdowns</li>
+      <li>Stock level reports</li>
+      <li>Buy vs. sell price margin analysis</li>
+    </ul>
+  </div>
+  <div class="card orange">
+    <h4>Security & Access</h4>
+    <ul>
+      <li>3-tier RBAC (Admin/Supervisor/User)</li>
+      <li>bcrypt passwords with legacy SHA1 migration</li>
+      <li>CSRF protection on all forms</li>
+      <li>Parameterized queries throughout</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Architecture -->
+<h2>Request Lifecycle</h2>
+<div class="flow-box">
+  <span class="step">1. HTTP Request</span> → index.php or module page<br>
+  <span class="arrow">↓</span> require_once 'includes/load.php'<br>
+  <span class="step">2. Bootstrap</span> → Constants, session hardening, autoload config→functions→session→upload→database→sql<br>
+  <span class="step">3. Config</span> → Parse .env → DB_HOST, DB_USER, DB_PASS, DB_NAME, APP_SECRET<br>
+  <span class="step">4. Session</span> → session_start() with strict_mode, Session class initialized<br>
+  <span class="step">5. Database</span> → MySqli_DB connects, $db global available<br>
+  <span class="step">6. RBAC Gate</span> → page_require_level(N) checks login, status, group, level<br>
+  <span class="step">7. Handler</span> → POST: verify CSRF → process → redirect. GET: query data → render.<br>
+  <span class="step">8. Render</span> → header.php (HTML shell, sidebar by role) → page content with h() escaping → footer.php
+</div>
+
+<h2>Directory Map</h2>
+<pre>
+inventory/
+├── index.php               Entry point / login
+├── schema.sql              Database schema (9 tables, indexes, seed data)
+├── .env.example            Configuration template
+├── Blueprint_Overview.html This file — offline documentation
+│
+├── includes/               Core engine (8 files)
+│   ├── load.php            Bootstrap &amp; autoload
+│   ├── config.php          .env parser → constants
+│   ├── database.php        MySqli_DB class (connect, prepare_query, prepare_select)
+│   ├── session.php         Session class (login/logout, flash messages)
+│   ├── functions.php       CSRF, h(), remove_junk(), redirect, helpers
+│   ├── sql.php             Data layer (CRUD, auth, products, sales, reports)
+│   ├── upload.php          Media class (image upload product/user)
+│   └── formatcurrency.php  Currency display
+│
+├── layouts/                UI shell (header, footer, 3 role-based sidebars)
+├── products/               9 files — CRUD, categories, stock, search
+├── sales/                  13 files — orders, sales, invoices, picklists
+├── customers/              3 files — CRUD
+├── reports/                6 files — sales (date/daily/monthly), stock
+├── users/                  9 files — user/group CRUD, profile, password
+├── libs/                   Bundled CSS/JS (Bootstrap 5, jQuery 3, Datepicker)
+├── uploads/                User images (users/, products/)
+└── tests/                  3 suites — CSRF (unit), Auth (integration), CRUD (integration)
+</pre>
+
+<!-- Database -->
+<h2>Database Schema (9 Tables)</h2>
+<table>
+  <tr><th>Table</th><th>Purpose</th><th>Key Relationships</th></tr>
+  <tr><td><code>categories</code></td><td>Product categories</td><td>products.category_id → categories.id (CASCADE)</td></tr>
+  <tr><td><code>products</code></td><td>Product catalog</td><td>FK to categories, FK to media</td></tr>
+  <tr><td><code>media</code></td><td>Product images</td><td>Referenced by products.media_id</td></tr>
+  <tr><td><code>orders</code></td><td>Sales orders</td><td>Referenced by sales.order_id</td></tr>
+  <tr><td><code>sales</code></td><td>Order line items</td><td>sales.product_id → products.id (CASCADE)</td></tr>
+  <tr><td><code>stock</code></td><td>Stock adjustments</td><td>stock.product_id → products.id</td></tr>
+  <tr><td><code>customers</code></td><td>Customer directory</td><td>Referenced by orders</td></tr>
+  <tr><td><code>users</code></td><td>User accounts</td><td>users.user_level → user_groups.group_level (CASCADE)</td></tr>
+  <tr><td><code>user_groups</code></td><td>RBAC group definitions</td><td>3 seed rows: Admin(1), Supervisor(2), User(3)</td></tr>
+  <tr><td><code>log</code></td><td>Activity audit log</td><td>log.user_id → users.id</td></tr>
+</table>
+
+<!-- Core Classes -->
+<h2>Key Abstractions</h2>
+
+<h3>MySqli_DB (<code>includes/database.php</code>)</h3>
+<p>Database abstraction — global <code>$db</code> instance:</p>
+<pre>
+// Prepared INSERT/UPDATE/DELETE
+$db->prepare_query("UPDATE products SET quantity = quantity + ? WHERE id = ?", "ii", $qty, $id);
+
+// Prepared SELECT → array of rows
+$db->prepare_select("SELECT * FROM products WHERE category_id = ?", "i", $cat_id);
+
+// Single row or null
+$db->prepare_select_one("SELECT * FROM users WHERE username = ? LIMIT 1", "s", $user);
+</pre>
+
+<h3>Session (<code>includes/session.php</code>)</h3>
+<p>Login state — global <code>$session</code> instance. <code>login($id)</code> regenerates session ID for fixation protection. Flash messages survive one redirect.</p>
+
+<h3>CSRF Protection (<code>includes/functions.php</code>)</h3>
+<p>Token generated via <code>random_bytes(32)</code>, verified with <code>hash_equals()</code> against session-stored token. <code>csrf_field()</code> emits hidden input — use in every <code>&lt;form method="post"&gt;</code>.</p>
+
+<h3>SQL Helpers (<code>includes/sql.php</code>)</h3>
+<p><code>find_by_id()</code>, <code>find_all()</code>, <code>delete_by_id()</code> — generic table CRUD. <code>authenticate()</code> — bcrypt login with legacy SHA1 auto-upgrade. <code>page_require_level(N)</code> — RBAC gate on protected pages.</p>
+
+<!-- Auth & RBAC -->
+<h2>Authentication &amp; RBAC</h2>
+<table>
+  <tr><th>Level</th><th>Role</th><th>Access</th></tr>
+  <tr><td>1</td><td>Admin</td><td>Full CRUD, user/group management, all reports</td></tr>
+  <tr><td>2</td><td>Supervisor</td><td>Product/stock management, sales, reports</td></tr>
+  <tr><td>3</td><td>User</td><td>View products, basic sales entry</td></tr>
+</table>
+
+<p><strong>Login flow</strong>: <code>authenticate($username, $password)</code> → prepared SELECT → password_verify() → session_regenerate_id(true) → updateLastLogIn()</p>
+<p><strong>Page guard</strong>: <code>page_require_level(N)</code> checks login → user active → group active → level ≤ required</p>
+
+<!-- Security Summary -->
+<h2>Security Summary</h2>
+<table>
+  <tr><th>Feature</th><th>Status</th><th>Implementation</th></tr>
+  <tr><td>SQL injection</td><td><span class="badge badge-green">Protected</span></td><td><code>prepare_query()</code> with bound params</td></tr>
+  <tr><td>Password storage</td><td><span class="badge badge-green">bcrypt</span></td><td><code>password_hash(PASSWORD_BCRYPT)</code></td></tr>
+  <tr><td>CSRF</td><td><span class="badge badge-green">Protected</span></td><td><code>random_bytes(32)</code> token, <code>hash_equals()</code> verify</td></tr>
+  <tr><td>XSS</td><td><span class="badge badge-green">Protected</span></td><td><code>h()</code> escaping on all output</td></tr>
+  <tr><td>Session fixation</td><td><span class="badge badge-green">Protected</span></td><td><code>session_regenerate_id(true)</code> on login</td></tr>
+  <tr><td>Session cookies</td><td><span class="badge badge-green">Hardened</span></td><td>httponly, samesite=Lax, strict_mode</td></tr>
+  <tr><td>CSP headers</td><td><span class="badge badge-red">Missing</span></td><td>Recommended: add to header.php</td></tr>
+  <tr><td>Rate limiting</td><td><span class="badge badge-yellow">Missing</span></td><td>Recommended: track login attempts per IP</td></tr>
+  <tr><td>Upload SQL</td><td><span class="badge badge-yellow">Legacy</span></td><td><code>upload.php</code> uses string interpolation</td></tr>
+</table>
+
+<!-- Test Coverage -->
+<h2>Test Coverage (3 Suites)</h2>
+<table>
+  <tr><th>Suite</th><th>Type</th><th>Tests</th><th>Coverage</th></tr>
+  <tr><td>CSRFTest.php</td><td>Unit</td><td>10</td><td>CSRF generation, verification, h(), remove_junk(), randString()</td></tr>
+  <tr><td>AuthTest.php</td><td>Integration</td><td>7</td><td>All 3 user logins, wrong password, non-existent user, find_by_id()</td></tr>
+  <tr><td>CRUDTest.php</td><td>Integration</td><td>8</td><td>Product CRUD cycle, quantity inc/dec, INT type check, sales query</td></tr>
+</table>
+
+<!-- Quick Start -->
+<h2>Quick Start</h2>
+<pre>
+# 1. Clone
+git clone https://github.com/bitsandbots/inventory.git
+cd inventory
+
+# 2. Database
+mysql -u root -p &lt; schema.sql
+
+# 3. Configure
+cp .env.example .env
+# Edit .env with your DB credentials
+# Generate APP_SECRET: openssl rand -hex 32
+
+# 4. Permissions
+sudo chmod -R 775 uploads/
+sudo chown -R www-data:www-data uploads/
+
+# 5. Login
+# http://your-server/inventory/
+# admin / admin  (change immediately!)
+</pre>
+
+<h2>Gap Analysis — Top Recommendations</h2>
+<table>
+  <tr><th>Priority</th><th>Gap</th><th>Recommendation</th></tr>
+  <tr><td>High</td><td>No CSP headers</td><td>Emit Content-Security-Policy in layouts/header.php</td></tr>
+  <tr><td>High</td><td>No rate limiting</td><td>Track login attempts per IP with exponential backoff</td></tr>
+  <tr><td>High</td><td>upload.php string interpolation</td><td>Refactor insert_media() and update_userImg() to prepared statements</td></tr>
+  <tr><td>High</td><td>No CI pipeline</td><td>Add GitHub Actions running tests/run.sh on push/PR</td></tr>
+  <tr><td>High</td><td>No RBAC/integration tests</td><td>Add test for page_require_level(), session fixation, SHA1 migration</td></tr>
+</table>
+
+</div>
+
+<footer>
+  <p>Inventory · MIT License · Enhanced by <a href="https://coreconduit.com">CoreConduit Consulting Services</a></p>
+  <p>Originally created by Siamon Hasan · Built with PHP, MySQL/MariaDB, Bootstrap</p>
+  <p>Full documentation: <a href="docs/README.md">docs/</a> · Generated 2026-05-11</p>
+</footer>
+
+</body>
+</html>

@@ -13,7 +13,9 @@ page_require_level(2);
 
 $all_categories = find_all('categories');
 $selected_category = 0;
-if ( isset( $_POST['product-category'] ) ) { $selected_category = (int)$_POST['product-category']; }
+if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
+  if ( isset( $_POST['product-category'] ) ) {
+$selected_category = (int)$_POST['product-category']; }
 if ( ( isset($_POST['update_category'] ) ) && ( $selected_category > 0 ) ) {
 	$products = find_products_by_category($selected_category);
 } else {
@@ -25,6 +27,7 @@ if ( ( isset($_POST['update_category'] ) ) && ( $selected_category > 0 ) ) {
   <div class="col-md-6">
     <?php echo display_msg($msg); ?>
     <form method="post" action="">
+              <?php echo csrf_field(); ?>
         <div class="form-group">
           <div class="input-group">
             <span class="input-group-btn">
@@ -98,19 +101,19 @@ if ( ( isset($_POST['update_category'] ) ) && ( $selected_category > 0 ) ) {
               <?php foreach ($products as $product):?>
               <tr>
 
-                <td><a href="../products/view_product.php?id=<?php echo (int)$product['id'];?>"><?php echo $product['name']; ?></a></td>
+                <td><a href="../products/view_product.php?id=<?php echo (int)$product['id'];?>"><?php echo h($product['name']); ?></a></td>
 
                 <td>
                   <?php if ($product['media_id'] === '0'): ?>
                     <img class="img-avatar img-circle" src="../uploads/products/no_image.jpg" alt="">
                   <?php else: ?>
-                  <img class="img-avatar img-circle" src="../uploads/products/<?php echo $product['image']; ?>" alt="">
+                  <img class="img-avatar img-circle" src="../uploads/products/<?php echo h($product['image']); ?>" alt="">
                 <?php endif; ?>
                 </td>
-                <td class="text-center"><?php echo $product['sku'];?></td>
-                <td class="text-center"> <?php echo $product['category']; ?></td>
-                <td class="text-center"> <?php echo $product['location']; ?></td>
-                <td class="text-center"> <?php echo $product['quantity']; ?></td>
+                <td class="text-center"><?php echo h($product['sku']);?></td>
+                <td class="text-center"> <?php echo h($product['category']); ?></td>
+                <td class="text-center"> <?php echo h($product['location']); ?></td>
+                <td class="text-center"> <?php echo h($product['quantity']); ?></td>
                 <td class="text-center"> <?php echo formatcurrency( $product['buy_price'], $CURRENCY_CODE); ?></td>
                 <td class="text-center"> <?php echo formatcurrency( $product['sale_price'], $CURRENCY_CODE); ?></td>
                 <td class="text-center"> <?php echo read_date($product['date']); ?></td>

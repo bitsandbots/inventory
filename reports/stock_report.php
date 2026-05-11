@@ -19,8 +19,9 @@ require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
 page_require_level(3);
 $all_categories = find_all('categories');
-if ( isset($_POST['update_category'] ) ) {
-	$products = find_products_by_category((int)$_POST['product-category']);
+if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
+  if ( isset($_POST['update_category'] ) ) {
+$products = find_products_by_category((int)$_POST['product-category']);
 } else {
 	$products = join_product_table();
 }
@@ -40,6 +41,7 @@ if ( isset($_POST['update_category'] ) ) {
       <div class="jumbotron text-center">
       <h3>Stock Report</h3>
           <form class="clearfix" method="post" action="stock_report_process.php">
+              <?php echo csrf_field(); ?>
             <div class="form-group">
               <label class="form-label">Category</label>
                     <select class="form-control" name="product-category">
