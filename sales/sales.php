@@ -61,7 +61,7 @@ page_require_level(3);
                      <a href="../sales/edit_sale.php?id=<?php echo (int)$sale['id'];?>" class="btn btn-warning btn-xs"  title="Edit" data-toggle="tooltip">
                        <span class="glyphicon glyphicon-edit"></span>
                      </a>
-                     <a href="../sales/delete_sale.php?id=<?php echo (int)$sale['id'];?>"  onClick="return confirm('Are you sure you want to delete?')" class="btn btn-danger btn-xs"  title="Delete" data-toggle="tooltip">
+                     <a href="../sales/delete_sale.php?id=<?php echo (int)$sale['id'];?>&<?php echo csrf_url_param(); ?>" onClick="return confirm('Are you sure you want to delete?')" class="btn btn-danger btn-xs"  title="Delete" data-toggle="tooltip">
                        <span class="glyphicon glyphicon-trash"></span>
                      </a>
                   </div>

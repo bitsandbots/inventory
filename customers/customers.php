@@ -87,7 +87,7 @@ $all_customers = find_all('customers');
                         <a href="../customers/edit_customer.php?id=<?php echo (int)$customer['id'];?>"  class="btn btn-xs btn-warning" data-toggle="tooltip" title="Edit">
                           <span class="glyphicon glyphicon-edit"></span>
                         </a>
-                        <a href="../customers/delete_customer.php?id=<?php echo (int)$customer['id'];?>" onClick="return confirm('Are you sure you want to delete?')" class="btn btn-xs btn-danger" data-toggle="tooltip" title="Remove">
+                        <a href="../customers/delete_customer.php?id=<?php echo (int)$customer['id'];?>&<?php echo csrf_url_param(); ?>" onClick="return confirm('Are you sure you want to delete?')" class="btn btn-xs btn-danger" data-toggle="tooltip" title="Remove">
                           <span class="glyphicon glyphicon-trash"></span>
                         </a>
                       </div>

@@ -114,6 +114,24 @@ if (!verify_csrf()) {
 
 **Note**: `verify_csrf()` returns `true` for non-POST requests (GET, HEAD, etc.) since side-effect-free methods don't need CSRF protection.
 
+### GET-based state-changing actions (delete links)
+
+Endpoints that perform state changes via GET (e.g. delete handlers) must use URL token verification:
+
+```php
+// In the list page — append token to every delete link
+<a href="delete_foo.php?id=<?php echo $id ?>&<?php echo csrf_url_param() ?>">Delete</a>
+
+// In the delete handler — verify immediately after page_require_level()
+page_require_level(2);
+if (!verify_get_csrf()) {
+    $session->msg('d', 'Invalid or missing security token.');
+    redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false);
+}
+```
+
+`csrf_url_param()` returns a `csrf_token=<hex>` query fragment using the same per-session token as `csrf_field()`. `verify_get_csrf()` checks `$_GET['csrf_token']` with `hash_equals()`.
+
 ## Output Escaping — `includes/functions.php`
 
 ```php

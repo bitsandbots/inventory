@@ -81,7 +81,7 @@ foreach ( $all_products as $product ) {
                         <a href="../products/edit_stock.php?id=<?php echo (int)$stock['id'];?>"  class="btn btn-xs btn-warning" data-toggle="tooltip" title="Edit">
                           <span class="glyphicon glyphicon-edit"></span>
                         </a>
-                        <a href="../products/delete_stock.php?id=<?php echo (int)$stock['id'];?>" onClick="return confirm('Are you sure you want to delete?')" class="btn btn-xs btn-danger" data-toggle="tooltip" title="Remove">
+                        <a href="../products/delete_stock.php?id=<?php echo (int)$stock['id'];?>&<?php echo csrf_url_param(); ?>" onClick="return confirm('Are you sure you want to delete?')" class="btn btn-xs btn-danger" data-toggle="tooltip" title="Remove">
                           <span class="glyphicon glyphicon-trash"></span>
                         </a>
                       </div>

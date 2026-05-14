@@ -83,7 +83,7 @@ $all_users = find_all_user();
                 <a href="../users/edit_user.php?id=<?php echo (int)$a_user['id'];?>" class="btn btn-xs btn-warning" data-toggle="tooltip" title="Edit">
                   <i class="glyphicon glyphicon-pencil"></i>
                </a>
-                <a href="../users/delete_user.php?id=<?php echo (int)$a_user['id'];?>"  onClick="return confirm('Are you sure you want to delete?')" class="btn btn-xs btn-danger" data-toggle="tooltip" title="Remove">
+                <a href="../users/delete_user.php?id=<?php echo (int)$a_user['id'];?>&<?php echo csrf_url_param(); ?>" onClick="return confirm('Are you sure you want to delete?')" class="btn btn-xs btn-danger" data-toggle="tooltip" title="Remove">
                   <i class="glyphicon glyphicon-remove"></i>
                 </a>
                 </div>

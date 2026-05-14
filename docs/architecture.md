@@ -260,7 +260,7 @@ Key relationships:
 | `MySqli_DB` | Class | `includes/database.php` | DB connection, raw query, prepared CRUD (`prepare_query`, `prepare_select`, `prepare_select_one`) |
 | `Session` | Class | `includes/session.php` | User login state, flash messaging, session ID regeneration |
 | `Media` | Class | `includes/upload.php` | File upload validation, image processing for users and products |
-| `csrf_token()` / `verify_csrf()` | Functions | `includes/functions.php` | CSRF token generation and POST validation |
+| `csrf_token()` / `verify_csrf()` / `verify_get_csrf()` / `csrf_url_param()` | Functions | `includes/functions.php` | CSRF token generation, POST validation, and GET-based delete link protection |
 | `h()` | Function | `includes/functions.php` | HTML output escaping shorthand |
 | `remove_junk()` | Function | `includes/functions.php` | Input sanitization pipeline (strip tags, trim, htmlspecialchars) |
 | `page_require_level()` | Function | `includes/sql.php` | RBAC gate — all protected pages call this |
