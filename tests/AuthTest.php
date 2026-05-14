@@ -79,6 +79,47 @@ test('find_by_name() returns null for unknown product', function () {
     assert($result === null, 'Should return null for unknown product');
 });
 
+// 8. SHA1 → bcrypt migration: login with legacy SHA1 hash rehashes to bcrypt
+test('authenticate() rehashes legacy SHA1 password to bcrypt on login', function () {
+    global $db;
+    $test_user = 'HARNESS_sha1migrate_' . bin2hex(random_bytes(4));
+    $test_pass = 'test_pass_' . bin2hex(random_bytes(4));
+    $sha1_hash = sha1($test_pass);
+
+    // Insert a user with a raw SHA1 hash
+    $stmt = $db->prepare_query(
+        "INSERT INTO users (name, username, password, user_level, status) VALUES (?, ?, ?, '3', '1')",
+        "sss", $test_user, $test_user, $sha1_hash
+    );
+    $inserted_id = $db->insert_id();
+    $stmt->close();
+
+    // Authenticate — should succeed and trigger rehash
+    $result = authenticate($test_user, $test_pass);
+    assert($result !== false, 'Login with SHA1 hash should succeed');
+
+    // Verify the stored hash was upgraded to bcrypt
+    $user = find_by_id('users', $inserted_id);
+    assert($user !== null, 'Could not retrieve user after login');
+    $new_hash = $user['password'];
+    assert(strlen($new_hash) !== 40, 'Hash should no longer be 40-char SHA1');
+    assert(password_verify($test_pass, $new_hash), 'New hash should be valid bcrypt');
+    echo "       [SHA1 hash upgraded to bcrypt for user $test_user]\n";
+
+    // Cleanup
+    $db->prepare_query("DELETE FROM users WHERE id = ?", "i", $inserted_id)->close();
+});
+
+// 9. session_regenerate_id is called on login (session ID changes)
+test('Session::login() regenerates session ID to prevent fixation', function () {
+    $old_id = session_id();
+    $session_obj = new Session();
+    $session_obj->login(1);
+    $new_id = session_id();
+    assert($old_id !== $new_id, 'Session ID must change after login() to prevent session fixation');
+    echo "       [session ID changed: " . substr($old_id, 0, 8) . "... → " . substr($new_id, 0, 8) . "...]\n";
+});
+
 echo "\n---\nResults: $pass passed, $fail failed\n";
 
 exit($fail > 0 ? 1 : 0);

@@ -286,3 +286,31 @@ function verify_csrf(): bool
     }
     return true;
 }
+
+/**
+ * Return a query-string fragment containing the CSRF token for use in
+ * GET-based state-changing URLs (delete links, etc.).
+ *
+ * Usage: href="delete_foo.php?id=<?php echo $id ?>&<?php echo csrf_url_param() ?>"
+ *
+ * @return string  e.g. "csrf_token=abc123..."
+ */
+function csrf_url_param(): string
+{
+    return 'csrf_token=' . urlencode(csrf_token());
+}
+
+/**
+ * Verify the CSRF token in a GET-based state-changing handler.
+ * Token must be passed as the csrf_token query parameter.
+ *
+ * @return bool
+ */
+function verify_get_csrf(): bool
+{
+    $token = $_GET['csrf_token'] ?? '';
+    if (empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
+        return false;
+    }
+    return true;
+}

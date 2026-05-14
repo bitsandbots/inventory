@@ -108,8 +108,8 @@ $req_fields = array('customer-name' );
         </div>
         <div class="panel-body">
          <div class="col-md-7">
-           <form method="post" action="../customers/edit_customer.php?id=<?php echo (int)$customer['id'] ?>
-              <?php echo csrf_field(); ?>">
+           <form method="post" action="../customers/edit_customer.php?id=<?php echo (int)$customer['id'] ?>">
+              <?php echo csrf_field(); ?>
               <div class="form-group">
                 <div class="input-group">
                   <span class="input-group-addon">

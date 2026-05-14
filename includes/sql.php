@@ -27,7 +27,8 @@ function find_all($table) {
 
 
 /*--------------------------------------------------------------*/
-/* Function for Perform queries (legacy — prefer prepare_select)
+/* Function for Perform queries (legacy — still used internally for complex joins.
+/* New queries with user input must use prepare_select() instead)
 /*--------------------------------------------------------------*/
 
 
@@ -112,6 +113,7 @@ function delete_by_id($table, $id) {
 		$stmt->close();
 		return ($affected === 1);
 	}
+	return false;
 }
 
 
@@ -137,6 +139,7 @@ function delete_by_ip($table, $remote_ip) {
 		$stmt->close();
 		return ($affected >= 1);
 	}
+	return false;
 }
 
 
@@ -210,8 +213,9 @@ function tableExists($table) {
 
 /**
  * Authenticate a user by username and password.
- * Uses password_verify() for bcrypt hashes with automatic rehash on login
- * for users whose passwords were hashed with the old sha1 method.
+ * Supports legacy SHA1 hashes and modern bcrypt hashes. Automatic rehash
+ * on login: SHA1 → bcrypt on first login after migration, and bcrypt →
+ * bcrypt if cost factor changes (password_needs_rehash).
  *
  * @param string $username
  * @param string $password
@@ -227,8 +231,8 @@ function authenticate($username='', $password='') {
 
 		// Check if stored hash is a legacy SHA1 hash (40-char hex string)
 		if (strlen($stored_hash) === 40 && ctype_xdigit($stored_hash)) {
-			// Legacy SHA1 comparison
-			if (sha1($password) === $stored_hash) {
+			// Legacy SHA1 comparison — hash_equals prevents timing attacks
+			if (hash_equals($stored_hash, sha1($password))) {
 				// Rehash with bcrypt for future logins
 				$new_hash = password_hash($password, PASSWORD_BCRYPT);
 				$db->prepare_query(

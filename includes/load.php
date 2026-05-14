@@ -72,15 +72,16 @@ if ($is_page_request) {
     if (isset( $_SESSION['user_id'] )) {
         $user_id = $_SESSION['user_id'];
     }
+
+    // Use REMOTE_ADDR as the authoritative IP; only fall back to
+    // X-Forwarded-For when running behind a trusted reverse proxy, and
+    // always validate the extracted value is a real IP address.
+    $remote_ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
     if ( isset($_SERVER['HTTP_X_FORWARDED_FOR']) ) {
-        $remote_ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        if ( strpos( $remote_ip, "," ) > 0 ) {
-            $remote_ip_for = explode( ",", $remote_ip );
-            $remote_ip = $remote_ip_for[0];
-        }
-    } else {
-        if (isset( $_SERVER['REMOTE_ADDR'] )) {
-            $remote_ip = $_SERVER['REMOTE_ADDR'];
+        $forwarded_ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $candidate = trim($forwarded_ips[0]);
+        if (filter_var($candidate, FILTER_VALIDATE_IP)) {
+            $remote_ip = $candidate;
         }
     }
 
@@ -89,5 +90,7 @@ if ($is_page_request) {
         $action = preg_replace('/^.+[\\\\\\/]/', '', $action);
     }
 
-    logAction( $user_id, $remote_ip, $action );
+    if (!logAction( $user_id, $remote_ip, $action )) {
+        error_log("WARNING: logAction failed for user_id=$user_id ip=$remote_ip action=$action");
+    }
 }

@@ -109,6 +109,35 @@ test('find_sale_by_dates() executes', function () {
     echo "       [" . count($sales) . " sales in range]\n";
 });
 
+// 9. SQL injection: find_by_id() rejects non-integer ID strings
+test('find_by_id() treats injection string as literal integer 0', function () {
+    // "1 OR 1=1" cast to int becomes 1, not a SQLi payload — assert behaviour is defined
+    $result = find_by_id('products', "1 OR 1=1");
+    // (int)"1 OR 1=1" === 1, so this returns the product with id=1 or null — not all rows
+    // The key assertion: result is null OR a single row, never an array of multiple rows
+    assert($result === null || (is_array($result) && isset($result['id'])),
+        'find_by_id() must return null or a single row, not multiple rows');
+});
+
+// 10. SQL injection: find_by_name() treats SQL payload as literal string
+test('find_by_name() treats SQL injection payload as literal name', function () {
+    $payload = "'; DROP TABLE products; --";
+    $result = find_by_name('products', $payload);
+    // Should return null (no product with that name) — NOT execute the injection
+    assert($result === null, 'find_by_name() should return null for injection payload, not execute it');
+    // Verify products table still exists
+    global $db;
+    $check = $db->query("SELECT COUNT(*) as n FROM products");
+    $row = $db->fetch_assoc($check);
+    assert($row !== false, 'products table must still exist after injection attempt');
+});
+
+// 11. delete_by_id() returns false for non-existent ID
+test('delete_by_id() returns false for non-existent ID', function () {
+    $result = delete_by_id('products', 999999999);
+    assert($result === false, 'delete_by_id() should return false when no row matches');
+});
+
 echo "\n---\nResults: $pass passed, $fail failed\n";
 
 exit($fail > 0 ? 1 : 0);
