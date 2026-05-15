@@ -2,7 +2,7 @@
 
 Snapshot of feature completeness, test coverage, and known issues for the Inventory Management System.
 
-**Last regenerated**: 2026-05-15 (third pass — migrations applied, upload.php prepared, CSP tightened, CI added)
+**Last regenerated**: 2026-05-15 (fourth pass — `style-src` tightened to `'self'` only)
 **Codebase commit**: post-install.sh-reinstall, post-PHP8-type-strictness fixes, post-hardening pass, post-CI
 
 ---
@@ -56,7 +56,7 @@ These were live bugs in `main` and have been patched:
 | `tests/CRUDTest.php` failed silently — wrong column name + missing NOT NULL fields + missing parent category | `tests/CRUDTest.php` | HIGH | Fixed column name, provisioned HARNESS category for FK, used `check()` helper instead of `assert()` |
 | `tests/bootstrap.php` did not buffer output, so `session_regenerate_id()` failed in the SessionTest after prior `echo`s | `tests/bootstrap.php` | MEDIUM | Added `ob_start()` at bootstrap entry |
 | `tests/*.php` used `assert()` — a no-op on default PHP 8 configurations | `tests/AuthTest.php`, `tests/CRUDTest.php` | MEDIUM | Added `check()` helper that throws on failure |
-| CSP / X-Frame-Options / Referrer-Policy / Permissions-Policy headers missing | `includes/load.php` | HIGH | Emit on every request (CSP allows `'self'` + `'unsafe-inline'` for bundled Bootstrap/jQuery) |
+| CSP / X-Frame-Options / Referrer-Policy / Permissions-Policy headers missing | `includes/load.php` | HIGH | Emit on every request (CSP is `'self'` only for `script-src` *and* `style-src` — no `'unsafe-inline'`) |
 | No login rate limiting — credential stuffing unmitigated | `users/auth.php`, `failed_logins` table | HIGH | Added migration 002, helpers in `sql.php`, check + record + clear in `auth.php` (5 attempts per 15 min per IP) |
 | No password complexity enforcement — single-char passwords accepted | `users/add_user.php`, `users/edit_user.php`, `users/change_password.php` | MEDIUM | Added `validate_password()` helper (min 8 chars, must contain letter + digit, denylist of common passwords) |
 | `quantity` columns were VARCHAR(50) | `schema.sql`, `migrations/001_quantity_int.up.sql`, `migrations/001_quantity_int.down.sql` | HIGH | Migration 001 created; `schema.sql` updated for fresh installs (INT NOT NULL DEFAULT 0) |
@@ -80,8 +80,6 @@ These were live bugs in `main` and have been patched:
 
 **No browser-level UI/integration tests** — `tests/SecurityHeadersTest.php` exercises HTTP responses but there's no Playwright/Selenium coverage of actual page interactions.
 
-**CSP keeps `'unsafe-inline'` for `style-src`** — Bootstrap's JS sets inline style attributes (dropdowns, popovers, tooltips) at runtime; removing this would break common UI controls. `script-src` is now `'self'` only after moving inline handlers to `libs/js/functions.js`.
-
 **`orders.customer` is a varchar (denormalized)** — should be FK to `customers.id` for referential integrity. Pre-existing schema decision; preserved to avoid breaking changes.
 
 ---
@@ -100,7 +98,7 @@ Cross-reference of `docs/*.md` claims against actual code:
 | "CI pipeline" | `gap-analysis.md` prior pass | ✅ ADDED 2026-05-15 — `.github/workflows/ci.yml` runs `php -l` + full test suite on push/PR |
 | "Security headers test" | `gap-analysis.md` prior pass | ✅ ADDED 2026-05-15 — `tests/SecurityHeadersTest.php` (7 tests) |
 | "failed_logins housekeeping" | `gap-analysis.md` prior pass | ✅ ADDED 2026-05-15 — probabilistic prune (~1% of page loads) via `prune_failed_logins()` |
-| "Inline JS / CSP tightening" | `gap-analysis.md` prior pass | ✅ MOSTLY DONE 2026-05-15 — moved `closePanel()` to `libs/js/functions.js`, replaced 4 redirect stubs with server-side redirects, CSP `script-src` is now `'self'` only |
+| "Inline JS / CSP tightening" | `gap-analysis.md` prior pass | ✅ DONE 2026-05-15 — `script-src 'self'` after moving `closePanel()` to `libs/js/functions.js`; `style-src 'self'` after replacing 117 `style="width:X"` attrs with `col-w-*` utility classes (`libs/css/main.css`) and extracting 4 print blocks into `libs/css/print.css` |
 | "log.user_id FK for audit-trail preservation" | `gap-analysis.md` prior pass | ✅ DESIGNED 2026-05-15 — migration 003 ready; schema.sql updated for fresh installs |
 | "Soft delete with restore" | none — but typical for audit-heavy apps | NOT IMPLEMENTED — `delete_by_id()` is hard delete. Scoped + deferred (see section 3) |
 
@@ -121,9 +119,7 @@ Cross-reference of `docs/*.md` claims against actual code:
 
 Most prior-pass items now resolved (see section 4 below). Remaining work:
 
-1. **Apply migration 003 to running deployments** — backup, then `sudo mysql inventory < migrations/003_log_user_fk.up.sql`.
-2. **Soft-delete refactor** (its own PR) — `deleted_at` columns + `soft_delete_by_id()` + `restore_by_id()` + filter every SELECT. See section 3 above for scope.
-3. **Tighten `style-src`** — extract Bootstrap inline-style usages (animations, popovers) to either CSS classes or nonce-permitted blocks.
-4. **Per-tenant currency** — make `$CURRENCY_CODE` a column in a settings table or `.env` value.
-5. **Browser-level UI tests** — Playwright covering the login → add-product → add-sale → invoice happy path.
-6. **Pre-commit hook** for `php -l` on staged files (the CI catches this on push but pre-commit prevents bad commits).
+1. **Soft-delete refactor** (its own PR) — `deleted_at` columns + `soft_delete_by_id()` + `restore_by_id()` + filter every SELECT. See section 3 above for scope.
+2. **Per-tenant currency** — make `$CURRENCY_CODE` a column in a settings table or `.env` value.
+3. **Browser-level UI tests** — Playwright covering the login → add-product → add-sale → invoice happy path.
+4. **Pre-commit hook** for `php -l` on staged files (the CI catches this on push but pre-commit prevents bad commits).

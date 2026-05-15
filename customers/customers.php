@@ -42,14 +42,14 @@ $all_customers = find_all('customers');
           <table class="table table-bordered table-striped">
           <thead>
                 <tr>
-                    <th class="text-center" style="width: 100px;">Customer</th>
-                    <th class="text-center" style="width: 100px;">City</th>
-                    <th class="text-center" style="width: 50px;">Region</th>
-                    <th class="text-center" style="width: 50px;">Code</th>
-                    <th class="text-center" style="width: 50px;">Telephone</th>
-                    <th class="text-center" style="width: 50px;">Email</th>
-                    <th class="text-center" style="width: 50px;">Pay Method</th>
-                    <th class="text-center" style="width: 50px;">Actions</th>
+                    <th class="text-center col-w-100">Customer</th>
+                    <th class="text-center col-w-100">City</th>
+                    <th class="text-center col-w-50">Region</th>
+                    <th class="text-center col-w-50">Code</th>
+                    <th class="text-center col-w-50">Telephone</th>
+                    <th class="text-center col-w-50">Email</th>
+                    <th class="text-center col-w-50">Pay Method</th>
+                    <th class="text-center col-w-50">Actions</th>
                 </tr>
             </thead>
             <tbody>

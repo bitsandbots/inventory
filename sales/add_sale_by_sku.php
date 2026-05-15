@@ -96,14 +96,14 @@ $req_fields = array('s_id', 'quantity', 'price', 'total' );
               <?php echo csrf_field(); ?>
          <table class="table table-bordered">
            <thead>
-            <th class="text-center" style="width: 100px;">Product </th>
-            <th class="text-center" style="width: 50px;"> SKU </th>
-            <th class="text-center" style="width: 50px;"> Location </th>
-            <th class="text-center" style="width: 15px;"> Available </th>
-            <th class="text-center" style="width: 15px;"> Quantity </th>
-            <th class="text-center" style="width: 50px;"> Price </th>
-            <th class="text-center" style="width: 50px;"> Total </th>
-            <th class="text-center" style="width: 50px;"> Action</th>
+            <th class="text-center col-w-100">Product </th>
+            <th class="text-center col-w-50"> SKU </th>
+            <th class="text-center col-w-50"> Location </th>
+            <th class="text-center col-w-15"> Available </th>
+            <th class="text-center col-w-15"> Quantity </th>
+            <th class="text-center col-w-50"> Price </th>
+            <th class="text-center col-w-50"> Total </th>
+            <th class="text-center col-w-50"> Action</th>
            </thead>
              <tbody  id="product_info"> </tbody>
          </table>

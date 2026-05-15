@@ -47,12 +47,12 @@ page_require_level(3);
            <thead>
                 <th> Product Name </th>
                 <th> Photo</th>
-                <th class="text-center" style="width: 10%;"> SKU </th>
-                <th class="text-center" style="width: 10%;"> Location </th>
-                <th class="text-center" style="width: 10%;"> Stock </th>
-                <th class="text-center" style="width: 10%;"> Cost Price </th>
-                <th class="text-center" style="width: 10%;"> Sale Price </th>
-                <th class="text-center" style="width: 100px;"> Actions </th>
+                <th class="text-center col-w-10p"> SKU </th>
+                <th class="text-center col-w-10p"> Location </th>
+                <th class="text-center col-w-10p"> Stock </th>
+                <th class="text-center col-w-10p"> Cost Price </th>
+                <th class="text-center col-w-10p"> Sale Price </th>
+                <th class="text-center col-w-100"> Actions </th>
            </thead>
              <tbody  id="product_info"> </tbody>
          </table>

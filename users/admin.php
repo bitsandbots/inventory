@@ -153,7 +153,7 @@ $recent_sales    = find_recent_sale_added('5')
           <table class="table table-striped table-bordered table-condensed">
        <thead>
          <tr>
-           <th class="text-center" style="width: 50px;">#</th>
+           <th class="text-center col-w-50">#</th>
            <th>Product</th>
            <th>Date</th>
            <th>Total Sale</th>

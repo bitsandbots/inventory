@@ -32,23 +32,22 @@ if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
 // -----------------------------------------------------------------------
 // Security response headers — emitted on every request.
 //
-// CSP is intentionally permissive ('self' + inline styles/scripts) because
-// the project bundles Bootstrap 5 and jQuery with inline onclick handlers.
-// Tightening this requires refactoring inline JS out of the templates;
-// tracked in docs/gap-analysis.md.
+// CSP is tight: 'self' only for scripts and styles, no 'unsafe-inline' or
+// 'unsafe-eval'. Inline JS lives in libs/js/functions.js; column-width
+// utility classes (libs/css/main.css) replaced inline style="" attributes;
+// print/report pages link libs/css/print.css.
 // -----------------------------------------------------------------------
 if (PHP_SAPI !== 'cli' && !headers_sent()) {
-    // script-src: 'self' only — no 'unsafe-inline'. All inline JS has been
-    //   moved to libs/js/functions.js. New inline scripts must use a nonce
-    //   or be moved to an external file.
-    // style-src: keeps 'unsafe-inline' because Bootstrap and jQuery
-    //   plugins (dropdowns, tooltips, popovers) set inline style attributes
-    //   at runtime. Removing it would break common UI controls. Tracked in
-    //   docs/gap-analysis.md as an accepted constraint.
+    // script-src: 'self' only — no 'unsafe-inline'. New inline scripts must
+    //   use a nonce or be moved to an external file.
+    // style-src: 'self' only — no 'unsafe-inline'. CSP style-src governs
+    //   <style> blocks and HTML-parsed style="" attributes, not runtime
+    //   element.style.X or jQuery .css() (those are script-side), so the
+    //   bundled Bootstrap/jQuery plugins continue to work.
     header("Content-Security-Policy: "
         . "default-src 'self'; "
         . "script-src 'self'; "
-        . "style-src 'self' 'unsafe-inline'; "
+        . "style-src 'self'; "
         . "img-src 'self' data:; "
         . "font-src 'self'; "
         . "object-src 'none'; "

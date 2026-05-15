@@ -109,14 +109,14 @@ $all_categories = find_all('categories');
       <div class="panel-body">
          <table class="table table-bordered">
            <thead>
-            <th class="text-center" style="width: 15px;"> Product </th>
-            <th class="text-center" style="width: 50px;"> Photo </th>
-            <th class="text-center" style="width: 15px;"> SKU </th>
-            <th class="text-center" style="width: 50px;"> Location </th>
-            <th class="text-center" style="width: 15px;"> Available </th>
-            <th class="text-center" style="width: 15px;"> Quantity </th>
-            <th class="text-center" style="width: 50px;"> Price </th>
-            <th class="text-center" style="width: 50px;"> Action</th>
+            <th class="text-center col-w-15"> Product </th>
+            <th class="text-center col-w-50"> Photo </th>
+            <th class="text-center col-w-15"> SKU </th>
+            <th class="text-center col-w-50"> Location </th>
+            <th class="text-center col-w-15"> Available </th>
+            <th class="text-center col-w-15"> Quantity </th>
+            <th class="text-center col-w-50"> Price </th>
+            <th class="text-center col-w-50"> Action</th>
            </thead>
 
 <?php

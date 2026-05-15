@@ -104,11 +104,11 @@ $req_fields = array('customer-name', 'paymethod' );
          <table class="table table-bordered">
            <thead>
                 <tr>
-                    <th class="text-center" style="width: 100px;">Customer</th>
-                    <th class="text-center" style="width: 100px;">Address</th>
-                    <th class="text-center" style="width: 50px;">Postal Code</th>
-                    <th class="text-center" style="width: 50px;">Pay Method</th>
-                    <th class="text-center" style="width: 50px;">Actions</th>
+                    <th class="text-center col-w-100">Customer</th>
+                    <th class="text-center col-w-100">Address</th>
+                    <th class="text-center col-w-50">Postal Code</th>
+                    <th class="text-center col-w-50">Pay Method</th>
+                    <th class="text-center col-w-50">Actions</th>
                 </tr>
            </thead>
            <tbody  id="customer_info"> </tbody>

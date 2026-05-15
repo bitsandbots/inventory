@@ -309,3 +309,11 @@ input[type=file]{
   width: 125px;
   height: 125px;
 }
+/* Column-width utilities — replace inline style="width:X" so style-src can drop 'unsafe-inline'. */
+.col-w-15{ width: 15px; }
+.col-w-50{ width: 50px; }
+.col-w-100{ width: 100px; }
+.col-w-10p{ width: 10%; }
+.col-w-15p{ width: 15%; }
+.col-w-20p{ width: 20%; }
+

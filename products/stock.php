@@ -39,11 +39,11 @@ $all_products = find_all('products');
           <table class="table table-bordered table-striped">
             <thead>
                 <tr>
-                    <th class="text-center" style="width: 50px;">Product</th>
-                    <th class="text-center" style="width: 50px;">Quantity</th>
-                    <th class="text-center" style="width: 50px;">Comments</th>
-                    <th class="text-center" style="width: 50px;">Date</th>
-                    <th class="text-center" style="width: 100px;">Actions</th>
+                    <th class="text-center col-w-50">Product</th>
+                    <th class="text-center col-w-50">Quantity</th>
+                    <th class="text-center col-w-50">Comments</th>
+                    <th class="text-center col-w-50">Date</th>
+                    <th class="text-center col-w-100">Actions</th>
                 </tr>
             </thead>
             <tbody>

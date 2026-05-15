@@ -36,12 +36,12 @@ page_require_level(3);
           <table class="table table-bordered table-striped">
             <thead>
               <tr>
-                <th class="text-center" style="width: 15%;">Order</th>
+                <th class="text-center col-w-15p">Order</th>
                 <th> Product </th>
-                <th class="text-center" style="width: 15%;"> Quantity</th>
-                <th class="text-center" style="width: 15%;"> Total </th>
-                <th class="text-center" style="width: 15%;"> Date </th>
-                <th class="text-center" style="width: 100px;"> Actions </th>
+                <th class="text-center col-w-15p"> Quantity</th>
+                <th class="text-center col-w-15p"> Total </th>
+                <th class="text-center col-w-15p"> Date </th>
+                <th class="text-center col-w-100"> Actions </th>
              </tr>
             </thead>
 
