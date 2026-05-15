@@ -59,7 +59,7 @@ CREATE TABLE `customers` (
 
 CREATE TABLE `log` (
   `id` int(11) NOT NULL,
-  `user_id` int(11) DEFAULT NULL,
+  `user_id` int(11) UNSIGNED DEFAULT NULL,
   `remote_ip` varchar(255) NOT NULL,
   `action` varchar(255) DEFAULT NULL,
   `date` date NOT NULL

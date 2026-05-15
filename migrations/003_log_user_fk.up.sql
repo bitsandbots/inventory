@@ -17,6 +17,10 @@ UPDATE log
  WHERE user_id IS NOT NULL
    AND user_id NOT IN (SELECT id FROM users);
 
+SELECT 'Aligning log.user_id signedness with users.id (UNSIGNED)...' AS step;
+
+ALTER TABLE log MODIFY `user_id` int(11) UNSIGNED DEFAULT NULL;
+
 SELECT 'Adding FK fk_log_user...' AS step;
 
 ALTER TABLE log
