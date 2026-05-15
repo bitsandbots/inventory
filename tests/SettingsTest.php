@@ -110,7 +110,10 @@ test('currency_code round-trip changes formatcurrency() output', function () {
     check($code === 'EUR', "expected EUR, got: $code");
 
     $eur = formatcurrency(1234.56, $code);
-    check(str_contains($eur, 'EUR') || str_contains($eur, '€'), "EUR output looks wrong: $eur");
+    // formatcurrency() emits HTML entities (e.g. &euro;) for symbols, so
+    // decode before substring-matching against the literal char.
+    $decoded = html_entity_decode($eur, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    check(str_contains($decoded, 'EUR') || str_contains($decoded, '€'), "EUR output looks wrong: $eur");
     echo "       [EUR sample: $eur]\n";
 
     // Restore to the canonical seeded value.
