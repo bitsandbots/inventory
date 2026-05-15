@@ -1,6 +1,7 @@
 .env
 .env.local
 .env.production
+.env.bak.*
 *.log
 .DS_Store
 Thumbs.db
