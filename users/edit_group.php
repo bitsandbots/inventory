@@ -82,8 +82,8 @@ $req_fields = array('group-name', 'group-level');
         <div class="form-group">
           <label for="status">Status</label>
               <select class="form-control" name="status">
-                <option <?php if ($e_group['group_status'] === '1') echo 'selected="selected"';?> value="1"> Active </option>
-                <option <?php if ($e_group['group_status'] === '0') echo 'selected="selected"';?> value="0">Deactive</option>
+                <option <?php if ((int)$e_group['group_status'] === 1) echo 'selected="selected"';?> value="1"> Active </option>
+                <option <?php if ((int)$e_group['group_status'] === 0) echo 'selected="selected"';?> value="0">Deactive</option>
               </select>
         </div>
 <!--     *************************     -->

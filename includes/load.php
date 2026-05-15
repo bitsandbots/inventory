@@ -29,6 +29,38 @@ if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
     ini_set('session.cookie_secure', 1);
 }
 
+// -----------------------------------------------------------------------
+// Security response headers — emitted on every request.
+//
+// CSP is intentionally permissive ('self' + inline styles/scripts) because
+// the project bundles Bootstrap 5 and jQuery with inline onclick handlers.
+// Tightening this requires refactoring inline JS out of the templates;
+// tracked in docs/gap-analysis.md.
+// -----------------------------------------------------------------------
+if (PHP_SAPI !== 'cli' && !headers_sent()) {
+    // script-src: 'self' only — no 'unsafe-inline'. All inline JS has been
+    //   moved to libs/js/functions.js. New inline scripts must use a nonce
+    //   or be moved to an external file.
+    // style-src: keeps 'unsafe-inline' because Bootstrap and jQuery
+    //   plugins (dropdowns, tooltips, popovers) set inline style attributes
+    //   at runtime. Removing it would break common UI controls. Tracked in
+    //   docs/gap-analysis.md as an accepted constraint.
+    header("Content-Security-Policy: "
+        . "default-src 'self'; "
+        . "script-src 'self'; "
+        . "style-src 'self' 'unsafe-inline'; "
+        . "img-src 'self' data:; "
+        . "font-src 'self'; "
+        . "object-src 'none'; "
+        . "base-uri 'self'; "
+        . "form-action 'self'; "
+        . "frame-ancestors 'none'");
+    header('X-Frame-Options: DENY');
+    header('X-Content-Type-Options: nosniff');
+    header('Referrer-Policy: same-origin');
+    header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+}
+
 require_once LIB_PATH_INC.'config.php';
 require_once LIB_PATH_INC.'functions.php';
 require_once LIB_PATH_INC.'session.php';

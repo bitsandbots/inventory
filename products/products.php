@@ -104,7 +104,7 @@ if ( ( isset($_POST['update_category'] ) ) && ( $selected_category > 0 ) ) {
                 <td><a href="../products/view_product.php?id=<?php echo (int)$product['id'];?>"><?php echo h($product['name']); ?></a></td>
 
                 <td>
-                  <?php if ($product['media_id'] === '0'): ?>
+                  <?php if ((int)$product['media_id'] === 0): ?>
                     <img class="img-avatar img-circle" src="../uploads/products/no_image.jpg" alt="">
                   <?php else: ?>
                   <img class="img-avatar img-circle" src="../uploads/products/<?php echo h($product['image']); ?>" alt="">

@@ -8,6 +8,9 @@
 ob_start();
 require_once '../includes/load.php';
 if ($session->isUserLoggedIn()) { redirect('../users/home.php', false);}
+$username = '';
+$password = '';
+$msg = $msg ?? '';
 ?>
 <?php include_once '../layouts/header.php'; ?>
 <div class="login-page">
@@ -20,11 +23,11 @@ if ($session->isUserLoggedIn()) { redirect('../users/home.php', false);}
               <?php echo csrf_field(); ?>
         <div class="form-group">
               <label for="username" class="control-label">Username</label>
-              <input type="name" class="form-control" name="username" value="<?php echo $username;?>" placeholder="Username">
+              <input type="text" class="form-control" name="username" value="<?php echo h($username);?>" placeholder="Username" autocomplete="username">
         </div>
         <div class="form-group">
             <label for="Password" class="control-label">Password</label>
-            <input type="password" class="form-control" name="password" value="<?php echo $password;?>" placeholder="Password">
+            <input type="password" class="form-control" name="password" value="" placeholder="Password" autocomplete="current-password">
         </div>
         <div class="form-group">
                 <button type="submit" class="btn btn-info  pull-right">Login</button>

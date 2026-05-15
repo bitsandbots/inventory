@@ -113,8 +113,8 @@ $req_fields = array('password');
 
        <div class="panel-body">
 
-          <form method="post" action="../users/edit_user.php?id=<?php echo (int)$e_user['id'];?>
-              <?php echo csrf_field(); ?>" class="clearfix">
+          <form method="post" action="../users/edit_user.php?id=<?php echo (int)$e_user['id'];?>" class="clearfix">
+              <?php echo csrf_field(); ?>
 <!--     *************************     -->
             <div class="form-group">
                   <label for="name" class="control-label">Name</label>
@@ -130,7 +130,7 @@ $req_fields = array('password');
               <label for="level">User Role</label>
                 <select class="form-control" name="level">
                   <?php foreach ($groups as $group ):?>
-                   <option <?php if ($group['group_level'] === $e_user['user_level']) echo 'selected="selected"';?> value="<?php echo $group['group_level'];?>"><?php echo ucwords($group['group_name']);?></option>
+                   <option <?php if ((int)$group['group_level'] === (int)$e_user['user_level']) echo 'selected="selected"';?> value="<?php echo (int)$group['group_level'];?>"><?php echo h(ucwords($group['group_name']));?></option>
                 <?php endforeach;?>
                 </select>
             </div>
@@ -138,8 +138,8 @@ $req_fields = array('password');
             <div class="form-group">
               <label for="status">Status</label>
                 <select class="form-control" name="status">
-                  <option <?php if ($e_user['status'] === '1') echo 'selected="selected"';?>value="1">Active</option>
-                  <option <?php if ($e_user['status'] === '0') echo 'selected="selected"';?> value="0">Deactive</option>
+                  <option <?php if ((int)$e_user['status'] === 1) echo 'selected="selected"';?> value="1">Active</option>
+                  <option <?php if ((int)$e_user['status'] === 0) echo 'selected="selected"';?> value="0">Deactive</option>
                 </select>
             </div>
 <!--     *************************     -->

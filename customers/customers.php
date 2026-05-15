@@ -58,7 +58,7 @@ $all_customers = find_all('customers');
               <?php foreach ($all_customers as $customer):?>
                 <tr>
                     <td class="text-center">
-						<?php echo ucfirst($customer['name']);?>
+						<?php echo h(ucfirst($customer['name']));?>
 					</td>
                     <td class="text-center">
 						<?php echo h($customer['city']);?>

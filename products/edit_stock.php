@@ -111,7 +111,7 @@ $req_field = array('product_id', 'quantity');
            </div>
 
            <div class="form-group">
-               <input type="text" class="form-control" name="comments" value="<?php echo $stock['comments'];?>" placeholder="Notes">
+               <input type="text" class="form-control" name="comments" value="<?php echo h($stock['comments']);?>" placeholder="Notes">
            </div>
 
            <button type="submit" name="edit_stock" class="btn btn-primary">Update Inventory</button>

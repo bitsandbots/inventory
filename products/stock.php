@@ -69,7 +69,7 @@ foreach ( $all_products as $product ) {
 
 
                     <td class="text-center">
-						<?php echo $stock['comments'];?>
+						<?php echo h($stock['comments']);?>
 					</td>
                     <td class="text-center">
 						<?php echo $stock['date'];?>

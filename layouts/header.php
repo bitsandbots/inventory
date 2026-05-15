@@ -71,15 +71,16 @@ else echo "Inventory Management System";
      </div>
     </header>
     <div class="sidebar">
-      <?php if ($user['user_level'] === '1'): ?>
+      <?php $ulvl = (int)($user['user_level'] ?? 0); ?>
+      <?php if ($ulvl === 1): ?>
         <!-- admin menu -->
       <?php include_once 'admin_menu.php';?>
 
-      <?php elseif ($user['user_level'] === '2'): ?>
+      <?php elseif ($ulvl === 2): ?>
         <!-- Special user -->
       <?php include_once 'special_menu.php';?>
 
-      <?php elseif ($user['user_level'] === '3'): ?>
+      <?php elseif ($ulvl === 3): ?>
         <!-- User menu -->
       <?php include_once 'user_menu.php';?>
 

@@ -89,14 +89,14 @@ foreach ($logs as $log ) {
 <td class="text-center">
 <?php
 	$user =  find_by_id( "users", $log['user_id'] );
-	echo $user['name'];
+	echo h($user['name'] ?? '');
 ?>
 </td>
 <td class="text-center">
-<?php  echo $log['remote_ip']; ?>
+<?php  echo h($log['remote_ip']); ?>
 </td>
 <td class="text-center">
-<?php echo $log['action']; ?>
+<?php echo h($log['action']); ?>
 </td>
 
 <td class="text-center">
