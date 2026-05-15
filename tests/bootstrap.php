@@ -42,6 +42,10 @@ if (!getenv('TESTS_NO_DB')) {
     require_once LIB_PATH_INC . 'sql.php';
 }
 
+// Load Settings (lazy — only queries the DB when get() is called)
+require_once LIB_PATH_INC . 'settings.php';
+require_once LIB_PATH_INC . 'formatcurrency.php';
+
 // Session stub for CLI testing (no HTTP headers)
 if (php_sapi_name() === 'cli') {
     $_SESSION = [];

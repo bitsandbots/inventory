@@ -9,26 +9,26 @@
  */
 
 
-function formatcurrency($floatcurr, $curr = 'USD') {
-
-	/**
-	 * A list of the ISO 4217 currency codes with symbol,format and symbol order
-	 *
-	 * Symbols from
-	 * http://character-code.com/currency-html-codes.php
-	 * http://www.phpclasses.org/browse/file/2054.html
-	 * https://github.com/yiisoft/yii/blob/633e54866d54bf780691baaaa4a1f847e8a07e23/framework/i18n/data/en_us.php
-	 *
-	 * Formats from
-	 * http://www.joelpeterson.com/blog/2011/03/formatting-over-100-currencies-in-php/
-	 *
-	 * Array with key as ISO 4217 currency code
-	 * 0 - Currency Symbol if there's
-	 * 1 - Round
-	 * 2 - Thousands separator
-	 * 3 - Decimal separator
-	 * 4 - 0 = symbol in front OR 1 = symbol after currency
-	 */
+/**
+ * ISO 4217 currency table: symbol, round, thousands sep, decimal sep,
+ * symbol position. Exposed so the admin Settings page can validate
+ * incoming `currency_code` values against the same list that
+ * formatcurrency() uses to render them.
+ *
+ * Array with key as ISO 4217 currency code:
+ *   0 - Currency Symbol if there's
+ *   1 - Round
+ *   2 - Thousands separator
+ *   3 - Decimal separator
+ *   4 - 0 = symbol in front OR 1 = symbol after currency
+ *
+ * @return array<string, array{0:?string,1:int,2:string,3:string,4:int}>
+ */
+function currency_table() {
+	static $currencies = null;
+	if ($currencies !== null) {
+		return $currencies;
+	}
 	$currencies = array(
 		'ARS' => array(NULL, 2, ',', '.', 0),          //  Argentine Peso
 		'AMD' => array(NULL, 2, '.', ',', 0),          //  Armenian Dram
@@ -122,7 +122,32 @@ function formatcurrency($floatcurr, $curr = 'USD') {
 		'VND' => array('&#x20ab;', 0, '', '.', 0),           //  Viet Nam, Dong ₫
 		'ZWD' => array(NULL, 2, '.', ' ', 0),          //  Zimbabwe Dollar
 	);
+	return $currencies;
+}
 
+
+/**
+ * List of supported ISO 4217 currency codes, sorted alphabetically.
+ * Used by the admin Settings page to populate the dropdown and validate
+ * POSTed values.
+ *
+ * @return string[]
+ */
+function supported_currency_codes() {
+	$codes = array_keys(currency_table());
+	sort($codes);
+	return $codes;
+}
+
+
+function formatcurrency($floatcurr, $curr = 'USD') {
+	$currencies = currency_table();
+
+	// Defensive fallback: an unknown code (e.g. left over from a deleted
+	// row) renders as USD rather than throwing on undefined index.
+	if (!isset($currencies[$curr])) {
+		$curr = 'USD';
+	}
 
 	//rupees weird format
 	if ($curr == "INR")

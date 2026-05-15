@@ -215,6 +215,26 @@ INSERT INTO `user_groups` (`id`, `group_name`, `group_level`, `group_status`) VA
 (2, 'Supervisor', 2, 1),
 (3, 'User', 3, 1);
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `settings` (app-wide single-tenant settings)
+--
+
+CREATE TABLE `settings` (
+  `setting_key` varchar(64) NOT NULL,
+  `setting_value` varchar(255) NOT NULL,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`setting_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `settings`
+--
+
+INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
+('currency_code', 'USD');
+
 --
 -- Indexes for dumped tables
 --

@@ -69,13 +69,14 @@ fi
 if [ "$DB_OK" -eq 1 ]; then
     run_test "tests/AuthTest.php" "Authentication (integration)"
     run_test "tests/CRUDTest.php" "CRUD Operations (integration)"
+    run_test "tests/SettingsTest.php" "Settings (integration)"
 else
     echo "--- Authentication (integration) ---"
     echo "  SKIPPED: Database not accessible."
     echo "  Configure .env with valid credentials to enable integration tests."
     echo ""
-    SKIPPED=$((SKIPPED + 2))
-    TOTAL=$((TOTAL + 2))
+    SKIPPED=$((SKIPPED + 3))
+    TOTAL=$((TOTAL + 3))
 fi
 
 # HTTP-dependent test: only runs if a web server is reachable.

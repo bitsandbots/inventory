@@ -68,6 +68,7 @@
       <li><a href="../users/group.php">Manage Groups</a> </li>
       <li><a href="../users/users.php">Manage Users</a> </li>
       <li><a href="../users/log.php">System Log</a> </li>
+      <li><a href="../users/settings.php">Settings</a> </li>
    </ul>
   </li>
 

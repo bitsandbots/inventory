@@ -120,6 +120,6 @@ Cross-reference of `docs/*.md` claims against actual code:
 Most prior-pass items now resolved (see section 4 below). Remaining work:
 
 1. **Soft-delete refactor** (its own PR) — `deleted_at` columns + `soft_delete_by_id()` + `restore_by_id()` + filter every SELECT. See section 3 above for scope.
-2. **Per-tenant currency** — make `$CURRENCY_CODE` a column in a settings table or `.env` value.
+2. ~~**Per-tenant currency**~~ — ✅ ADDED 2026-05-15 (single-tenant variant) — migration 004 creates a `settings(setting_key, setting_value)` table; `Settings::get('currency_code', 'USD')` in load.php; admin-only `/users/settings.php` page to edit the value. Per-org/per-user currency still future work and requires a tenancy model.
 3. **Browser-level UI tests** — Playwright covering the login → add-product → add-sale → invoice happy path.
 4. ~~**Pre-commit hook** for `php -l` on staged files~~ — ✅ ADDED 2026-05-15 — `.githooks/pre-commit` + `scripts/install-hooks.sh`; opt-in per clone (`bash scripts/install-hooks.sh`).

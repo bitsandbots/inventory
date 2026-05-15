@@ -67,12 +67,14 @@ require_once LIB_PATH_INC.'upload.php';
 require_once LIB_PATH_INC.'database.php';
 require_once LIB_PATH_INC.'sql.php';
 require_once LIB_PATH_INC.'formatcurrency.php';
+require_once LIB_PATH_INC.'settings.php';
 
 /*--------------------------------------------------------------*/
-/* Change format of currency used throughout the system
+/* Currency used throughout the system. Sourced from the settings
+/* table (admin-editable via /users/settings.php). Falls back to
+/* 'USD' if the row or table is missing (e.g. pre-migration-004).
 /*--------------------------------------------------------------*/
-$CURRENCY_CODE = 'USD';
-//$CURRENCY_CODE = 'EUR';
+$CURRENCY_CODE = Settings::get('currency_code', 'USD');
 
 
 /*--------------------------------------------------------------*/
