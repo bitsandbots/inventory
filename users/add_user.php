@@ -34,6 +34,11 @@ $req_fields = array('full-name', 'username', 'password', 'level' );
 
 		$password   = $_POST['password'];
 		$user_level = (int)$_POST['level'];
+		$pw_err = validate_password($password);
+		if ($pw_err !== null) {
+			$session->msg('d', $pw_err);
+			redirect('../users/add_user.php', false);
+		}
 		$password_hash = password_hash($password, PASSWORD_BCRYPT);
 		$stmt = $db->prepare_query(
 			"INSERT INTO users (name, username, password, user_level, status) VALUES (?, ?, ?, ?, '1')",

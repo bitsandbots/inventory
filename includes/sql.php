@@ -404,11 +404,12 @@ function page_require_level($require_level) {
 	if (!$session->isUserLoggedIn()):
 		$session->msg('d', 'Please login...');
 		redirect('index.php', false);
-	//if Group status Deactive
-	elseif ($current_user['status'] === '0'):
+	// Disabled-account / disabled-group enforcement.
+	// mysqli returns INT columns as int on PHP 8.1+, so compare as int.
+	elseif ((int)$current_user['status'] === 0):
 		$session->msg('d', 'Your account has been disabled!');
 		redirect('../users/home.php', false);
-	elseif ($login_level['group_status'] === '0'):
+	elseif ((int)$login_level['group_status'] === 0):
 		$session->msg('d', 'Your group has been disabled!');
 		redirect('../users/home.php', false);
 	//cheackin log in User level and Require level is Less than or equal to
@@ -893,4 +894,88 @@ function monthlySales($year) {
 	$sql .= " GROUP BY DATE_FORMAT( s.date,  '%c' ),s.product_id";
 	$sql .= " ORDER BY date_format(s.date, '%c' ) ASC";
 	return $db->prepare_select($sql, "s", $year);
+}
+
+
+/*--------------------------------------------------------------*/
+/* Login rate limiting
+/*--------------------------------------------------------------*/
+
+// Maximum failed attempts allowed per IP within the window before lockout.
+if (!defined('LOGIN_MAX_ATTEMPTS')) {
+	define('LOGIN_MAX_ATTEMPTS', 5);
+}
+// Lockout window in seconds.
+if (!defined('LOGIN_WINDOW_SECONDS')) {
+	define('LOGIN_WINDOW_SECONDS', 900); // 15 minutes
+}
+
+/**
+ * Count failed logins from the given IP within the rate-limit window.
+ *
+ * @param string $ip Client IP
+ * @return int Number of attempts in the window
+ */
+function recent_failed_login_count(string $ip): int
+{
+	global $db;
+	$window = LOGIN_WINDOW_SECONDS;
+	$rows = $db->prepare_select(
+		"SELECT COUNT(*) AS n FROM failed_logins
+		 WHERE ip = ? AND attempted_at > (NOW() - INTERVAL ? SECOND)",
+		"si", $ip, $window
+	);
+	return isset($rows[0]['n']) ? (int)$rows[0]['n'] : 0;
+}
+
+/**
+ * Return true if this IP has exceeded the rate limit and should be blocked.
+ */
+function is_login_rate_limited(string $ip): bool
+{
+	return recent_failed_login_count($ip) >= LOGIN_MAX_ATTEMPTS;
+}
+
+/**
+ * Record a failed login attempt (IP + username attempted).
+ */
+function record_failed_login(string $ip, string $username_attempted): void
+{
+	global $db;
+	$stmt = $db->prepare_query(
+		"INSERT INTO failed_logins (ip, username_attempted, attempted_at)
+		 VALUES (?, ?, NOW())",
+		"ss", $ip, $username_attempted
+	);
+	$stmt->close();
+}
+
+/**
+ * Clear all failed-login records for this IP. Called on successful login.
+ */
+function clear_failed_logins(string $ip): void
+{
+	global $db;
+	$stmt = $db->prepare_query(
+		"DELETE FROM failed_logins WHERE ip = ?",
+		"s", $ip
+	);
+	$stmt->close();
+}
+
+/**
+ * Prune failed_logins rows older than the rate-limit window.
+ * Called probabilistically from load.php on page request — no cron needed.
+ * A row older than the window has no effect on rate limiting, so its only
+ * value is forensic, and we keep that in the audit log table instead.
+ */
+function prune_failed_logins(): void
+{
+	global $db;
+	$window = LOGIN_WINDOW_SECONDS;
+	$stmt = $db->prepare_query(
+		"DELETE FROM failed_logins WHERE attempted_at < (NOW() - INTERVAL ? SECOND)",
+		"i", $window
+	);
+	$stmt->close();
 }

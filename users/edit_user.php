@@ -64,6 +64,11 @@ $req_fields = array('password');
 	if (empty($errors)) {
 		$id = (int)$e_user['id'];
 		$password = $_POST['password'];
+		$pw_err = validate_password($password);
+		if ($pw_err !== null) {
+			$session->msg('d', $pw_err);
+			redirect('../users/edit_user.php?id='.(int)$e_user['id'], false);
+		}
 		$h_pass   = password_hash($password, PASSWORD_BCRYPT);
 		$stmt = $db->prepare_query(
 			"UPDATE users SET password = ? WHERE id = ?",

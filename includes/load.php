@@ -93,4 +93,10 @@ if ($is_page_request) {
     if (!logAction( $user_id, $remote_ip, $action )) {
         error_log("WARNING: logAction failed for user_id=$user_id ip=$remote_ip action=$action");
     }
+
+    // ~1% of page requests: prune stale failed-login rows so the table
+    // can't grow unbounded. Stale rows have no effect on rate limiting.
+    if (random_int(1, 100) === 1 && function_exists('prune_failed_logins')) {
+        prune_failed_logins();
+    }
 }

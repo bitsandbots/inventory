@@ -102,6 +102,49 @@ function validate_fields($var) {
 
 
 /*--------------------------------------------------------------*/
+/* Password complexity validation
+/*--------------------------------------------------------------*/
+
+if (!defined('PASSWORD_MIN_LENGTH')) {
+	define('PASSWORD_MIN_LENGTH', 8);
+}
+
+/**
+ * Validate password complexity. Returns null if OK, or an error string.
+ *
+ * Rules:
+ *   - Minimum length PASSWORD_MIN_LENGTH (8)
+ *   - At least one letter
+ *   - At least one digit
+ *   - Not in the short deny-list of obvious weak passwords
+ *
+ * Deliberately lenient — does not require special chars or mixed case,
+ * because long memorable passphrases beat short complex ones. Apps that
+ * need stricter rules should extend this in one place.
+ *
+ * @param string $password
+ * @return string|null Null if valid, otherwise the error message
+ */
+function validate_password(string $password): ?string
+{
+	if (strlen($password) < PASSWORD_MIN_LENGTH) {
+		return 'Password must be at least ' . PASSWORD_MIN_LENGTH . ' characters.';
+	}
+	if (!preg_match('/[A-Za-z]/', $password)) {
+		return 'Password must contain at least one letter.';
+	}
+	if (!preg_match('/[0-9]/', $password)) {
+		return 'Password must contain at least one digit.';
+	}
+	$deny = ['password', 'password1', 'admin1234', 'changeme', 'inventory'];
+	if (in_array(strtolower($password), $deny, true)) {
+		return 'That password is too common — choose something less guessable.';
+	}
+	return null;
+}
+
+
+/*--------------------------------------------------------------*/
 /* Function for Display Session Message
    Ex echo displayt_msg($message);
 /*--------------------------------------------------------------*/

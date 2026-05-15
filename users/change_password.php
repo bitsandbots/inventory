@@ -36,6 +36,12 @@ $req_fields = array('new-password', 'old-password', 'id' );
 			redirect('../users/change_password.php', false);
 		}
 
+		$pw_err = validate_password($_POST['new-password']);
+		if ($pw_err !== null) {
+			$session->msg('d', $pw_err);
+			redirect('../users/change_password.php', false);
+		}
+
 		$id = (int)$_POST['id'];
 		$new_hash = password_hash($_POST['new-password'], PASSWORD_BCRYPT);
 		$stmt = $db->prepare_query(
