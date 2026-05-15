@@ -71,8 +71,8 @@ $all_categories = find_all('categories');
 <div class="row">
   <div class="col-md-6">
     <?php echo display_msg($msg); ?>
-    <form method="post" action="../sales/add_sale_by_search.php?id=<?php echo $order_id; ?>
-              <?php echo csrf_field(); ?>">
+    <form method="post" action="../sales/add_sale_by_search.php?id=<?php echo $order_id; ?>">
+              <?php echo csrf_field(); ?>
         <div class="form-group">
           <div class="input-group">
             <span class="input-group-btn">
@@ -139,8 +139,8 @@ if (isset($_POST['search']) && strlen($_POST['search'])) {
 		if ( $added_to_order == false ) {
 
 ?>
-        <form method="post" action="../sales/add_sale_by_search.php?id=<?php echo $order_id; ?>
-              <?php echo csrf_field(); ?>">
+        <form method="post" action="../sales/add_sale_by_search.php?id=<?php echo $order_id; ?>">
+              <?php echo csrf_field(); ?>
 
 <tr>
 <td id="s_name">

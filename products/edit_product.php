@@ -95,8 +95,8 @@ $req_fields = array('product-title', 'product-category', 'product-quantity', 'co
         </div>
         <div class="panel-body">
          <div class="col-md-12">
-           <form method="post" action="../products/edit_product.php?id=<?php echo (int)$product['id'] ?>
-              <?php echo csrf_field(); ?>">
+           <form method="post" action="../products/edit_product.php?id=<?php echo (int)$product['id'] ?>">
+              <?php echo csrf_field(); ?>
               <div class="form-group">
                 <div class="input-group">
                   <span class="input-group-addon">

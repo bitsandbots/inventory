@@ -84,8 +84,8 @@ $req_fields = array('customer-name', 'paymethod' );
         </strong>
        </div>
        <div class="panel-body">
-         <form method="post" action="../sales/edit_order.php?id=<?php echo (int)$order['id'];?>
-              <?php echo csrf_field(); ?>">
+         <form method="post" action="../sales/edit_order.php?id=<?php echo (int)$order['id'];?>">
+              <?php echo csrf_field(); ?>
            <div class="form-group">
                <input type="text" class="form-control" name="customer-name" value="<?php echo ucfirst($order['customer']);?>">
            </div>
