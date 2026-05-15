@@ -341,10 +341,21 @@ function updateLastLogIn($user_id) {
 function logAction($user_id, $remote_ip, $action) {
 	global $db;
 	$date = make_date();
-	$stmt = $db->prepare_query(
-		"INSERT INTO log (user_id, remote_ip, action, date) VALUES (?, ?, ?, ?)",
-		"isss", $user_id, $remote_ip, $action, $date
-	);
+	// Anonymous hits (no session yet) insert NULL so the fk_log_user FK
+	// is satisfied. Branching the SQL is more portable across mysqli
+	// versions than relying on bind_param to translate PHP null on an
+	// "i"-typed parameter.
+	if (!$user_id) {
+		$stmt = $db->prepare_query(
+			"INSERT INTO log (remote_ip, action, date) VALUES (?, ?, ?)",
+			"sss", $remote_ip, $action, $date
+		);
+	} else {
+		$stmt = $db->prepare_query(
+			"INSERT INTO log (user_id, remote_ip, action, date) VALUES (?, ?, ?, ?)",
+			"isss", $user_id, $remote_ip, $action, $date
+		);
+	}
 	$affected = $stmt->affected_rows;
 	$stmt->close();
 	return ($affected === 1);

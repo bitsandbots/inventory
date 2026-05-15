@@ -85,7 +85,9 @@ csrf_token();
 /*--------------------------------------------------------------*/
 /* Log user actions (skip static asset requests)
 /*--------------------------------------------------------------*/
-$user_id = 0;
+// Anonymous page hits log with NULL user_id so the fk_log_user FK is
+// satisfied (there is no users.id = 0).
+$user_id = null;
 $remote_ip = 0;
 $action =  '';
 
