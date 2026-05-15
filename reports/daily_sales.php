@@ -36,11 +36,11 @@ $sales = dailySales($year, $month);
           <table class="table table-bordered table-striped">
             <thead>
               <tr>
-                <th class="text-center" style="width: 50px;">#</th>
+                <th class="text-center col-w-50">#</th>
                 <th> Product </th>
-                <th class="text-center" style="width: 15%;"> Quantity sold</th>
-                <th class="text-center" style="width: 15%;"> Total </th>
-                <th class="text-center" style="width: 15%;"> Date </th>
+                <th class="text-center col-w-15p"> Quantity sold</th>
+                <th class="text-center col-w-15p"> Total </th>
+                <th class="text-center col-w-15p"> Date </th>
              </tr>
             </thead>
            <tbody>

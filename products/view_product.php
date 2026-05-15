@@ -97,14 +97,14 @@ foreach ($all_photo as $photo) {
             <thead>
               <tr>
 <!--     *************************     -->
-                <th class="text-center" style="width: 10%;"> Category </th>
-                <th class="text-center" style="width: 10%;"> Location </th>
-                <th class="text-center" style="width: 10%;"> SKU </th>
-                <th class="text-center" style="width: 10%;"> Stock </th>
-                <th class="text-center" style="width: 15%;"> Cost Price </th>
-                <th class="text-center" style="width: 15%;"> Sale Price </th>
-                <th class="text-center" style="width: 15%;"> Product Added </th>
-                <th class="text-center" style="width: 50px;"> Actions </th>
+                <th class="text-center col-w-10p"> Category </th>
+                <th class="text-center col-w-10p"> Location </th>
+                <th class="text-center col-w-10p"> SKU </th>
+                <th class="text-center col-w-10p"> Stock </th>
+                <th class="text-center col-w-15p"> Cost Price </th>
+                <th class="text-center col-w-15p"> Sale Price </th>
+                <th class="text-center col-w-15p"> Product Added </th>
+                <th class="text-center col-w-50"> Actions </th>
               </tr>
 <!--     *************************     -->
             </thead>

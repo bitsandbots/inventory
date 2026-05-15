@@ -114,11 +114,16 @@ test('CSP also emitted on protected path (302 to login)', function () use ($base
     check(isset($h['content-security-policy']), 'CSP missing on home.php');
 });
 
-// 7. CSP must NOT include 'unsafe-eval' (script-src tightening guard).
-//    'unsafe-inline' is accepted today because of bundled Bootstrap/jQuery.
-test('CSP does not allow unsafe-eval', function () use ($probe) {
+// 7. CSP must NOT include 'unsafe-eval' or 'unsafe-inline' in script-src/style-src.
+//    Inline scripts moved to libs/js/functions.js; inline width styles moved
+//    to col-w-* utility classes in libs/css/main.css; print/report pages link
+//    libs/css/print.css.
+test('CSP does not allow unsafe-eval or unsafe-inline', function () use ($probe) {
     $csp = $probe['content-security-policy'] ?? '';
     check(strpos($csp, "'unsafe-eval'") === false, "CSP must not include 'unsafe-eval'");
+    check(strpos($csp, "'unsafe-inline'") === false, "CSP must not include 'unsafe-inline'");
+    check(strpos($csp, "style-src 'self';") !== false, "style-src should be 'self' only");
+    check(strpos($csp, "script-src 'self';") !== false, "script-src should be 'self' only");
 });
 
 echo "\n---\nResults: $pass passed, $fail failed\n";

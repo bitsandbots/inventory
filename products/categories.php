@@ -90,11 +90,11 @@ $req_field = array('category-name');
           <table class="table table-bordered table-striped table-hover">
             <thead>
                 <tr>
-                    <th class="text-center" style="width: 50px;">#</th>
+                    <th class="text-center col-w-50">#</th>
 <!--     *************************     -->
                     <th>Categories</th>
 <!--     *************************     -->
-                    <th class="text-center" style="width: 100px;">Actions</th>
+                    <th class="text-center col-w-100">Actions</th>
                 </tr>
             </thead>
             <tbody>

@@ -56,11 +56,11 @@ if (isset($_POST['submit'])) {
             <table class="table">
               <thead>
                 <tr>
-                  <th class="text-center" style="width: 50px;">#</th>
+                  <th class="text-center col-w-50">#</th>
                   <th class="text-center">Photo</th>
                   <th class="text-center">Photo Name</th>
-                  <th class="text-center" style="width: 20%;">Photo Type</th>
-                  <th class="text-center" style="width: 50px;">Actions</th>
+                  <th class="text-center col-w-20p">Photo Type</th>
+                  <th class="text-center col-w-50">Actions</th>
                 </tr>
               </thead>
                 <tbody>

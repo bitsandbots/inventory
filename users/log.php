@@ -66,12 +66,12 @@ $logs = find_all('log');
           <table class="table table-bordered table-striped">
             <thead>
               <tr>
-	<th class="text-center" style="width: 15%;"> id  </th>
-	<th class="text-center" style="width: 15%;"> user_id  </th>
-	<th class="text-center" style="width: 15%;"> remote_ip  </th>
-	<th class="text-center" style="width: 15%;"> action </th>
-	<th class="text-center" style="width: 15%;"> date  </th>
-	<th class="text-center" style="width: 15%;"> Actions </th>
+	<th class="text-center col-w-15p"> id  </th>
+	<th class="text-center col-w-15p"> user_id  </th>
+	<th class="text-center col-w-15p"> remote_ip  </th>
+	<th class="text-center col-w-15p"> action </th>
+	<th class="text-center col-w-15p"> date  </th>
+	<th class="text-center col-w-15p"> Actions </th>
 
 </tr>
 </thead>

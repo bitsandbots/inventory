@@ -40,13 +40,13 @@ $all_groups = find_all('user_groups');
       <table class="table table-bordered">
         <thead>
           <tr>
-            <th class="text-center" style="width: 50px;">#</th>
+            <th class="text-center col-w-50">#</th>
 <!--     *************************     -->
             <th>Group Name</th>
 <!--     *************************     -->
-            <th class="text-center" style="width: 20%;">Group Level</th>
-            <th class="text-center" style="width: 15%;">Status</th>
-            <th class="text-center" style="width: 100px;">Actions</th>
+            <th class="text-center col-w-20p">Group Level</th>
+            <th class="text-center col-w-15p">Status</th>
+            <th class="text-center col-w-100">Actions</th>
           </tr>
         </thead>
         <tbody>

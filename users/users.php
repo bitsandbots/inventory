@@ -47,13 +47,13 @@ $all_users = find_all_user();
         <thead>
 <!--     *************************     -->
           <tr>
-            <th class="text-center" style="width: 50px;">ID#</th>
+            <th class="text-center col-w-50">ID#</th>
             <th>Name </th>
             <th>Username</th>
-            <th class="text-center" style="width: 15%;">User Role</th>
-            <th class="text-center" style="width: 10%;">Status</th>
-            <th style="width: 20%;">Last Login</th>
-            <th class="text-center" style="width: 100px;">Actions</th>
+            <th class="text-center col-w-15p">User Role</th>
+            <th class="text-center col-w-10p">Status</th>
+            <th class="col-w-20p">Last Login</th>
+            <th class="text-center col-w-100">Actions</th>
           </tr>
 <!--     *************************     -->
         </thead>
