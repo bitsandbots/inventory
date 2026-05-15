@@ -279,63 +279,65 @@ $db->prepare_select_one("SELECT * FROM users WHERE username = ? LIMIT 1", "s", $
   <tr><td>SQL injection</td><td><span class="badge badge-green">Protected</span></td><td><code>prepare_query()</code> with bound params</td></tr>
   <tr><td>Password storage</td><td><span class="badge badge-green">bcrypt</span></td><td><code>password_hash(PASSWORD_BCRYPT)</code></td></tr>
   <tr><td>CSRF</td><td><span class="badge badge-green">Protected</span></td><td><code>random_bytes(32)</code> token, <code>hash_equals()</code> verify</td></tr>
-  <tr><td>XSS</td><td><span class="badge badge-green">Protected</span></td><td><code>h()</code> escaping on all output</td></tr>
+  <tr><td>XSS</td><td><span class="badge badge-green">Protected</span></td><td><code>h()</code> escaping; gaps in <code>users/log.php</code>, <code>customers.php</code>, <code>sales_by_order.php</code>, <code>stock.php</code> closed 2026-05-14</td></tr>
   <tr><td>Session fixation</td><td><span class="badge badge-green">Protected</span></td><td><code>session_regenerate_id(true)</code> on login</td></tr>
   <tr><td>Session cookies</td><td><span class="badge badge-green">Hardened</span></td><td>httponly, samesite=Lax, strict_mode</td></tr>
+  <tr><td>Disabled-account enforcement</td><td><span class="badge badge-green">Protected</span></td><td>Fixed 2026-05-14: <code>page_require_level()</code> now casts to int (was bypassed due to <code>=== '0'</code> against int from PHP 8.1+ mysqli)</td></tr>
+  <tr><td>Login CSRF</td><td><span class="badge badge-green">Protected</span></td><td>Added 2026-05-14: <code>auth.php</code> now verifies token (form already emitted one)</td></tr>
   <tr><td>CSP headers</td><td><span class="badge badge-red">Missing</span></td><td>Recommended: add to header.php</td></tr>
   <tr><td>Rate limiting</td><td><span class="badge badge-yellow">Missing</span></td><td>Recommended: track login attempts per IP</td></tr>
   <tr><td>Upload SQL</td><td><span class="badge badge-yellow">Legacy</span></td><td><code>upload.php</code> uses string interpolation</td></tr>
+  <tr><td>Schema: quantity column type</td><td><span class="badge badge-yellow">VARCHAR(50)</span></td><td>Should be INT — see gap-analysis.md</td></tr>
 </table>
 
 <!-- Test Coverage -->
 <h2>Test Coverage (3 Suites)</h2>
 <table>
   <tr><th>Suite</th><th>Type</th><th>Tests</th><th>Coverage</th></tr>
-  <tr><td>CSRFTest.php</td><td>Unit</td><td>10</td><td>CSRF generation, verification, h(), remove_junk(), randString()</td></tr>
-  <tr><td>AuthTest.php</td><td>Integration</td><td>7</td><td>All 3 user logins, wrong password, non-existent user, find_by_id()</td></tr>
-  <tr><td>CRUDTest.php</td><td>Integration</td><td>8</td><td>Product CRUD cycle, quantity inc/dec, INT type check, sales query</td></tr>
+  <tr><td>CSRFTest.php</td><td>Unit</td><td>16 / 16 pass</td><td>Token lifecycle, POST + GET verification, multibyte, stale-token rejection</td></tr>
+  <tr><td>AuthTest.php</td><td>Integration</td><td>9 / 9 pass</td><td>All 3 user logins, wrong password, non-existent user, SHA1→bcrypt migration, session fixation</td></tr>
+  <tr><td>CRUDTest.php</td><td>Integration</td><td>10 / 11 pass</td><td>Product CRUD, quantity adjust, SQL-injection resistance. <strong>Fails on insert</strong> due to wrong column name in test (<code>categ_id</code> vs <code>category_id</code>) — see gap-analysis.md</td></tr>
 </table>
+<p style="font-size:0.9em;color:var(--muted);">Note: PHP <code>assert()</code> is a no-op without <code>zend.assertions=1</code>. The test suites use <code>assert()</code> and a custom <code>test()</code> wrapper that catches throws — so passes are reliable but failures inside <code>assert()</code> may silently slip. Tracked in gap-analysis.md.</p>
 
 <!-- Quick Start -->
 <h2>Quick Start</h2>
 <pre>
-# 1. Clone
+# Clone and run the installer — handles database, app user,
+# .env, Apache vhost, permissions in one step.
 git clone https://github.com/bitsandbots/inventory.git
 cd inventory
+bash install.sh
 
-# 2. Database
-mysql -u root -p &lt; schema.sql
-
-# 3. Configure
-cp .env.example .env
-# Edit .env with your DB credentials
-# Generate APP_SECRET: openssl rand -hex 32
-
-# 4. Permissions
-sudo chmod -R 775 uploads/
-sudo chown -R www-data:www-data uploads/
-
-# 5. Login
-# http://your-server/inventory/
-# admin / admin  (change immediately!)
+# Then browse: http://&lt;server&gt;:8080
+# Login: admin / admin (change immediately!)
 </pre>
+<p>To reinstall from scratch (wipes database, vhost, symlink, uploads, <code>.env</code>):</p>
+<pre>
+bash install.sh --reinstall      # prompts: type 'RESET' to confirm
+bash install.sh --reinstall -y   # non-interactive
+</pre>
+<p>Manual install steps and troubleshooting are in <a href="docs/setup-and-usage.md">docs/setup-and-usage.md</a>.</p>
 
-<h2>Gap Analysis — Top Recommendations</h2>
+<h2>Gap Analysis — Current Top Items</h2>
 <table>
   <tr><th>Priority</th><th>Gap</th><th>Recommendation</th></tr>
-  <tr><td>High</td><td>No CSP headers</td><td>Emit Content-Security-Policy in layouts/header.php</td></tr>
-  <tr><td>High</td><td>No rate limiting</td><td>Track login attempts per IP with exponential backoff</td></tr>
-  <tr><td>High</td><td>upload.php string interpolation</td><td>Refactor insert_media() and update_userImg() to prepared statements</td></tr>
-  <tr><td>High</td><td>No CI pipeline</td><td>Add GitHub Actions running tests/run.sh on push/PR</td></tr>
-  <tr><td>High</td><td>No RBAC/integration tests</td><td>Add test for page_require_level(), session fixation, SHA1 migration</td></tr>
+  <tr><td>High</td><td>Schema: <code>quantity</code> column is VARCHAR(50)</td><td>Migrate to INT NOT NULL DEFAULT 0; arithmetic and sort/compare are unsafe today</td></tr>
+  <tr><td>High</td><td>Test assertions silently pass (PHP <code>assert()</code> is a no-op by default)</td><td>Replace <code>assert()</code> with explicit throw, or set <code>zend.assertions=1</code> + <code>assert.exception=1</code> in tests bootstrap</td></tr>
+  <tr><td>High</td><td>No CSP headers</td><td>Emit <code>Content-Security-Policy</code> in <code>layouts/header.php</code></td></tr>
+  <tr><td>Medium</td><td>No rate limiting on <code>auth.php</code></td><td>Track failed logins per IP with exponential backoff</td></tr>
+  <tr><td>Medium</td><td>No password complexity enforcement</td><td>Min 8 chars; reject top-1000 weak passwords on add/change</td></tr>
+  <tr><td>Medium</td><td>upload.php legacy string interpolation</td><td>Refactor <code>insert_media()</code>, <code>update_userImg()</code> to prepared statements</td></tr>
+  <tr><td>Low</td><td>No CI pipeline</td><td>GitHub Actions running <code>tests/run.sh</code> on push/PR</td></tr>
 </table>
+<p>Full breakdown — including fixed bugs from this cycle — is in <a href="docs/gap-analysis.md">docs/gap-analysis.md</a>.</p>
 
 </div>
 
 <footer>
   <p>Inventory · MIT License · Enhanced by <a href="https://coreconduit.com">CoreConduit Consulting Services</a></p>
   <p>Originally created by Siamon Hasan · Built with PHP, MySQL/MariaDB, Bootstrap</p>
-  <p>Full documentation: <a href="docs/README.md">docs/</a> · Generated 2026-05-11</p>
+  <p>Full documentation: <a href="docs/README.md">docs/</a> · Generated 2026-05-14</p>
 </footer>
 
 </body>
