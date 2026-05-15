@@ -8,7 +8,10 @@
 # Requires a valid .env file with database credentials for full suite.
 # When .env is missing or DB is unreachable, only unit tests run (CSRF, helpers).
 
-set -e
+# Note: no `set -e` here. The if/then in run_test() captures per-suite
+# exit codes explicitly; `set -e` was triggering false failures when
+# arithmetic expansion of PASSED/FAILED counters ran inside the if branch
+# (bash quirk with set -e + functions + $((expr))).
 cd "$(dirname "$0")/.."
 
 TOTAL=0
@@ -74,6 +77,10 @@ else
     SKIPPED=$((SKIPPED + 2))
     TOTAL=$((TOTAL + 2))
 fi
+
+# HTTP-dependent test: only runs if a web server is reachable.
+# Set INVENTORY_BASE_URL to override the default http://localhost:8080.
+run_test "tests/SecurityHeadersTest.php" "Security Headers (http)" nodb
 
 echo "========================================="
 echo " Summary: $PASSED/$TOTAL suites passed"
