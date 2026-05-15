@@ -1,0 +1,50 @@
+#!/bin/bash
+#
+# .githooks/pre-commit
+#
+# Run `php -l` on every staged .php file. Reject the commit if any of them
+# has a parse error. Mirrors the "PHP Lint" job in .github/workflows/ci.yml
+# so syntax errors are caught locally instead of after a push.
+#
+# Enable once per clone with:
+#     bash scripts/install-hooks.sh
+# (which sets `git config core.hooksPath .githooks`).
+
+set -u
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+if ! command -v php >/dev/null 2>&1; then
+    echo -e "${YELLOW}pre-commit: php not on PATH; skipping syntax check.${NC}" >&2
+    exit 0
+fi
+
+mapfile -d '' -t STAGED < <(
+    git diff --cached -z --name-only --diff-filter=ACMR -- '*.php'
+)
+
+if [ ${#STAGED[@]} -eq 0 ]; then
+    exit 0
+fi
+
+errors=0
+for file in "${STAGED[@]}"; do
+    [ -f "$file" ] || continue
+    if ! out=$(php -l "$file" 2>&1); then
+        echo -e "${RED}pre-commit: syntax error in${NC} $file" >&2
+        echo "$out" >&2
+        errors=$((errors + 1))
+    fi
+done
+
+if [ $errors -gt 0 ]; then
+    echo -e "${RED}pre-commit: ${errors} file(s) failed php -l. Commit aborted.${NC}" >&2
+    echo "Fix the errors and re-stage, or bypass with 'git commit --no-verify'." >&2
+    exit 1
+fi
+
+echo -e "${GREEN}pre-commit: php -l clean (${#STAGED[@]} file(s)).${NC}"
+exit 0
