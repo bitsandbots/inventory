@@ -196,12 +196,13 @@ class Media {
 	 */
 	private function update_userImg($id) {
 		global $db;
-		$sql = "UPDATE users SET";
-		$sql .=" image='{$db->escape($this->fileName)}'";
-		$sql .=" WHERE id='{$db->escape($id)}'";
-		$result = $db->query($sql);
-		return $result && $db->affected_rows() === 1 ? true : false;
-
+		$stmt = $db->prepare_query(
+			"UPDATE users SET image = ? WHERE id = ?",
+			"si", $this->fileName, $id
+		);
+		$ok = $stmt->affected_rows === 1;
+		$stmt->close();
+		return $ok;
 	}
 
 
@@ -235,16 +236,14 @@ class Media {
 	 * @return unknown
 	 */
 	private function insert_media() {
-
 		global $db;
-		$sql  = "INSERT INTO media ( file_name,file_type )";
-		$sql .=" VALUES ";
-		$sql .="(
-                  '{$db->escape($this->fileName)}',
-                  '{$db->escape($this->fileType)}'
-                  )";
-		return $db->query($sql) ? true : false;
-
+		$stmt = $db->prepare_query(
+			"INSERT INTO media (file_name, file_type) VALUES (?, ?)",
+			"ss", $this->fileName, $this->fileType
+		);
+		$ok = $stmt->affected_rows === 1;
+		$stmt->close();
+		return $ok;
 	}
 
 
