@@ -223,6 +223,20 @@ class MySqli_DB {
 	}
 
 
+	/**
+	 * Raw mysqli connection. Lets callers run queries that need to handle
+	 * their own errors instead of going through query()/prepare_query(),
+	 * which die() on failure. Used by Settings::load() so a missing
+	 * `settings` table during a migration window falls back to defaults
+	 * instead of taking the whole site down.
+	 *
+	 * @return mysqli
+	 */
+	public function connection() {
+		return $this->con;
+	}
+
+
 	/*--------------------------------------------------------------*/
 	/* Function for while loop
 	/*--------------------------------------------------------------*/
