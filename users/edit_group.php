@@ -66,8 +66,8 @@ $req_fields = array('group-name', 'group-level');
 <!--     *************************     -->
      </div>
      <?php echo display_msg($msg); ?>
-      <form method="post" action="../users/edit_group.php?id=<?php echo (int)$e_group['id'];?>
-              <?php echo csrf_field(); ?>" class="clearfix">
+      <form method="post" action="../users/edit_group.php?id=<?php echo (int)$e_group['id'];?>" class="clearfix">
+              <?php echo csrf_field(); ?>
 <!--     *************************     -->
         <div class="form-group">
               <label for="name" class="control-label">Group Name</label>

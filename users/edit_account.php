@@ -89,8 +89,8 @@ $req_fields = array('name', 'username' );
         <span>Edit My Account</span>
       </div>
       <div class="panel-body">
-          <form method="post" action="../users/edit_account.php?id=<?php echo (int)$user['id'];?>
-              <?php echo csrf_field(); ?>" class="clearfix">
+          <form method="post" action="../users/edit_account.php?id=<?php echo (int)$user['id'];?>" class="clearfix">
+              <?php echo csrf_field(); ?>
             <div class="form-group">
                   <label for="name" class="control-label">Name</label>
                   <input type="name" class="form-control" name="name" value="<?php echo h(ucwords($user['name'])); ?>">

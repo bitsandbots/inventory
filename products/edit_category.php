@@ -58,8 +58,8 @@ $req_field = array('category-name');
         </strong>
        </div>
        <div class="panel-body">
-         <form method="post" action="../products/edit_category.php?id=<?php echo (int)$category['id'];?>
-              <?php echo csrf_field(); ?>">
+         <form method="post" action="../products/edit_category.php?id=<?php echo (int)$category['id'];?>">
+              <?php echo csrf_field(); ?>
            <div class="form-group">
                <input type="text" class="form-control" name="category-name" value="<?php echo ucfirst($category['name']);?>">
            </div>

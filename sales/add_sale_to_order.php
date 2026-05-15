@@ -162,8 +162,8 @@ foreach ( $products_available as $product ) {
 	if ( $added_to_order == false ) {
 
 ?>
-        <form method="post" action="../sales/add_sale_to_order.php?id=<?php echo $order_id; ?>
-              <?php echo csrf_field(); ?>">
+        <form method="post" action="../sales/add_sale_to_order.php?id=<?php echo $order_id; ?>">
+              <?php echo csrf_field(); ?>
 
 <tr>
 <td id="s_name">
