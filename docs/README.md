@@ -9,7 +9,7 @@ A self-hosted, offline-capable inventory management system built with PHP and My
 - **Reporting** — Daily and monthly sales reports with date-range filtering
 - **Multi-user RBAC** — Admin, Supervisor, and User roles with tiered permissions
 - **Offline-first** — All assets bundled locally (no CDN), works on isolated networks
-- **Security hardened** — bcrypt passwords, parameterized queries, CSRF protection, CSP headers
+- **Security hardened** — bcrypt passwords, parameterized queries, CSRF protection on POST forms and state-changing GETs, session-fixation prevention, output escaping helpers
 
 ## Documentation Index
 

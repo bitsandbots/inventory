@@ -97,7 +97,7 @@ class MySqli_DB {
 	 * @param string $sql    SQL with ? placeholders
 	 * @param string $types  Bind types (e.g. "s" for string, "i" for int, "d" for double)
 	 * @param mixed  ...$params Values to bind
-	 * @return mysqli_stmt|false
+	 * @return mysqli_stmt
 	 */
 	public function prepare_query($sql, $types, ...$params) {
 		$stmt = $this->con->prepare($sql);
@@ -106,7 +106,10 @@ class MySqli_DB {
 			die("A database error occurred. Please try again later.");
 		}
 		$stmt->bind_param($types, ...$params);
-		$stmt->execute();
+		if (!$stmt->execute()) {
+			error_log("Execute failed: " . $stmt->error . " | SQL: " . $sql);
+			die("A database error occurred. Please try again later.");
+		}
 		return $stmt;
 	}
 

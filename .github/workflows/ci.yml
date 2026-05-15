@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: PHP Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Syntax check all PHP files
+        run: |
+          # Fail fast if any file has a parse error.
+          find . -name "*.php" -not -path "./vendor/*" -not -path "./node_modules/*" \
+            -print0 | xargs -0 -n1 php -l > /tmp/lint.out 2>&1 || true
+          if grep -E "^(Parse error|Errors parsing)" /tmp/lint.out > /dev/null; then
+            echo "PHP syntax errors found:"
+            grep -E "(Parse error|Errors parsing|No syntax errors)" /tmp/lint.out \
+              | grep -v "^No syntax errors detected"
+            exit 1
+          fi
+          echo "All PHP files passed syntax check."
+
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: rootpw
+          MARIADB_DATABASE: inventory
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "healthcheck.sh --connect --innodb_initialized"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mysqli, gd
+          ini-values: zend.assertions=1
+
+      - name: Wait for MariaDB
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h 127.0.0.1 -P 3306 -uroot -prootpw --silent; then
+              echo "MariaDB ready."
+              break
+            fi
+            echo "Waiting for MariaDB..."
+            sleep 2
+          done
+
+      - name: Import schema
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -uroot -prootpw inventory < schema.sql
+
+      - name: Create app user
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -uroot -prootpw -e "
+            CREATE USER 'webuser'@'%' IDENTIFIED BY '';
+            GRANT SELECT, INSERT, UPDATE, DELETE ON inventory.* TO 'webuser'@'%';
+            FLUSH PRIVILEGES;"
+
+      # Migrations are upgrade-only — they bring legacy deployments forward
+      # to the state schema.sql already represents. Re-applying them against
+      # a fresh schema.sql produces duplicate-constraint and similar errors.
+      # CI validates the canonical fresh state; migration correctness is
+      # exercised on live deployments.
+
+      - name: Write .env
+        run: |
+          cat > .env <<EOF
+          DB_HOST=127.0.0.1
+          DB_USER=webuser
+          DB_PASS=
+          DB_NAME=inventory
+          APP_SECRET=$(openssl rand -hex 32)
+          EOF
+
+      - name: Run tests
+        run: bash tests/run.sh

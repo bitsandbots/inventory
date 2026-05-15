@@ -1,4 +1,20 @@
 
+// Toggle the welcome panel on home.php / admin.php.
+// Replaces the inline `onclick="closePanel()"` so CSP can drop
+// 'unsafe-inline' from script-src.
+$(function () {
+    $(document).on('click', '[data-close-target]', function (e) {
+        e.preventDefault();
+        var sel = $(this).attr('data-close-target');
+        var $el = $(sel);
+        if ($el.css('display') === 'none') {
+            $el.css('display', 'block');
+        } else {
+            $el.css('display', 'none');
+        }
+    });
+});
+
 function suggestion_name() {
 
      $('#sug_input').keyup(function(e) {

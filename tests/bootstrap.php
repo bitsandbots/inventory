@@ -10,6 +10,13 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
+// Buffer all output for the whole test run so session_regenerate_id()
+// (which checks headers_sent()) still works after PASS/FAIL prints.
+// We flush manually after each test() result inside the runner.
+if (!ob_get_level()) {
+    ob_start();
+}
+
 // Define path constants (mirrors load.php)
 define('URL_SEPARATOR', '/');
 define('DS', DIRECTORY_SEPARATOR);

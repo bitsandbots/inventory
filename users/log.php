@@ -89,14 +89,14 @@ foreach ($logs as $log ) {
 <td class="text-center">
 <?php
 	$user =  find_by_id( "users", $log['user_id'] );
-	echo $user['name'];
+	echo h($user['name'] ?? '');
 ?>
 </td>
 <td class="text-center">
-<?php  echo $log['remote_ip']; ?>
+<?php  echo h($log['remote_ip']); ?>
 </td>
 <td class="text-center">
-<?php echo $log['action']; ?>
+<?php echo h($log['action']); ?>
 </td>
 
 <td class="text-center">
@@ -106,10 +106,10 @@ foreach ($logs as $log ) {
 
                <td class="text-center">
                   <div class="btn-group">
-                     <a href="../users/delete_log.php?id=<?php echo $log['id']; ?>" onClick="return confirm('Are you sure you want to delete?')" class="btn btn-warning btn-xs"  title="Delete" data-toggle="tooltip">
+                     <a href="../users/delete_log.php?id=<?php echo $log['id']; ?>&<?php echo csrf_url_param(); ?>" onClick="return confirm('Are you sure you want to delete?')" class="btn btn-warning btn-xs"  title="Delete" data-toggle="tooltip">
                        <span class="glyphicon glyphicon-trash"></span>
                      </a>
-                     <a href="../users/delete_log_by_ip.php?ip=<?php echo $log['remote_ip']; ?>" onClick="return confirm('Are you sure you want to delete?')" class="btn btn-danger btn-xs"  title="Delete By IP" data-toggle="tooltip">
+                     <a href="../users/delete_log_by_ip.php?ip=<?php echo h($log['remote_ip']); ?>&<?php echo csrf_url_param(); ?>" onClick="return confirm('Are you sure you want to delete?')" class="btn btn-danger btn-xs"  title="Delete By IP" data-toggle="tooltip">
                        <span class="glyphicon glyphicon-trash"></span>
                      </a>
                   </div>

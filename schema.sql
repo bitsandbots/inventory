@@ -59,11 +59,27 @@ CREATE TABLE `customers` (
 
 CREATE TABLE `log` (
   `id` int(11) NOT NULL,
-  `user_id` int(11) DEFAULT NULL,
+  `user_id` int(11) UNSIGNED DEFAULT NULL,
   `remote_ip` varchar(255) NOT NULL,
   `action` varchar(255) DEFAULT NULL,
   `date` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `failed_logins` (login rate limiting)
+--
+
+CREATE TABLE `failed_logins` (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `ip` varchar(45) NOT NULL,
+  `username_attempted` varchar(100) DEFAULT NULL,
+  `attempted_at` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_failed_logins_ip_time` (`ip`, `attempted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- --------------------------------------------------------
@@ -112,7 +128,7 @@ CREATE TABLE `products` (
   `description` text NOT NULL,
   `sku` varchar(100) DEFAULT NULL,
   `location` varchar(255) NOT NULL,
-  `quantity` varchar(50) DEFAULT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 0,
   `buy_price` decimal(25,2) DEFAULT NULL,
   `sale_price` decimal(25,2) NOT NULL,
   `category_id` int(11) UNSIGNED NOT NULL,
@@ -146,7 +162,7 @@ CREATE TABLE `sales` (
 CREATE TABLE `stock` (
   `id` int(11) UNSIGNED NOT NULL,
   `product_id` int(11) UNSIGNED NOT NULL,
-  `quantity` varchar(50) DEFAULT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 0,
   `comments` text NOT NULL,
   `date` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -174,7 +190,7 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `name`, `username`, `password`, `user_level`, `image`, `status`, `last_login`) VALUES
 (1, 'Admin User', 'admin', '$2y$12$4lTB/7sYLDGYxCcxgcPDmefdGGjOHByyiK3mP0gvgbZdChUbv6WbO', 1, 'no_image.jpg', 1, '2019-02-14 17:29:10'),
-(2, 'Supervisor', 'Special', '$2y$12$g6GUH5/jxNLBjm64L7Q3du/QjSvFCTlOhQne/urW8x/f88H2/K40K', 2, 'no_image.jpg', 1, '2019-02-06 11:44:19'),
+(2, 'Supervisor', 'special', '$2y$12$g6GUH5/jxNLBjm64L7Q3du/QjSvFCTlOhQne/urW8x/f88H2/K40K', 2, 'no_image.jpg', 1, '2019-02-06 11:44:19'),
 (3, 'Default User', 'user', '$2y$12$HqXlq2jMgODWwyShwvXKVun3RaQTHwAoT9o0tnpGGmBryFvWwh9aq', 3, 'no_image.jpg', 1, '2019-02-06 11:43:15');
 
 -- --------------------------------------------------------
@@ -351,6 +367,12 @@ ALTER TABLE `sales`
 --
 ALTER TABLE `users`
   ADD CONSTRAINT `FK_user` FOREIGN KEY (`user_level`) REFERENCES `user_groups` (`group_level`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `log` (preserves audit trail when users are deleted)
+--
+ALTER TABLE `log`
+  ADD CONSTRAINT `fk_log_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

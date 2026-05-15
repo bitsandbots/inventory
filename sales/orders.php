@@ -82,7 +82,7 @@ $orders = array_reverse($all_orders);
                         <a href="../customers/edit_customer.php?id=<?php echo (int)$customer['id'];?>"  class="btn btn-xs btn-info" data-toggle="tooltip" title="Customer Details">
                           <span class="glyphicon glyphicon-user"></span>
                         </a>
-                        <a href="../sales/delete_order.php?id=<?php echo (int)$order['id'];?>" onClick="return confirm('Are you sure you want to delete?')" class="btn btn-xs btn-danger" data-toggle="tooltip" title="Remove">
+                        <a href="../sales/delete_order.php?id=<?php echo (int)$order['id'];?>&<?php echo csrf_url_param(); ?>" onClick="return confirm('Are you sure you want to delete?')" class="btn btn-xs btn-danger" data-toggle="tooltip" title="Remove">
                           <span class="glyphicon glyphicon-trash"></span>
                         </a>
                       </div>

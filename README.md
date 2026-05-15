@@ -4,82 +4,62 @@ Inventory Management System with invoices, picklists, and sales reporting.
 
 **Source**: https://github.com/bitsandbots/inventory
 
-## Documentation
+PHP 8.x + MariaDB application targeting self-hosted deployment on Raspberry Pi or any Apache + MySQL host. Offline-first (no CDN dependencies). Three-role access control: Admin / Supervisor / User.
 
-Full documentation is in the [`docs/`](docs/README.md) directory:
+---
 
-| Document | Description |
-|----------|-------------|
-| [Architecture](docs/architecture.md) | Directory map, request lifecycle, RBAC model |
-| [Tech Stack](docs/tech-stack.md) | PHP 8.x, MariaDB 10.x, Bootstrap 5, security features |
-| [Setup & Usage](docs/setup-and-usage.md) | Installation, daily workflows per role |
-| [API & Components](docs/api-components.md) | Core module reference for developers |
-| [Gap Analysis](docs/gap-analysis.md) | Feature inventory, test coverage, recommendations |
-
-A standalone offline blueprint is also available: [`Blueprint_Overview.html`](Blueprint_Overview.html)
-
-## Quick Start (v2.0+)
-
-### Automated
+## Quick start
 
 ```bash
 bash install.sh
 ```
 
-### Manual
+The installer detects PHP, MySQL, and Apache, creates the database from `schema.sql`, generates a `.env` with a strong `APP_SECRET`, creates a least-privilege MySQL app user, and wires up an Apache vhost on port 8080.
 
-### 1. Database Setup
-
-Import **schema.sql** to create the table structure (9 tables with indexes, constraints, and seed data):
+To wipe an existing deployment and reinstall fresh:
 
 ```bash
-mysql -u root -p < schema.sql
+bash install.sh --reinstall
 ```
 
-### 2. Configuration (.env)
+For manual install, troubleshooting, role-based workflows, and daily operations, see **[docs/setup-and-usage.md](docs/setup-and-usage.md)**.
 
-```bash
-cp .env.example .env
-```
+---
 
-Edit `.env` to match your database credentials and generate an `APP_SECRET`:
+## Default accounts
 
-```bash
-openssl rand -hex 32
-```
+Default passwords are seeded into `schema.sql` and **must be changed on first login**.
 
-### 3. Permissions
-
-```bash
-sudo chmod -R 775 uploads/
-sudo chown -R www-data:www-data uploads/
-```
-
-### 4. Login
-
-Default accounts (bcrypt-hashed — change passwords immediately):
-
-| Administrator | Supervisor | Default User |
+| Role | Username | Password |
 |---|---|---|
-| **Username**: admin | **Username**: special | **Username**: user |
-| **Password**: admin | **Password**: special | **Password**: user |
+| Admin | `admin` | `admin` |
+| Supervisor | `special` | `special` |
+| User | `user` | `user` |
 
-### Security Notes (v2.0)
+---
 
-- Passwords stored using **bcrypt** (`PASSWORD_BCRYPT`). SHA1 hashes from older versions are automatically upgraded on first login.
-- All database queries use **prepared statements** (parameterized) to prevent SQL injection.
-- **CSRF protection** is enabled on all forms.
-- All assets (Bootstrap, jQuery, Datepicker) are **bundled locally** — no CDN dependency for offline operation.
-- Directory listings are disabled via `.htaccess` files.
+## Documentation
+
+| Document | Audience |
+|---|---|
+| [Setup & Usage](docs/setup-and-usage.md) | Operators — install, daily workflows, troubleshooting |
+| [Architecture](docs/architecture.md) | Developers — directory map, request lifecycle, RBAC model, schema |
+| [Tech Stack](docs/tech-stack.md) | Developers — runtime versions, security features, deployment target |
+| [API & Components](docs/api-components.md) | Developers — class methods, query helpers, CSRF helpers |
+| [Gap Analysis](docs/gap-analysis.md) | Maintainers — known issues, recent fixes, next steps |
+
+A standalone single-file offline reference: **[Blueprint_Overview.html](Blueprint_Overview.html)**
+
+---
+
+## Credits
+
+Originally created by Siamon Hasan (2018-2020) using [PHP](http://php.net), [MySQL](https://www.mysql.com), and [Bootstrap](http://getbootstrap.com).
+
+Enhanced by Cory J. Potter / CoreConduit Consulting Services. **v2.0 — 2026**: security hardening (bcrypt, prepared statements, CSRF on all forms and state-changing GETs, session-fixation prevention, output escaping); installer redesign with `--reinstall` flag; Apache vhost automation; least-privilege DB user provisioning.
+
+---
 
 ## Support
 
-[Contact Cory](https://coreconduit.com/contact/)
-
-If you find this project useful...
-[Donate](https://www.paypal.com/biz/fund?id=ZDR2NTBSKK7JE)
-
-Enhanced by Cory J. Potter aka CoreConduit Consulting Services 2018 - 2020 (v2.0: 2026)
-
-The application was initially created by Siamon Hasan, using [PHP](http://php.net),
-[MySQL](https://www.mysql.com) and [Bootstrap](http://getbootstrap.com).
+[Contact](https://coreconduit.com/contact/) — [Donate](https://www.paypal.com/biz/fund?id=ZDR2NTBSKK7JE)

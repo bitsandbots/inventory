@@ -104,7 +104,7 @@ if ( ( isset($_POST['update_category'] ) ) && ( $selected_category > 0 ) ) {
                 <td><a href="../products/view_product.php?id=<?php echo (int)$product['id'];?>"><?php echo h($product['name']); ?></a></td>
 
                 <td>
-                  <?php if ($product['media_id'] === '0'): ?>
+                  <?php if ((int)$product['media_id'] === 0): ?>
                     <img class="img-avatar img-circle" src="../uploads/products/no_image.jpg" alt="">
                   <?php else: ?>
                   <img class="img-avatar img-circle" src="../uploads/products/<?php echo h($product['image']); ?>" alt="">
@@ -126,7 +126,7 @@ if ( ( isset($_POST['update_category'] ) ) && ( $selected_category > 0 ) ) {
                     <a href="../products/edit_product.php?id=<?php echo (int)$product['id'];?>" class="btn btn-info btn-xs"  title="Edit" data-toggle="tooltip">
                       <span class="glyphicon glyphicon-edit"></span>
                     </a>
-                    <a href="../products/delete_product.php?id=<?php echo (int)$product['id'];?>" onClick="return confirm('Are you sure you want to delete?')" class="btn btn-danger btn-xs"  title="Delete" data-toggle="tooltip">
+                    <a href="../products/delete_product.php?id=<?php echo (int)$product['id'];?>&<?php echo csrf_url_param(); ?>" onClick="return confirm('Are you sure you want to delete?')" class="btn btn-danger btn-xs"  title="Delete" data-toggle="tooltip">
                       <span class="glyphicon glyphicon-trash"></span>
                     </a>
                   </div>

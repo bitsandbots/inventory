@@ -43,7 +43,7 @@ if (isset($_POST['p_search']) && strlen($_POST['p_search'])) {
 			$html .= "<td id=\"s_name\"><a href=\"view_product.php?id={$result['id']}\">{$result['name']}</a></td>";
 			$html .= "<input type=\"hidden\" name=\"s_id\" value=\"{$result['id']}\">";
 			$html .= "<td class=\"text-center\">";
-			if ($result['media_id'] === '0') {
+			if ((int)$result['media_id'] === 0) {
 				$html .= "<img class=\"img-avatar img-circle\" src=\"../uploads/products/no_image.jpg\">";
 			} else {
 				$html .= "<img class=\"img-avatar img-circle\" src=\"../uploads/products/{$result['image']}\">";

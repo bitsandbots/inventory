@@ -34,6 +34,8 @@ function load_env(string $env_path): array
             $key = trim($key);
             $value = trim($value);
             $env[$key] = $value;
+        } else {
+            error_log("WARN: Malformed .env line skipped: " . substr($line, 0, 80));
         }
     }
     return $env;

@@ -68,7 +68,7 @@ $order = find_by_id("orders", $order_id);
 					</td>
 
                     <td class="text-center">
-						<?php echo $order['notes'];?>
+						<?php echo h($order['notes']);?>
 					</td>
 
                     <td class="text-center">

@@ -26,13 +26,19 @@ $req_fields = array('new-password', 'old-password', 'id' );
 
 		// Handle both legacy SHA1 and modern bcrypt hashes
 		if (strlen($stored_hash) === 40 && ctype_xdigit($stored_hash)) {
-			$old_valid = (sha1($old_password) === $stored_hash);
+			$old_valid = hash_equals($stored_hash, sha1($old_password));
 		} else {
 			$old_valid = password_verify($old_password, $stored_hash);
 		}
 
 		if (!$old_valid) {
 			$session->msg('d', "Your old password not match");
+			redirect('../users/change_password.php', false);
+		}
+
+		$pw_err = validate_password($_POST['new-password']);
+		if ($pw_err !== null) {
+			$session->msg('d', $pw_err);
 			redirect('../users/change_password.php', false);
 		}
 

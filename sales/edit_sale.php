@@ -127,8 +127,8 @@ $req_fields = array('title', 'order_id', 'quantity', 'price', 'total', 'date' );
          </thead>
            <tbody  id="product_info">
               <tr>
-              <form method="post" action="../sales/edit_sale.php?id=<?php echo (int)$sale['id']; ?>
-              <?php echo csrf_field(); ?>">
+              <form method="post" action="../sales/edit_sale.php?id=<?php echo (int)$sale['id']; ?>">
+              <?php echo csrf_field(); ?>
 
                 <td>
                   <input type="text" class="form-control" name="order_id" value="<?php echo $order['id']; ?>">

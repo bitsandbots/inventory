@@ -21,19 +21,6 @@ $recent_sales    = find_recent_sale_added('5')
 ?>
 <?php include_once '../layouts/header.php'; ?>
 
-<script>
-function closePanel()
-{
-  var x = document.getElementById("myDIV");
-  if (x.style.display === "none")
-  {
-    x.style.display = "block";
-  } else {
-    x.style.display = "none";
-  }
-}
-</script>
-
 
 <div class="row">
    <div class="col-md-12">
@@ -102,7 +89,7 @@ function closePanel()
    <div class="col-md-12">
       <div class="panel">
         <div class="pull-right">
-		<a href="#" onclick="closePanel();" class="btn btn-xs btn-danger" data-toggle="tooltip" title="Close"><i class="glyphicon glyphicon-remove"></i></a>
+		<a href="#" data-close-target="#myDIV" class="btn btn-xs btn-danger" data-toggle="tooltip" title="Close"><i class="glyphicon glyphicon-remove"></i></a>
         </div>
 
         <div class="jumbotron text-center">
@@ -213,7 +200,7 @@ function closePanel()
       <?php foreach ($recent_products as  $recent_product): ?>
             <a class="list-group-item clearfix" href="../products/view_product.php?id=<?php echo    (int)$recent_product['id'];?>">
                 <h4 class="list-group-item-heading">
-                 <?php if ($recent_product['media_id'] === '0'): ?>
+                 <?php if ((int)$recent_product['media_id'] === 0): ?>
                     <img class="img-avatar img-circle" src="../uploads/products/no_image.jpg" alt="">
                   <?php else: ?>
                   <img class="img-avatar img-circle" src="../uploads/products/<?php echo $recent_product['image'];?>" alt="" />

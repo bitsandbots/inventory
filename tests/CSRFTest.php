@@ -120,6 +120,63 @@ test('randString() produces correct length', function () {
     assert(strlen($s) === 10, 'randString(10) should return 10 chars, got ' . strlen($s));
 });
 
+// 11. CSRF token is invalidated when session is cleared (e.g. logout)
+test('verify_csrf() rejects stale token after session cleared', function () {
+    $token = csrf_token();
+    // Simulate session destruction on logout
+    $saved = $_SESSION;
+    $_SESSION = [];
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_POST['csrf_token'] = $token;
+    $result = verify_csrf();
+    assert($result === false, 'Stale token from destroyed session should be rejected');
+    // Restore
+    $_SESSION = $saved;
+    unset($_SERVER['REQUEST_METHOD'], $_POST['csrf_token']);
+});
+
+// 12. h() preserves UTF-8 and multibyte characters
+test('h() preserves UTF-8 and multibyte characters', function () {
+    $input = 'Héllo 世界 <script>';
+    $escaped = h($input);
+    assert(strpos($escaped, 'Héllo') !== false, 'Latin extended chars should be preserved');
+    assert(strpos($escaped, '世界') !== false, 'CJK chars should be preserved');
+    assert(strpos($escaped, '<script>') === false, 'Tags should be escaped');
+});
+
+// 13. verify_get_csrf() accepts valid token in $_GET
+test('verify_get_csrf() passes with correct token in GET', function () {
+    $token = csrf_token();
+    $_GET['csrf_token'] = $token;
+    assert(verify_get_csrf() === true, 'verify_get_csrf() should return true for valid token');
+    unset($_GET['csrf_token']);
+});
+
+// 14. verify_get_csrf() rejects wrong token
+test('verify_get_csrf() rejects wrong token', function () {
+    csrf_token();
+    $_GET['csrf_token'] = str_repeat('0', 64);
+    assert(verify_get_csrf() === false, 'verify_get_csrf() should reject wrong token');
+    unset($_GET['csrf_token']);
+});
+
+// 15. verify_get_csrf() rejects missing token
+test('verify_get_csrf() rejects missing token', function () {
+    csrf_token();
+    unset($_GET['csrf_token']);
+    assert(verify_get_csrf() === false, 'verify_get_csrf() should reject missing token');
+});
+
+// 16. csrf_url_param() returns correct format
+test('csrf_url_param() returns csrf_token=<hex> string', function () {
+    $param = csrf_url_param();
+    assert(strpos($param, 'csrf_token=') === 0, 'Should start with csrf_token=');
+    $token_part = substr($param, strlen('csrf_token='));
+    $token_part = urldecode($token_part);
+    assert(strlen($token_part) === 64, 'Token should be 64 hex chars');
+    assert(ctype_xdigit($token_part), 'Token should be hex');
+});
+
 echo "\n---\nResults: $pass passed, $fail failed\n";
 
 exit($fail > 0 ? 1 : 0);
