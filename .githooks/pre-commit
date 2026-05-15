@@ -2,9 +2,17 @@
 #
 # .githooks/pre-commit
 #
-# Run `php -l` on every staged .php file. Reject the commit if any of them
-# has a parse error. Mirrors the "PHP Lint" job in .github/workflows/ci.yml
-# so syntax errors are caught locally instead of after a push.
+# 1. Run `php -l` on every staged .php file. Reject the commit if any of
+#    them has a parse error. Mirrors the "PHP Lint" job in
+#    .github/workflows/ci.yml so syntax errors are caught locally instead
+#    of after a push.
+#
+# 2. Guard against the unclosed-form-action-attribute regression class
+#    fixed in PR #31 (commit 56a730b). When a `<form ... action="...?>`
+#    tag drops the closing `"` before `csrf_field()` on the next line,
+#    the browser silently absorbs the CSRF hidden input into the action
+#    URL and the form never submits its token. Catch the pattern at
+#    commit time so it doesn't slip in again.
 #
 # Enable once per clone with:
 #     bash scripts/install-hooks.sh
@@ -46,5 +54,26 @@ if [ $errors -gt 0 ]; then
     exit 1
 fi
 
-echo -e "${GREEN}pre-commit: php -l clean (${#STAGED[@]} file(s)).${NC}"
+# Guard against unclosed action="..." on <form ... > lines (PR #31 regression).
+# An unclosed action quote swallows the next-line CSRF hidden input into the
+# action URL, breaking verify_csrf() on every POST.
+form_hits=0
+for file in "${STAGED[@]}"; do
+    [ -f "$file" ] || continue
+    if matches=$(grep -nE 'action="[^"]*$' "$file"); then
+        echo -e "${RED}pre-commit: unclosed action=\" in${NC} $file" >&2
+        echo "$matches" >&2
+        form_hits=$((form_hits + 1))
+    fi
+done
+
+if [ $form_hits -gt 0 ]; then
+    echo -e "${RED}pre-commit: ${form_hits} file(s) have an action attribute that does not close on the same line.${NC}" >&2
+    echo "This is the PR #31 bug class: csrf_field() on the next line gets absorbed into the action URL." >&2
+    echo "Close the quote on the <form> line, then place csrf_field() inside the form body." >&2
+    echo "Bypass with 'git commit --no-verify' only if you are certain this is intentional." >&2
+    exit 1
+fi
+
+echo -e "${GREEN}pre-commit: php -l clean + form-action guard clean (${#STAGED[@]} file(s)).${NC}"
 exit 0
