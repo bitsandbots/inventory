@@ -24,6 +24,16 @@ bash install.sh --reinstall
 
 For manual install, troubleshooting, role-based workflows, and daily operations, see **[docs/setup-and-usage.md](docs/setup-and-usage.md)**.
 
+### Developer hooks (optional)
+
+To run `php -l` on staged PHP files before each commit (same check CI runs):
+
+```bash
+bash scripts/install-hooks.sh
+```
+
+This points `core.hooksPath` at the tracked `.githooks/` directory. Bypass with `git commit --no-verify` if you need to commit despite a parse error.
+
 ---
 
 ## Default accounts
