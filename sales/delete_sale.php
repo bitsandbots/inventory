@@ -29,7 +29,7 @@ if ($product) {
 	error_log("Sale #{$d_sale['id']} deleted but product #{$d_sale['product_id']} no longer exists. Stock not restored.");
 }
 
-$delete_id = delete_by_id('sales', (int)$d_sale['id']);
+$delete_id = soft_delete_by_id('sales', (int)$d_sale['id']);
 
 if ($delete_id) {
 	$session->msg("s", "sale deleted.");

@@ -23,12 +23,12 @@ $sales = find_sales_by_order_id( $d_order['id'] );
 
 // for each sale
 foreach ( $sales as $sale ) {
-	if ( delete_by_id('sales', (int)$sale['id']) ) {
+	if ( soft_delete_by_id('sales', (int)$sale['id']) ) {
 		increase_product_qty( $sale['qty'], $sale['product_id'] );
 	}
 }
 
-$delete_id = delete_by_id('orders', (int)$d_order['id']);
+$delete_id = soft_delete_by_id('orders', (int)$d_order['id']);
 
 if ($delete_id) {
 	$session->msg("s", "order deleted.");

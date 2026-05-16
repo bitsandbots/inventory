@@ -20,7 +20,7 @@ if (!$d_customer) {
 }
 
 
-$delete_id = delete_by_id('customers', (int)$d_customer['id']);
+$delete_id = soft_delete_by_id('customers', (int)$d_customer['id']);
 
 if ($delete_id) {
 	$session->msg("s", "Customer Deleted.");
