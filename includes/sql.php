@@ -169,6 +169,67 @@ function table_has_soft_delete(string $table): bool {
 	}
 }
 
+/*--------------------------------------------------------------*/
+/* Tenancy: org-scoped tables and helpers
+/*--------------------------------------------------------------*/
+
+/**
+ * In-scope tables for the org-scoping pattern. Adding a table here is
+ * NOT enough to enable org-scoping — the table also needs the
+ * `org_id` column from the matching 013-019 migration.
+ */
+const ORG_SCOPED_TABLES = [
+	'customers', 'products', 'categories',
+	'sales', 'orders', 'stock', 'media',
+];
+
+/**
+ * Returns true when $table is in the in-scope allowlist AND its
+ * `org_id` column exists. Cached per request. Never throws —
+ * a probe failure returns false so the deploy-window fallback works.
+ *
+ * @param string $table
+ * @return bool
+ */
+function table_has_org_id(string $table): bool {
+	static $cache = [];
+	if (array_key_exists($table, $cache)) {
+		return $cache[$table];
+	}
+	if (!in_array($table, ORG_SCOPED_TABLES, true)) {
+		return $cache[$table] = false;
+	}
+	global $db;
+	try {
+		$r = $db->connection()->query(
+			"SHOW COLUMNS FROM `" . $db->escape($table) . "` LIKE 'org_id'"
+		);
+		$has = ($r !== false && $r->num_rows > 0);
+		if ($r) {
+			$r->free();
+		}
+		return $cache[$table] = $has;
+	} catch (\Throwable $e) {
+		return $cache[$table] = false;
+	}
+}
+
+/**
+ * Returns the active org_id from the session.
+ * Throws RuntimeException when called outside an authenticated session.
+ *
+ * @return int
+ * @throws RuntimeException
+ */
+function current_org_id(): int {
+	if (empty($_SESSION['current_org_id'])) {
+		throw new \RuntimeException(
+			'current_org_id() called with no active org — session not initialized'
+		);
+	}
+	return (int)$_SESSION['current_org_id'];
+}
+
 /**
  * Soft-delete a row. Stamps deleted_at = NOW() and deleted_by = actor.
  * No-op when the table is not in scope.
