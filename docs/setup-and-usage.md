@@ -158,6 +158,35 @@ All passwords are bcrypt-hashed in the database (and auto-upgraded from legacy S
 2. Users get a `user_level` matching a group
 3. Disabling a user (`status=0`) or group (`group_status=0`) blocks access via `page_require_level()`
 
+## Demo Data
+
+To seed the Default Organization with realistic demo data (products, customers, orders, sales, stock):
+
+```bash
+php scripts/demo_seed.php
+```
+
+This inserts:
+
+| Section | Count | Notes |
+|---|---|---|
+| Categories | 6 | Microcontrollers, Single Board Computers, Plants & Living Goods, Cables & Connectors, Sensors & Modules, Tools & Equipment |
+| Products | 12 | 3 with real images (Arduino Nano, RPi 3, Pothos); rest use the placeholder |
+| Customers | 8 | Ontario community orgs with addresses, emails, and payment methods |
+| Orders | 6 | Mixed statuses: fulfilled ×3, shipped ×1, processing ×1, pending ×1 |
+| Sales | 14 | Line items across 5 of the 6 orders |
+| Stock | 12 | One opening-receipt movement per product |
+
+The script is **idempotent** — it skips silently if demo data is already present. To remove the demo data and re-seed from scratch:
+
+```bash
+php scripts/demo_seed.php --clean
+```
+
+The `--clean` step deletes only rows matching the known demo SKUs and customer names — it will not touch any data you have entered manually.
+
+> **Note:** The seeder reads `.env` the same way the app does. It requires the database to be set up (run `install.sh` or follow the manual install steps first).
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |
