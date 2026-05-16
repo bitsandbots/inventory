@@ -43,3 +43,8 @@ sudo mysql inventory < migrations/001_quantity_int.down.sql
 | 002 | `failed_logins` | Create `failed_logins` rate-limit table | Drop table | Applied 2026-05-14 |
 | 003 | `log_user_fk` | FK `log.user_id → users.id` ON DELETE SET NULL | Drop FK, revert column to signed | Applied 2026-05-15 |
 | 004 | `settings_table` | Create `settings` table, seed `currency_code='USD'` | Drop `settings` table | New — see PR for currency feature |
+| 005 | `users_soft_delete` | Add `deleted_at TIMESTAMP NULL` and `deleted_by INT` to `users` | Drop columns | Soft-delete feature (005–009) |
+| 006 | `customers_soft_delete` | Add `deleted_at TIMESTAMP NULL` and `deleted_by INT` to `customers` | Drop columns | Soft-delete feature (005–009) |
+| 007 | `sales_soft_delete` | Add `deleted_at TIMESTAMP NULL` and `deleted_by INT` to `sales` | Drop columns | Soft-delete feature (005–009) |
+| 008 | `orders_soft_delete` | Add `deleted_at TIMESTAMP NULL` and `deleted_by INT` to `orders` | Drop columns | Soft-delete feature (005–009) |
+| 009 | `stock_soft_delete` | Add `deleted_at TIMESTAMP NULL` and `deleted_by INT` to `stock` | Drop columns | Soft-delete feature (005–009) |
