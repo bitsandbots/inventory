@@ -160,6 +160,99 @@ function table_has_soft_delete(string $table): bool {
 	}
 }
 
+/**
+ * Soft-delete a row. Stamps deleted_at = NOW() and deleted_by = actor.
+ * No-op when the table is not in scope.
+ *
+ * @param string $table
+ * @param int $id
+ * @param int|null $actor_user_id  Defaults to $_SESSION['user_id'].
+ * @return bool  True when exactly one row was updated.
+ */
+function soft_delete_by_id(string $table, int $id, ?int $actor_user_id = null): bool {
+	if (!table_has_soft_delete($table)) {
+		return false;
+	}
+	if ($actor_user_id === null) {
+		$actor_user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
+	}
+	global $db;
+	$stmt = $db->prepare_query(
+		"UPDATE `" . $db->escape($table) . "`
+			SET deleted_at = NOW(), deleted_by = ?
+		  WHERE id = ? AND deleted_at IS NULL LIMIT 1",
+		"ii", $actor_user_id, $id
+	);
+	$affected = $stmt->affected_rows;
+	$stmt->close();
+	return ($affected === 1);
+}
+
+/**
+ * Reverse a soft-delete. Sets both deleted_at and deleted_by to NULL.
+ *
+ * @param string $table
+ * @param int $id
+ * @return bool  True when exactly one row was updated.
+ */
+function restore_by_id(string $table, int $id): bool {
+	if (!table_has_soft_delete($table)) {
+		return false;
+	}
+	global $db;
+	$stmt = $db->prepare_query(
+		"UPDATE `" . $db->escape($table) . "`
+			SET deleted_at = NULL, deleted_by = NULL
+		  WHERE id = ? AND deleted_at IS NOT NULL LIMIT 1",
+		"i", $id
+	);
+	$affected = $stmt->affected_rows;
+	$stmt->close();
+	return ($affected === 1);
+}
+
+/**
+ * Permanently delete a soft-deleted row. Refuses when the row is still
+ * active (deleted_at IS NULL) — must be soft-deleted first.
+ *
+ * @param string $table
+ * @param int $id
+ * @return bool  True when one row was removed.
+ */
+function purge_by_id(string $table, int $id): bool {
+	if (!table_has_soft_delete($table)) {
+		return false;
+	}
+	global $db;
+	$stmt = $db->prepare_query(
+		"DELETE FROM `" . $db->escape($table) . "`
+		  WHERE id = ? AND deleted_at IS NOT NULL LIMIT 1",
+		"i", $id
+	);
+	$affected = $stmt->affected_rows;
+	$stmt->close();
+	return ($affected === 1);
+}
+
+/**
+ * Same as find_by_id but does NOT filter out soft-deleted rows.
+ * For the trash UI and audit lookups.
+ *
+ * @param string $table
+ * @param int $id
+ * @return array|null
+ */
+function find_by_id_with_deleted(string $table, int $id): ?array {
+	global $db;
+	if (!tableExists($table)) {
+		return null;
+	}
+	return $db->prepare_select_one(
+		"SELECT * FROM `" . $db->escape($table) . "` WHERE id = ? LIMIT 1",
+		"i", (int)$id
+	);
+}
+
 
 /*--------------------------------------------------------------*/
 /* Function for Delete data from table by ip

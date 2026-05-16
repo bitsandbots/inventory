@@ -80,5 +80,70 @@ test('table_has_soft_delete returns false for unknown table', function () {
     check(table_has_soft_delete('definitely_not_a_table') === false, 'unknown table should return false');
 });
 
+// Task 8 — soft-delete / restore / purge round-trip on a HARNESS_ user.
+test('soft_delete_by_id stamps deleted_at and deleted_by', function () {
+    global $db;
+    // Insert a HARNESS_ user. Use mysqli directly to skip the registration UI.
+    $stmt = $db->prepare_query(
+        "INSERT INTO users (name, username, password, user_level, status) VALUES (?, ?, ?, ?, ?)",
+        "sssii", 'HARNESS_softdel', 'HARNESS_softdel', 'x', 3, 1
+    );
+    $id = $db->connection()->insert_id;
+    $stmt->close();
+    check($id > 0, 'failed to insert HARNESS_softdel');
+
+    $ok = soft_delete_by_id('users', $id, 1);
+    check($ok === true, 'soft_delete_by_id returned false');
+
+    $row = find_by_id_with_deleted('users', $id);
+    check($row !== null, 'row not found after soft-delete');
+    check($row['deleted_at'] !== null, 'deleted_at not set');
+    check((int)$row['deleted_by'] === 1, 'deleted_by not set to actor id');
+});
+
+test('restore_by_id clears both timestamp columns', function () {
+    global $db;
+    $row = $db->prepare_select_one(
+        "SELECT id FROM users WHERE username = ? LIMIT 1", "s", 'HARNESS_softdel'
+    );
+    $id = (int)$row['id'];
+
+    $ok = restore_by_id('users', $id);
+    check($ok === true, 'restore_by_id returned false');
+
+    $row = find_by_id_with_deleted('users', $id);
+    check($row !== null, 'row missing after restore');
+    check($row['deleted_at'] === null, 'deleted_at not cleared');
+    check($row['deleted_by'] === null, 'deleted_by not cleared');
+});
+
+test('purge_by_id refuses to remove an active row', function () {
+    global $db;
+    $row = $db->prepare_select_one(
+        "SELECT id FROM users WHERE username = ? LIMIT 1", "s", 'HARNESS_softdel'
+    );
+    $id = (int)$row['id'];
+
+    $ok = purge_by_id('users', $id);
+    check($ok === false, 'purge should refuse active row');
+
+    $row = find_by_id_with_deleted('users', $id);
+    check($row !== null, 'row was purged despite refusal');
+});
+
+test('purge_by_id removes a soft-deleted row permanently', function () {
+    global $db;
+    $row = $db->prepare_select_one(
+        "SELECT id FROM users WHERE username = ? LIMIT 1", "s", 'HARNESS_softdel'
+    );
+    $id = (int)$row['id'];
+
+    check(soft_delete_by_id('users', $id, 1) === true, 'pre-purge soft-delete failed');
+    check(purge_by_id('users', $id) === true, 'purge_by_id returned false');
+
+    $row = find_by_id_with_deleted('users', $id);
+    check($row === null, 'row still present after purge');
+});
+
 echo "\n---\nResults: $pass passed, $fail failed\n";
 exit($fail > 0 ? 1 : 0);
