@@ -316,4 +316,5 @@ input[type=file]{
 .col-w-10p{ width: 10%; }
 .col-w-15p{ width: 15%; }
 .col-w-20p{ width: 20%; }
+.trash-action{ display: inline; }
 

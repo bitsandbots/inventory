@@ -96,13 +96,13 @@ include_once('../layouts/header.php');
                   <td><?php echo h($row['deleted_at']); ?></td>
                   <td><?php echo h($deleter_name); ?></td>
                   <td>
-                    <form method="post" action="restore.php" style="display:inline">
+                    <form method="post" action="restore.php" class="trash-action">
                       <?php echo csrf_field(); ?>
                       <input type="hidden" name="table" value="<?php echo h($table); ?>">
                       <input type="hidden" name="id" value="<?php echo (int)$row['id']; ?>">
                       <button type="submit" class="btn btn-success btn-xs">Restore</button>
                     </form>
-                    <form method="post" action="purge.php" style="display:inline"
+                    <form method="post" action="purge.php" class="trash-action"
                           onsubmit="return confirm('Permanently delete this row? This cannot be undone.');">
                       <?php echo csrf_field(); ?>
                       <input type="hidden" name="table" value="<?php echo h($table); ?>">
