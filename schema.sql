@@ -47,7 +47,9 @@ CREATE TABLE `customers` (
   `postcode` varchar(12) DEFAULT NULL,
   `telephone` varchar(16) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
-  `paymethod` varchar(10) DEFAULT NULL
+  `paymethod` varchar(10) DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `deleted_by` int(11) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
@@ -112,7 +114,9 @@ CREATE TABLE `orders` (
   `customer` varchar(255) NOT NULL,
   `notes` text NOT NULL,
   `paymethod` varchar(10) NOT NULL,
-  `date` date NOT NULL
+  `date` date NOT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `deleted_by` int(11) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
@@ -149,7 +153,9 @@ CREATE TABLE `sales` (
   `product_id` int(11) UNSIGNED NOT NULL,
   `qty` int(11) NOT NULL,
   `price` decimal(25,2) NOT NULL,
-  `date` date NOT NULL
+  `date` date NOT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `deleted_by` int(11) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -164,7 +170,9 @@ CREATE TABLE `stock` (
   `product_id` int(11) UNSIGNED NOT NULL,
   `quantity` int(11) NOT NULL DEFAULT 0,
   `comments` text NOT NULL,
-  `date` datetime NOT NULL
+  `date` datetime NOT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `deleted_by` int(11) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -181,7 +189,9 @@ CREATE TABLE `users` (
   `user_level` int(11) NOT NULL,
   `image` varchar(255) DEFAULT 'no_image.jpg',
   `status` int(1) NOT NULL,
-  `last_login` datetime DEFAULT NULL
+  `last_login` datetime DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `deleted_by` int(11) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -252,7 +262,8 @@ ALTER TABLE `categories`
 ALTER TABLE `customers`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `id` (`id`),
-  ADD UNIQUE KEY `name` (`name`);
+  ADD UNIQUE KEY `name` (`name`),
+  ADD KEY `idx_customers_deleted_at` (`deleted_at`);
 
 --
 -- Indexes for table `log`
@@ -273,7 +284,8 @@ ALTER TABLE `media`
 --
 ALTER TABLE `orders`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `id` (`id`);
+  ADD UNIQUE KEY `id` (`id`),
+  ADD KEY `idx_orders_deleted_at` (`deleted_at`);
 
 --
 -- Indexes for table `products`
@@ -289,21 +301,24 @@ ALTER TABLE `products`
 --
 ALTER TABLE `sales`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `product_id` (`product_id`);
+  ADD KEY `product_id` (`product_id`),
+  ADD KEY `idx_sales_deleted_at` (`deleted_at`);
 
 --
 -- Indexes for table `stock`
 --
 ALTER TABLE `stock`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `id` (`id`);
+  ADD UNIQUE KEY `id` (`id`),
+  ADD KEY `idx_stock_deleted_at` (`deleted_at`);
 
 --
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `user_level` (`user_level`);
+  ADD KEY `user_level` (`user_level`),
+  ADD KEY `idx_users_deleted_at` (`deleted_at`);
 
 --
 -- Indexes for table `user_groups`
@@ -393,6 +408,24 @@ ALTER TABLE `users`
 --
 ALTER TABLE `log`
   ADD CONSTRAINT `fk_log_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Constraints for soft-delete tracking
+--
+ALTER TABLE `users`
+  ADD CONSTRAINT `fk_users_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `customers`
+  ADD CONSTRAINT `fk_customers_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `sales`
+  ADD CONSTRAINT `fk_sales_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `orders`
+  ADD CONSTRAINT `fk_orders_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `stock`
+  ADD CONSTRAINT `fk_stock_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
