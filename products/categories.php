@@ -23,8 +23,8 @@ $req_field = array('category-name');
 	validate_fields($req_field);
 	$cat_name = remove_junk($db->escape($_POST['category-name']));
 	if (empty($errors)) {
-		$sql  = "INSERT INTO categories (name)";
-		$sql .= " VALUES ('{$cat_name}')";
+		$sql  = "INSERT INTO categories (name,org_id)";
+		$sql .= " VALUES ('{$cat_name}','" . current_org_id() . "')";
 		if ($db->query($sql)) {
 			$session->msg("s", "Successfully Added Category");
 			redirect('../products/categories.php', false);

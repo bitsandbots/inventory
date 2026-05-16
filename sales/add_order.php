@@ -33,9 +33,9 @@ $notes = $db->escape($_POST['notes']); }
 
 		if ( ! find_by_name('customers', $customer_name) ) {
 			$query  = "INSERT INTO customers (";
-			$query .=" name,address,city,region,postcode,telephone,email,paymethod";
+			$query .=" name,address,city,region,postcode,telephone,email,paymethod,org_id";
 			$query .=") VALUES (";
-			$query .=" '{$customer_name}', '{$c_address}','{$c_city}', '{$c_region}', '{$c_postcode}', '{$c_telephone}', '{$c_email}', '{$paymethod}'";
+			$query .=" '{$customer_name}', '{$c_address}','{$c_city}', '{$c_region}', '{$c_postcode}', '{$c_telephone}', '{$c_email}', '{$paymethod}', '" . current_org_id() . "'";
 			$query .=")";
 			$result = $db->query($query);
 			if ($result && $db->affected_rows() === 1) {
@@ -46,8 +46,8 @@ $notes = $db->escape($_POST['notes']); }
 		}
 
 		$current_date    = make_date();
-		$sql  = "INSERT INTO orders (customer,paymethod,notes,date)";
-		$sql .= " VALUES ('{$customer_name}','{$paymethod}','{$notes}','{$current_date}')";
+		$sql  = "INSERT INTO orders (customer,paymethod,notes,date,org_id)";
+		$sql .= " VALUES ('{$customer_name}','{$paymethod}','{$notes}','{$current_date}','" . current_org_id() . "')";
 		if ($db->query($sql)) {
 			$new_order_id = $db->insert_id();
 			$session->msg("s", "Successfully Added Order");

@@ -238,8 +238,8 @@ class Media {
 	private function insert_media() {
 		global $db;
 		$stmt = $db->prepare_query(
-			"INSERT INTO media (file_name, file_type) VALUES (?, ?)",
-			"ss", $this->fileName, $this->fileType
+			"INSERT INTO media (file_name, file_type, org_id) VALUES (?, ?, ?)",
+			"ssi", $this->fileName, $this->fileType, current_org_id()
 		);
 		$ok = $stmt->affected_rows === 1;
 		$stmt->close();
