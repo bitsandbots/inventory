@@ -38,8 +38,9 @@ class Session {
 	 *
 	 * @param unknown $user_id
 	 */
-	public function login($user_id) {
-		$_SESSION['user_id'] = $user_id;
+	public function login(int $user_id, int $org_id): void {
+		$_SESSION['user_id']        = $user_id;
+		$_SESSION['current_org_id'] = $org_id;
 		session_regenerate_id(true);
 	}
 

@@ -474,6 +474,39 @@ function tableExists($table) {
 
 
 /**
+ * Resolves which org_id to use at login for a given user.
+ * Returns org_id (int) or false if user has no accessible org.
+ *
+ * Resolution order:
+ * 1. last_active_org_id if set and membership exists for a live org
+ * 2. Oldest membership by joined_at for a live (non-soft-deleted) org
+ * 3. false — user has no org access
+ */
+function resolve_login_org(int $user_id, ?int $last_active_org_id): int|false {
+	global $db;
+	if ($last_active_org_id !== null) {
+		$row = $db->prepare_select_one(
+			"SELECT m.org_id FROM org_members m
+			   JOIN orgs o ON o.id = m.org_id
+			  WHERE m.user_id = ? AND m.org_id = ? AND o.deleted_at IS NULL",
+			'ii', $user_id, $last_active_org_id
+		);
+		if ($row) {
+			return (int)$row['org_id'];
+		}
+	}
+	$row = $db->prepare_select_one(
+		"SELECT m.org_id FROM org_members m
+		   JOIN orgs o ON o.id = m.org_id
+		  WHERE m.user_id = ? AND o.deleted_at IS NULL
+		  ORDER BY m.joined_at ASC LIMIT 1",
+		'i', $user_id
+	);
+	return $row ? (int)$row['org_id'] : false;
+}
+
+
+/**
  * Authenticate a user by username and password.
  * Supports legacy SHA1 hashes and modern bcrypt hashes. Automatic rehash
  * on login: SHA1 → bcrypt on first login after migration, and bcrypt →
@@ -481,11 +514,11 @@ function tableExists($table) {
  *
  * @param string $username
  * @param string $password
- * @return int|false  User ID on success, false on failure
+ * @return array|false  ['user_id' => int, 'org_id' => int] on success, false on failure
  */
 function authenticate($username='', $password='') {
 	global $db;
-	$sql  = "SELECT id,username,password,user_level FROM users WHERE username = ? AND deleted_at IS NULL LIMIT 1";
+	$sql  = "SELECT id,username,password,user_level,last_active_org_id FROM users WHERE username = ? AND deleted_at IS NULL LIMIT 1";
 	$result = $db->prepare_select_one($sql, "s", $username);
 
 	if ($result) {
@@ -501,7 +534,11 @@ function authenticate($username='', $password='') {
 					"UPDATE users SET password = ? WHERE id = ?",
 					"si", $new_hash, $result['id']
 				);
-				return $result['id'];
+				$org_id = resolve_login_org((int)$result['id'], isset($result['last_active_org_id']) ? (int)$result['last_active_org_id'] : null);
+				if ($org_id === false) {
+					return false;
+				}
+				return ['user_id' => (int)$result['id'], 'org_id' => $org_id];
 			}
 		} else {
 			// Modern bcrypt comparison
@@ -514,7 +551,11 @@ function authenticate($username='', $password='') {
 						"si", $new_hash, $result['id']
 					);
 				}
-				return $result['id'];
+				$org_id = resolve_login_org((int)$result['id'], isset($result['last_active_org_id']) ? (int)$result['last_active_org_id'] : null);
+				if ($org_id === false) {
+					return false;
+				}
+				return ['user_id' => (int)$result['id'], 'org_id' => $org_id];
 			}
 		}
 	}

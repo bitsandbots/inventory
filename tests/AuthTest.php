@@ -37,8 +37,10 @@ echo "=== AuthTest ===\n\n";
 
 // 1. Admin authentication
 test('authenticate() as admin', function () {
-    $user_id = authenticate('admin', 'admin');
-    check($user_id !== false, 'Admin login failed — wrong password or user missing?');
+    $auth = authenticate('admin', 'admin');
+    check($auth !== false, 'Admin login failed — wrong password or user missing?');
+    check(is_array($auth), 'authenticate() should return array');
+    $user_id = $auth['user_id'];
     $user = find_by_id('users', (int)$user_id);
     check($user !== null, 'find_by_id failed after auth');
     check($user['username'] === 'admin', 'Expected username "admin", got: ' . ($user['username'] ?? 'null'));
@@ -48,8 +50,10 @@ test('authenticate() as admin', function () {
 
 // 2. Special user authentication
 test('authenticate() as special user', function () {
-    $user_id = authenticate('special', 'special');
-    check($user_id !== false, 'Special login failed — wrong password or user missing?');
+    $auth = authenticate('special', 'special');
+    check($auth !== false, 'Special login failed — wrong password or user missing?');
+    check(is_array($auth), 'authenticate() should return array');
+    $user_id = $auth['user_id'];
     $user = find_by_id('users', (int)$user_id);
     check($user !== null, 'find_by_id failed after auth');
     check($user['username'] === 'special', 'Expected username "special"');
@@ -59,8 +63,10 @@ test('authenticate() as special user', function () {
 
 // 3. Default user authentication
 test('authenticate() as user', function () {
-    $user_id = authenticate('user', 'user');
-    check($user_id !== false, 'User login failed — wrong password or user missing?');
+    $auth = authenticate('user', 'user');
+    check($auth !== false, 'User login failed — wrong password or user missing?');
+    check(is_array($auth), 'authenticate() should return array');
+    $user_id = $auth['user_id'];
     $user = find_by_id('users', (int)$user_id);
     check($user !== null, 'find_by_id failed after auth');
     check($user['username'] === 'user', 'Expected username "user"');
@@ -102,28 +108,46 @@ test('authenticate() rehashes legacy SHA1 password to bcrypt on login', function
     $test_pass = 'test_pass_' . bin2hex(random_bytes(4));
     $sha1_hash = sha1($test_pass);
 
+    // Create test org
+    $slug = 'harness_sha1_' . substr(md5(microtime()), 0, 8);
+    $db->prepare_query(
+        "INSERT INTO orgs (name, slug, deleted_at) VALUES (?, ?, NULL)",
+        'ss', 'HARNESS_SHA1Org', $slug
+    );
+    $org_id = (int)$db->insert_id();
+
     // Insert a user with a raw SHA1 hash
     $stmt = $db->prepare_query(
-        "INSERT INTO users (name, username, password, user_level, status) VALUES (?, ?, ?, '3', '1')",
-        "sss", $test_user, $test_user, $sha1_hash
+        "INSERT INTO users (name, username, password, user_level, status) VALUES (?, ?, ?, ?, ?)",
+        "sssii", $test_user, $test_user, $sha1_hash, 3, 1
     );
     $inserted_id = $db->insert_id();
     $stmt->close();
 
-    // Authenticate — should succeed and trigger rehash
-    $result = authenticate($test_user, $test_pass);
-    check($result !== false, 'Login with SHA1 hash should succeed');
+    // Create org membership so authenticate succeeds
+    $db->prepare_query(
+        "INSERT INTO org_members (user_id, org_id, joined_at) VALUES (?, ?, NOW())",
+        'ii', $inserted_id, $org_id
+    );
 
-    // Verify the stored hash was upgraded to bcrypt
-    $user = find_by_id('users', $inserted_id);
-    check($user !== null, 'Could not retrieve user after login');
-    $new_hash = $user['password'];
-    check(strlen($new_hash) !== 40, 'Hash should no longer be 40-char SHA1');
-    check(password_verify($test_pass, $new_hash), 'New hash should be valid bcrypt');
-    echo "       [SHA1 hash upgraded to bcrypt for user $test_user]\n";
+    try {
+        // Authenticate — should succeed and trigger rehash
+        $result = authenticate($test_user, $test_pass);
+        check($result !== false, 'Login with SHA1 hash should succeed');
+        check(is_array($result), 'authenticate() should return array');
 
-    // Cleanup
-    $db->prepare_query("DELETE FROM users WHERE id = ?", "i", $inserted_id)->close();
+        // Verify the stored hash was upgraded to bcrypt
+        $user = find_by_id('users', $inserted_id);
+        check($user !== null, 'Could not retrieve user after login');
+        $new_hash = $user['password'];
+        check(strlen($new_hash) !== 40, 'Hash should no longer be 40-char SHA1');
+        check(password_verify($test_pass, $new_hash), 'New hash should be valid bcrypt');
+        echo "       [SHA1 hash upgraded to bcrypt for user $test_user]\n";
+    } finally {
+        // Cleanup
+        $db->prepare_query("DELETE FROM users WHERE id = ?", "i", $inserted_id)->close();
+        $db->prepare_query("DELETE FROM orgs WHERE id = ?", 'i', $org_id);
+    }
 });
 
 // 9. session_regenerate_id is called on login (session ID changes).
@@ -134,10 +158,11 @@ test('Session::login() regenerates session ID to prevent fixation', function () 
     ob_start();
     $old_id = session_id();
     $session_obj = new Session();
-    $session_obj->login(1);
+    $session_obj->login(1, 1);  // user_id=1, org_id=1
     $new_id = session_id();
     ob_end_clean();
     check($old_id !== $new_id, 'Session ID must change after login() to prevent session fixation');
+    check($_SESSION['current_org_id'] === 1, 'Session must have current_org_id set');
     echo "       [session ID changed: " . substr($old_id, 0, 8) . "... → " . substr($new_id, 0, 8) . "...]\n";
 });
 

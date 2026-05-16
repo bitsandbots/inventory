@@ -51,6 +51,33 @@ if (php_sapi_name() === 'cli') {
     $_SESSION = [];
 }
 
+// Seed org_members if empty (for tests that need org membership)
+if (!getenv('TESTS_NO_DB')) {
+    $existing_members = $db->prepare_select('SELECT COUNT(*) as cnt FROM org_members', '');
+    if (!$existing_members || $existing_members[0]['cnt'] == 0) {
+        // Check if default org exists
+        $default_org = $db->prepare_select_one(
+            "SELECT id FROM orgs WHERE slug = 'default' LIMIT 1", ''
+        );
+        if (!$default_org) {
+            // Create default org
+            $db->prepare_query(
+                "INSERT INTO orgs (id, name, slug, deleted_at) VALUES (1, 'Default Organization', 'default', NULL)",
+                ''
+            );
+        }
+        // Seed org_members for all active users
+        $db->prepare_query(
+            "INSERT INTO org_members (org_id, user_id, joined_at, role)
+             SELECT 1, u.id, NOW(), CASE u.user_level WHEN 1 THEN 'owner' WHEN 2 THEN 'admin' ELSE 'member' END
+             FROM users u WHERE u.deleted_at IS NULL AND NOT EXISTS (
+                 SELECT 1 FROM org_members om WHERE om.user_id = u.id AND om.org_id = 1
+             )",
+            ''
+        );
+    }
+}
+
 echo "Test bootstrap loaded.\n";
 if (!getenv('TESTS_NO_DB')) {
     echo "DB connection: OK\n";
