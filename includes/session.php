@@ -62,7 +62,7 @@ class Session {
 	 *
 	 */
 	public function logout() {
-		unset($_SESSION['user_id']);
+		unset($_SESSION['user_id'], $_SESSION['current_org_id']);
 	}
 
 
