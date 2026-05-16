@@ -459,7 +459,9 @@ function find_all_user() {
 	$sql .="g.group_name ";
 	$sql .="FROM users u ";
 	$sql .="LEFT JOIN user_groups g ";
-	$sql .="ON g.group_level=u.user_level ORDER BY u.name ASC";
+	$sql .="ON g.group_level=u.user_level ";
+	$sql .="WHERE u.deleted_at IS NULL ";
+	$sql .="ORDER BY u.name ASC";
 	return find_by_sql($sql);
 }
 
@@ -717,7 +719,7 @@ function find_customer_by_name($customer_name) {
 	$customer = remove_junk($db->escape($customer_name));
 	$search = "%{$customer}%";
 	return $db->prepare_select(
-		"SELECT name FROM customers WHERE name LIKE ? LIMIT 5",
+		"SELECT name FROM customers WHERE name LIKE ? AND deleted_at IS NULL LIMIT 5",
 		"s", $search
 	);
 }
@@ -737,7 +739,7 @@ function find_customer_by_name($customer_name) {
 function find_all_customer_info_by_name($customer_name) {
 	global $db;
 	return $db->prepare_select(
-		"SELECT * FROM customers WHERE name = ? LIMIT 1",
+		"SELECT * FROM customers WHERE name = ? AND deleted_at IS NULL LIMIT 1",
 		"s", $customer_name
 	);
 }
@@ -902,6 +904,7 @@ function find_highest_selling_product($limit) {
 	$sql  = "SELECT p.name, COUNT(s.product_id) AS totalSold, SUM(s.qty) AS totalQty";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON p.id = s.product_id ";
+	$sql .= " WHERE s.deleted_at IS NULL";
 	$sql .= " GROUP BY s.product_id";
 	$sql .= " ORDER BY SUM(s.qty) DESC LIMIT ".$db->escape((int)$limit);
 	return $db->query($sql);
@@ -923,6 +926,7 @@ function find_all_sales() {
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN orders o ON s.order_id = o.id";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
+	$sql .= " WHERE s.deleted_at IS NULL";
 	$sql .= " ORDER BY s.date DESC";
 	return find_by_sql($sql);
 }
@@ -942,6 +946,7 @@ function find_all_orders() {
 	$sql  = "SELECT o.id,o.sales_id,o.date";
 	$sql .= " FROM orders o";
 	$sql .= " LEFT JOIN sales s ON s.id = o.sales_id";
+	$sql .= " WHERE o.deleted_at IS NULL";
 	$sql .= " ORDER BY o.date DESC";
 	return find_by_sql($sql);
 }
@@ -963,7 +968,7 @@ function find_sales_by_order_id($id) {
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN orders o ON s.order_id = o.id";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
-	$sql .= " WHERE s.order_id = ?";
+	$sql .= " WHERE s.order_id = ? AND s.deleted_at IS NULL";
 	$sql .= " ORDER BY s.date DESC";
 	return $db->prepare_select($sql, "i", (int)$id);
 }
@@ -986,6 +991,7 @@ function find_recent_sale_added($limit) {
 	$sql  = "SELECT s.id,s.qty,s.price,s.date,p.name";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
+	$sql .= " WHERE s.deleted_at IS NULL";
 	$sql .= " ORDER BY s.date DESC LIMIT ".$db->escape((int)$limit);
 	return find_by_sql($sql);
 }
@@ -1013,7 +1019,7 @@ function find_sale_by_dates($start_date, $end_date) {
 	$sql .= "SUM(p.buy_price * s.qty) AS total_buying_price ";
 	$sql .= "FROM sales s ";
 	$sql .= "LEFT JOIN products p ON s.product_id = p.id";
-	$sql .= " WHERE s.date BETWEEN ? AND ?";
+	$sql .= " WHERE s.date BETWEEN ? AND ? AND s.deleted_at IS NULL";
 	$sql .= " GROUP BY DATE(s.date),p.name";
 	$sql .= " ORDER BY DATE(s.date) DESC";
 	return $db->prepare_select($sql, "ss", $start_date, $end_date);
@@ -1039,7 +1045,7 @@ function dailySales($year, $month) {
 	$sql .= "SUM(p.sale_price * s.qty) AS total_selling_price";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
-	$sql .= " WHERE DATE_FORMAT(s.date, '%Y-%m' ) = ?";
+	$sql .= " WHERE DATE_FORMAT(s.date, '%Y-%m' ) = ? AND s.deleted_at IS NULL";
 	$sql .= " GROUP BY DATE_FORMAT( s.date,  '%e' ),s.product_id";
 	return $db->prepare_select($sql, "s", $year_month);
 }
@@ -1062,7 +1068,7 @@ function monthlySales($year) {
 	$sql .= "SUM(p.sale_price * s.qty) AS total_selling_price";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
-	$sql .= " WHERE DATE_FORMAT(s.date, '%Y' ) = ?";
+	$sql .= " WHERE DATE_FORMAT(s.date, '%Y' ) = ? AND s.deleted_at IS NULL";
 	$sql .= " GROUP BY DATE_FORMAT( s.date,  '%c' ),s.product_id";
 	$sql .= " ORDER BY date_format(s.date, '%c' ) ASC";
 	return $db->prepare_select($sql, "s", $year);
