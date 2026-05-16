@@ -23,7 +23,7 @@ if (!$d_stock) {
 // decrease inventory
 if ( decrease_product_qty( $d_stock['quantity'], $d_stock['product_id']) ) {
 
-	$delete_id = delete_by_id('stock', (int)$d_stock['id']);
+	$delete_id = soft_delete_by_id('stock', (int)$d_stock['id']);
 }
 
 if ($delete_id) {

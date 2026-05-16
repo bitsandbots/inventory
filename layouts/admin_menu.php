@@ -69,6 +69,7 @@
       <li><a href="../users/users.php">Manage Users</a> </li>
       <li><a href="../users/log.php">System Log</a> </li>
       <li><a href="../users/settings.php">Settings</a> </li>
+      <li><a href="../users/trash.php">Trash</a> </li>
    </ul>
   </li>
 

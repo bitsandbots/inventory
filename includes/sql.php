@@ -20,9 +20,14 @@ require_once 'load.php';
  */
 function find_all($table) {
 	global $db;
-	if (tableExists($table)) {
-		return find_by_sql("SELECT * FROM ".$db->escape($table));
+	if (!tableExists($table)) {
+		return null;
 	}
+	$sql = "SELECT * FROM " . $db->escape($table);
+	if (table_has_soft_delete($table)) {
+		$sql .= " WHERE deleted_at IS NULL";
+	}
+	return find_by_sql($sql);
 }
 
 
@@ -58,13 +63,17 @@ function find_by_sql($sql) {
  */
 function find_by_id($table, $id) {
 	global $db;
-	if (tableExists($table)) {
-		return $db->prepare_select_one(
-			"SELECT * FROM {$db->escape($table)} WHERE id = ? LIMIT 1",
-			"i", (int)$id
-		);
+	if (!tableExists($table)) {
+		return null;
 	}
-	return null;
+	$where = "WHERE id = ?";
+	if (table_has_soft_delete($table)) {
+		$where .= " AND deleted_at IS NULL";
+	}
+	return $db->prepare_select_one(
+		"SELECT * FROM {$db->escape($table)} {$where} LIMIT 1",
+		"i", (int)$id
+	);
 }
 
 
@@ -114,6 +123,158 @@ function delete_by_id($table, $id) {
 		return ($affected === 1);
 	}
 	return false;
+}
+
+
+/*--------------------------------------------------------------*/
+/* Soft-delete helpers (PR: soft-delete pattern, 2026-05-16).
+/* In-scope tables: users, customers, sales, orders, stock.
+/*--------------------------------------------------------------*/
+
+/**
+ * In-scope tables for the soft-delete pattern. Adding a table here is
+ * NOT enough to enable soft-delete — the table also needs the
+ * `deleted_at` column from the matching 005-009 migration.
+ */
+const SOFT_DELETE_TABLES = ['users', 'customers', 'sales', 'orders', 'stock'];
+
+/**
+ * Returns true when $table is in the in-scope allowlist AND its
+ * `deleted_at` column exists. Cached per request. Never throws —
+ * a probe failure returns false so the deploy-window fallback works.
+ *
+ * @param string $table
+ * @return bool
+ */
+function table_has_soft_delete(string $table): bool {
+	static $cache = [];
+	if (array_key_exists($table, $cache)) {
+		return $cache[$table];
+	}
+	if (!in_array($table, SOFT_DELETE_TABLES, true)) {
+		return $cache[$table] = false;
+	}
+	global $db;
+	try {
+		$r = $db->connection()->query(
+			"SHOW COLUMNS FROM `" . $db->escape($table) . "` LIKE 'deleted_at'"
+		);
+		$has = ($r !== false && $r->num_rows > 0);
+		if ($r) {
+			$r->free();
+		}
+		return $cache[$table] = $has;
+	} catch (\Throwable $e) {
+		return $cache[$table] = false;
+	}
+}
+
+/**
+ * Soft-delete a row. Stamps deleted_at = NOW() and deleted_by = actor.
+ * No-op when the table is not in scope.
+ *
+ * @param string $table
+ * @param int $id
+ * @param int|null $actor_user_id  Defaults to $_SESSION['user_id'].
+ * @return bool  True when exactly one row was updated.
+ */
+function soft_delete_by_id(string $table, int $id, ?int $actor_user_id = null): bool {
+	if (!table_has_soft_delete($table)) {
+		return false;
+	}
+	if ($actor_user_id === null) {
+		$actor_user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
+	}
+	global $db;
+	$stmt = $db->prepare_query(
+		"UPDATE `" . $db->escape($table) . "`
+			SET deleted_at = NOW(), deleted_by = ?
+		  WHERE id = ? AND deleted_at IS NULL LIMIT 1",
+		"ii", $actor_user_id, $id
+	);
+	$affected = $stmt->affected_rows;
+	$stmt->close();
+	return ($affected === 1);
+}
+
+/**
+ * Reverse a soft-delete. Sets both deleted_at and deleted_by to NULL.
+ *
+ * @param string $table
+ * @param int $id
+ * @return bool  True when exactly one row was updated.
+ */
+function restore_by_id(string $table, int $id): bool {
+	if (!table_has_soft_delete($table)) {
+		return false;
+	}
+	global $db;
+	$stmt = $db->prepare_query(
+		"UPDATE `" . $db->escape($table) . "`
+			SET deleted_at = NULL, deleted_by = NULL
+		  WHERE id = ? AND deleted_at IS NOT NULL LIMIT 1",
+		"i", $id
+	);
+	$affected = $stmt->affected_rows;
+	$stmt->close();
+	return ($affected === 1);
+}
+
+/**
+ * Permanently delete a soft-deleted row. Refuses when the row is still
+ * active (deleted_at IS NULL) — must be soft-deleted first.
+ *
+ * @param string $table
+ * @param int $id
+ * @return bool  True when one row was removed.
+ */
+function purge_by_id(string $table, int $id): bool {
+	if (!table_has_soft_delete($table)) {
+		return false;
+	}
+	global $db;
+	$stmt = $db->prepare_query(
+		"DELETE FROM `" . $db->escape($table) . "`
+		  WHERE id = ? AND deleted_at IS NOT NULL LIMIT 1",
+		"i", $id
+	);
+	$affected = $stmt->affected_rows;
+	$stmt->close();
+	return ($affected === 1);
+}
+
+/**
+ * Same as find_by_id but does NOT filter out soft-deleted rows.
+ * For the trash UI and audit lookups.
+ *
+ * @param string $table
+ * @param int $id
+ * @return array|null
+ */
+function find_by_id_with_deleted(string $table, int $id): ?array {
+	global $db;
+	if (!tableExists($table)) {
+		return null;
+	}
+	return $db->prepare_select_one(
+		"SELECT * FROM `" . $db->escape($table) . "` WHERE id = ? LIMIT 1",
+		"i", (int)$id
+	);
+}
+
+/**
+ * Same as find_all but does NOT filter out soft-deleted rows.
+ * For the trash UI and audit/export lookups.
+ *
+ * @param string $table
+ * @return array|null
+ */
+function find_with_deleted(string $table): ?array {
+	global $db;
+	if (!tableExists($table)) {
+		return null;
+	}
+	return find_by_sql("SELECT * FROM " . $db->escape($table));
 }
 
 
@@ -223,7 +384,7 @@ function tableExists($table) {
  */
 function authenticate($username='', $password='') {
 	global $db;
-	$sql  = "SELECT id,username,password,user_level FROM users WHERE username = ? LIMIT 1";
+	$sql  = "SELECT id,username,password,user_level FROM users WHERE username = ? AND deleted_at IS NULL LIMIT 1";
 	$result = $db->prepare_select_one($sql, "s", $username);
 
 	if ($result) {
@@ -298,7 +459,9 @@ function find_all_user() {
 	$sql .="g.group_name ";
 	$sql .="FROM users u ";
 	$sql .="LEFT JOIN user_groups g ";
-	$sql .="ON g.group_level=u.user_level ORDER BY u.name ASC";
+	$sql .="ON g.group_level=u.user_level ";
+	$sql .="WHERE u.deleted_at IS NULL ";
+	$sql .="ORDER BY u.name ASC";
 	return find_by_sql($sql);
 }
 
@@ -556,7 +719,7 @@ function find_customer_by_name($customer_name) {
 	$customer = remove_junk($db->escape($customer_name));
 	$search = "%{$customer}%";
 	return $db->prepare_select(
-		"SELECT name FROM customers WHERE name LIKE ? LIMIT 5",
+		"SELECT name FROM customers WHERE name LIKE ? AND deleted_at IS NULL LIMIT 5",
 		"s", $search
 	);
 }
@@ -576,7 +739,7 @@ function find_customer_by_name($customer_name) {
 function find_all_customer_info_by_name($customer_name) {
 	global $db;
 	return $db->prepare_select(
-		"SELECT * FROM customers WHERE name = ? LIMIT 1",
+		"SELECT * FROM customers WHERE name = ? AND deleted_at IS NULL LIMIT 1",
 		"s", $customer_name
 	);
 }
@@ -741,6 +904,7 @@ function find_highest_selling_product($limit) {
 	$sql  = "SELECT p.name, COUNT(s.product_id) AS totalSold, SUM(s.qty) AS totalQty";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON p.id = s.product_id ";
+	$sql .= " WHERE s.deleted_at IS NULL";
 	$sql .= " GROUP BY s.product_id";
 	$sql .= " ORDER BY SUM(s.qty) DESC LIMIT ".$db->escape((int)$limit);
 	return $db->query($sql);
@@ -762,6 +926,7 @@ function find_all_sales() {
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN orders o ON s.order_id = o.id";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
+	$sql .= " WHERE s.deleted_at IS NULL";
 	$sql .= " ORDER BY s.date DESC";
 	return find_by_sql($sql);
 }
@@ -781,6 +946,7 @@ function find_all_orders() {
 	$sql  = "SELECT o.id,o.sales_id,o.date";
 	$sql .= " FROM orders o";
 	$sql .= " LEFT JOIN sales s ON s.id = o.sales_id";
+	$sql .= " WHERE o.deleted_at IS NULL";
 	$sql .= " ORDER BY o.date DESC";
 	return find_by_sql($sql);
 }
@@ -802,7 +968,7 @@ function find_sales_by_order_id($id) {
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN orders o ON s.order_id = o.id";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
-	$sql .= " WHERE s.order_id = ?";
+	$sql .= " WHERE s.order_id = ? AND s.deleted_at IS NULL";
 	$sql .= " ORDER BY s.date DESC";
 	return $db->prepare_select($sql, "i", (int)$id);
 }
@@ -825,6 +991,7 @@ function find_recent_sale_added($limit) {
 	$sql  = "SELECT s.id,s.qty,s.price,s.date,p.name";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
+	$sql .= " WHERE s.deleted_at IS NULL";
 	$sql .= " ORDER BY s.date DESC LIMIT ".$db->escape((int)$limit);
 	return find_by_sql($sql);
 }
@@ -852,7 +1019,7 @@ function find_sale_by_dates($start_date, $end_date) {
 	$sql .= "SUM(p.buy_price * s.qty) AS total_buying_price ";
 	$sql .= "FROM sales s ";
 	$sql .= "LEFT JOIN products p ON s.product_id = p.id";
-	$sql .= " WHERE s.date BETWEEN ? AND ?";
+	$sql .= " WHERE s.date BETWEEN ? AND ? AND s.deleted_at IS NULL";
 	$sql .= " GROUP BY DATE(s.date),p.name";
 	$sql .= " ORDER BY DATE(s.date) DESC";
 	return $db->prepare_select($sql, "ss", $start_date, $end_date);
@@ -878,7 +1045,7 @@ function dailySales($year, $month) {
 	$sql .= "SUM(p.sale_price * s.qty) AS total_selling_price";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
-	$sql .= " WHERE DATE_FORMAT(s.date, '%Y-%m' ) = ?";
+	$sql .= " WHERE DATE_FORMAT(s.date, '%Y-%m' ) = ? AND s.deleted_at IS NULL";
 	$sql .= " GROUP BY DATE_FORMAT( s.date,  '%e' ),s.product_id";
 	return $db->prepare_select($sql, "s", $year_month);
 }
@@ -901,7 +1068,7 @@ function monthlySales($year) {
 	$sql .= "SUM(p.sale_price * s.qty) AS total_selling_price";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
-	$sql .= " WHERE DATE_FORMAT(s.date, '%Y' ) = ?";
+	$sql .= " WHERE DATE_FORMAT(s.date, '%Y' ) = ? AND s.deleted_at IS NULL";
 	$sql .= " GROUP BY DATE_FORMAT( s.date,  '%c' ),s.product_id";
 	$sql .= " ORDER BY date_format(s.date, '%c' ) ASC";
 	return $db->prepare_select($sql, "s", $year);

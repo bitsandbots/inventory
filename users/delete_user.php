@@ -12,7 +12,7 @@ page_require_level(1);
 if (!verify_get_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
 ?>
 <?php
-$delete_id = delete_by_id('users', (int)$_GET['id']);
+$delete_id = soft_delete_by_id('users', (int)$_GET['id']);
 if ($delete_id) {
 	$session->msg("s", "User deleted.");
 	redirect('../users/users.php');
