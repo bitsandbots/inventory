@@ -54,7 +54,7 @@ $req_field = array('product_id', 'quantity');
 	if (empty($errors)) {
 		$sql = "UPDATE stock SET";
 		$sql .= " product_id='{$product_id}', quantity='{$quantity}', comments='{$comments}', date='{$current_date}'";
-		$sql .= " WHERE id='{$stock['id']}'";
+		$sql .= " WHERE id='{$stock['id']}' AND org_id = '" . current_org_id() . "'";
 
 		$result = $db->query($sql);
 		if ($result && $db->affected_rows() === 1) {

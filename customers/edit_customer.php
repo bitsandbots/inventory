@@ -67,7 +67,7 @@ $req_fields = array('customer-name' );
 			$query   = "UPDATE customers SET";
 			$query  .=" name ='{$c_name}', address ='{$c_address}', city ='{$c_city}', region ='{$c_region}', postcode ='{$c_postcode}', telephone ='{$c_telephone}', email ='{$c_email}',";
 			$query  .=" paymethod ='{$c_paymethod}'";
-			$query  .=" WHERE id ='{$customer['id']}'";
+			$query  .=" WHERE id ='{$customer['id']}' AND org_id = '" . current_org_id() . "'";
 			$result = $db->query($query);
 			if ($result && $db->affected_rows() === 1) {
 				$session->msg('s', 'Customer Updated!');

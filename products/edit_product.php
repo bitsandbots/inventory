@@ -57,7 +57,7 @@ $req_fields = array('product-title', 'product-category', 'product-quantity', 'co
 		$query   = "UPDATE products SET";
 		$query  .=" name ='{$p_name}', description ='{$p_desc}', sku ='{$p_sku}',location ='{$p_loc}', quantity ='{$p_qty}',";
 		$query  .=" buy_price ='{$p_buy}',sale_price ='{$p_sale}',category_id ='{$p_cat}',media_id ='{$media_id}'";
-		$query  .=" WHERE id ='{$product['id']}'";
+		$query  .=" WHERE id ='{$product['id']}' AND org_id = '" . current_org_id() . "'";
 		$result = $db->query($query);
 		if ($result && $db->affected_rows() === 1) {
 			$session->msg('s', "Product Updated ");

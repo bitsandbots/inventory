@@ -142,10 +142,21 @@ function find_by_name($table, $name) {
 function delete_by_id($table, $id) {
 	global $db;
 	if (tableExists($table)) {
-		$stmt = $db->prepare_query(
-			"DELETE FROM ".$db->escape($table)." WHERE id = ? LIMIT 1",
-			"i", (int)$id
-		);
+		$id = (int)$id;
+
+		// Add org_id guard for org-scoped tables
+		if (table_has_org_id($table)) {
+			$stmt = $db->prepare_query(
+				"DELETE FROM ".$db->escape($table)." WHERE id = ? AND org_id = ? LIMIT 1",
+				"ii", $id, current_org_id()
+			);
+		} else {
+			$stmt = $db->prepare_query(
+				"DELETE FROM ".$db->escape($table)." WHERE id = ? LIMIT 1",
+				"i", $id
+			);
+		}
+
 		$affected = $stmt->affected_rows;
 		$stmt->close();
 		return ($affected === 1);
@@ -285,12 +296,24 @@ function soft_delete_by_id(string $table, int $id, ?int $actor_user_id = null): 
 		$actor_user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
 	}
 	global $db;
-	$stmt = $db->prepare_query(
-		"UPDATE `" . $db->escape($table) . "`
-			SET deleted_at = NOW(), deleted_by = ?
-		  WHERE id = ? AND deleted_at IS NULL LIMIT 1",
-		"ii", $actor_user_id, $id
-	);
+
+	// Add org_id guard for org-scoped tables
+	if (table_has_org_id($table)) {
+		$stmt = $db->prepare_query(
+			"UPDATE `" . $db->escape($table) . "`
+				SET deleted_at = NOW(), deleted_by = ?
+			  WHERE id = ? AND deleted_at IS NULL AND org_id = ? LIMIT 1",
+			"iii", $actor_user_id, $id, current_org_id()
+		);
+	} else {
+		$stmt = $db->prepare_query(
+			"UPDATE `" . $db->escape($table) . "`
+				SET deleted_at = NOW(), deleted_by = ?
+			  WHERE id = ? AND deleted_at IS NULL LIMIT 1",
+			"ii", $actor_user_id, $id
+		);
+	}
+
 	$affected = $stmt->affected_rows;
 	$stmt->close();
 	return ($affected === 1);
@@ -308,12 +331,24 @@ function restore_by_id(string $table, int $id): bool {
 		return false;
 	}
 	global $db;
-	$stmt = $db->prepare_query(
-		"UPDATE `" . $db->escape($table) . "`
-			SET deleted_at = NULL, deleted_by = NULL
-		  WHERE id = ? AND deleted_at IS NOT NULL LIMIT 1",
-		"i", $id
-	);
+
+	// Add org_id guard for org-scoped tables
+	if (table_has_org_id($table)) {
+		$stmt = $db->prepare_query(
+			"UPDATE `" . $db->escape($table) . "`
+				SET deleted_at = NULL, deleted_by = NULL
+			  WHERE id = ? AND deleted_at IS NOT NULL AND org_id = ? LIMIT 1",
+			"ii", $id, current_org_id()
+		);
+	} else {
+		$stmt = $db->prepare_query(
+			"UPDATE `" . $db->escape($table) . "`
+				SET deleted_at = NULL, deleted_by = NULL
+			  WHERE id = ? AND deleted_at IS NOT NULL LIMIT 1",
+			"i", $id
+		);
+	}
+
 	$affected = $stmt->affected_rows;
 	$stmt->close();
 	return ($affected === 1);
@@ -332,11 +367,21 @@ function purge_by_id(string $table, int $id): bool {
 		return false;
 	}
 	global $db;
-	$stmt = $db->prepare_query(
-		"DELETE FROM `" . $db->escape($table) . "`
-		  WHERE id = ? AND deleted_at IS NOT NULL LIMIT 1",
-		"i", $id
-	);
+
+	// Add org_id guard for org-scoped tables
+	if (table_has_org_id($table)) {
+		$stmt = $db->prepare_query(
+			"DELETE FROM `" . $db->escape($table) . "`
+			  WHERE id = ? AND deleted_at IS NOT NULL AND org_id = ? LIMIT 1",
+			"ii", $id, current_org_id()
+		);
+	} else {
+		$stmt = $db->prepare_query(
+			"DELETE FROM `" . $db->escape($table) . "`
+			  WHERE id = ? AND deleted_at IS NOT NULL LIMIT 1",
+			"i", $id
+		);
+	}
 	$affected = $stmt->affected_rows;
 	$stmt->close();
 	return ($affected === 1);
@@ -1118,8 +1163,8 @@ function increase_product_qty($qty, $p_id) {
 	$qty = (int) $qty;
 	$id  = (int) $p_id;
 	$stmt = $db->prepare_query(
-		"UPDATE products SET quantity = quantity + ? WHERE id = ?",
-		"ii", $qty, $id
+		"UPDATE products SET quantity = quantity + ? WHERE id = ? AND org_id = ?",
+		"iii", $qty, $id, current_org_id()
 	);
 	$affected = $stmt->affected_rows;
 	$stmt->close();
@@ -1143,8 +1188,8 @@ function decrease_product_qty($qty, $p_id) {
 	$qty = (int) $qty;
 	$id  = (int) $p_id;
 	$stmt = $db->prepare_query(
-		"UPDATE products SET quantity = quantity - ? WHERE id = ?",
-		"ii", $qty, $id
+		"UPDATE products SET quantity = quantity - ? WHERE id = ? AND org_id = ?",
+		"iii", $qty, $id, current_org_id()
 	);
 	$affected = $stmt->affected_rows;
 	$stmt->close();

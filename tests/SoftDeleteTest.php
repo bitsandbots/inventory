@@ -59,6 +59,9 @@ if (!$soft_delete_ready) {
     exit(0);
 }
 
+// Set up org context for tests that need org_id guards
+$_SESSION['current_org_id'] = 1;
+
 // Task 7 — table_has_soft_delete introspection.
 test('table_has_soft_delete returns true for in-scope tables', function () {
     check(table_has_soft_delete('users') === true, 'users should be soft-delete-aware');
@@ -237,8 +240,8 @@ test('find_all_sales excludes soft-deleted sales (row-local cascade test)', func
     $pid = (int)$rows[0]['id'];
 
     $stmt = $db->prepare_query(
-        "INSERT INTO sales (order_id, product_id, qty, price, date) VALUES (?, ?, ?, ?, ?)",
-        "iiids", 999999, $pid, 1, 1.00, date('Y-m-d')
+        "INSERT INTO sales (order_id, product_id, qty, price, date, org_id) VALUES (?, ?, ?, ?, ?, ?)",
+        "iidssi", 999999, $pid, 1, 1.00, date('Y-m-d'), 1
     );
     $id = $db->insert_id();
     $stmt->close();

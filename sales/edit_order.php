@@ -53,7 +53,7 @@ $req_fields = array('customer-name', 'paymethod' );
 
 		$sql = "UPDATE orders SET";
 		$sql .= " customer='{$customer_name}', paymethod='{$paymethod}', notes='{$notes}', date='{$date}'";
-		$sql .= " WHERE id='{$order['id']}'";
+		$sql .= " WHERE id='{$order['id']}' AND org_id = '" . current_org_id() . "'";
 
 		$result = $db->query($sql);
 		if ($result && $db->affected_rows() === 1) {

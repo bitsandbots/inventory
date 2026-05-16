@@ -16,6 +16,9 @@ $pass = 0;
 $fail = 0;
 $created_product_id = null;
 
+// Set up org context for tests that need org_id guards
+$_SESSION['current_org_id'] = 1;
+
 function test(string $name, callable $fn): void
 {
     global $pass, $fail;
@@ -62,9 +65,9 @@ test('Create product via INSERT', function () use (&$created_product_id, &$creat
     $date = date('Y-m-d H:i:s');
     $e_name = $db->escape($name);
     // Supply all NOT-NULL columns: name, description, location, sale_price,
-    // category_id, date. (sku, quantity, buy_price, media_id have defaults.)
-    $sql = "INSERT INTO products (name, description, location, quantity, buy_price, sale_price, category_id, media_id, date)
-            VALUES ('{$e_name}', '', 'TEST_LOC', 100, 5.00, 10.00, {$created_category_id}, 0, '{$date}')";
+    // category_id, date, org_id. (sku, quantity, buy_price, media_id have defaults.)
+    $sql = "INSERT INTO products (name, description, location, quantity, buy_price, sale_price, category_id, media_id, date, org_id)
+            VALUES ('{$e_name}', '', 'TEST_LOC', 100, 5.00, 10.00, {$created_category_id}, 0, '{$date}', 1)";
     $db->query($sql);
     $created_product_id = $db->insert_id();
     check($created_product_id > 0, 'Failed to create product');
