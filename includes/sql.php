@@ -259,6 +259,16 @@ function current_org_id(): int {
 }
 
 /**
+ * Returns the active org_id if session is set, otherwise returns null.
+ * Safe for use in tests and reports that may not have an authenticated session.
+ *
+ * @return int|null
+ */
+function current_org_id_safe(): ?int {
+	return isset($_SESSION['current_org_id']) ? (int)$_SESSION['current_org_id'] : null;
+}
+
+/**
  * Soft-delete a row. Stamps deleted_at = NOW() and deleted_by = actor.
  * No-op when the table is not in scope.
  *
@@ -856,6 +866,13 @@ function find_product_by_title($product_name) {
 	global $db;
 	$p_name = remove_junk($db->escape($product_name));
 	$search = "%{$p_name}%";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		return $db->prepare_select(
+			"SELECT name FROM products WHERE name LIKE ? AND org_id = ? LIMIT 5",
+			"si", $search, $org_id
+		);
+	}
 	return $db->prepare_select(
 		"SELECT name FROM products WHERE name LIKE ? LIMIT 5",
 		"s", $search
@@ -876,6 +893,13 @@ function find_product_by_title($product_name) {
  */
 function find_all_product_info_by_title($title) {
 	global $db;
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		return $db->prepare_select(
+			"SELECT * FROM products WHERE name = ? AND org_id = ? LIMIT 1",
+			"si", $title, $org_id
+		);
+	}
 	return $db->prepare_select(
 		"SELECT * FROM products WHERE name = ? LIMIT 1",
 		"s", $title
@@ -898,8 +922,8 @@ function find_product_by_sku($product_sku) {
 	global $db;
 	$search = "%{$product_sku}%";
 	return $db->prepare_select(
-		"SELECT sku FROM products WHERE sku LIKE ? LIMIT 5",
-		"s", $search
+		"SELECT sku FROM products WHERE sku LIKE ? AND org_id = ? LIMIT 5",
+		"si", $search, current_org_id_safe()
 	);
 }
 
@@ -917,6 +941,13 @@ function find_product_by_sku($product_sku) {
  */
 function find_all_product_info_by_sku($product_sku) {
 	global $db;
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		return $db->prepare_select(
+			"SELECT * FROM products WHERE sku = ? AND org_id = ? LIMIT 1",
+			"si", $product_sku, $org_id
+		);
+	}
 	return $db->prepare_select(
 		"SELECT * FROM products WHERE sku = ? LIMIT 1",
 		"s", $product_sku
@@ -939,6 +970,13 @@ function find_customer_by_name($customer_name) {
 	global $db;
 	$customer = remove_junk($db->escape($customer_name));
 	$search = "%{$customer}%";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		return $db->prepare_select(
+			"SELECT name FROM customers WHERE name LIKE ? AND deleted_at IS NULL AND org_id = ? LIMIT 5",
+			"si", $search, $org_id
+		);
+	}
 	return $db->prepare_select(
 		"SELECT name FROM customers WHERE name LIKE ? AND deleted_at IS NULL LIMIT 5",
 		"s", $search
@@ -959,6 +997,13 @@ function find_customer_by_name($customer_name) {
  */
 function find_all_customer_info_by_name($customer_name) {
 	global $db;
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		return $db->prepare_select(
+			"SELECT * FROM customers WHERE name = ? AND deleted_at IS NULL AND org_id = ? LIMIT 1",
+			"si", $customer_name, $org_id
+		);
+	}
 	return $db->prepare_select(
 		"SELECT * FROM customers WHERE name = ? AND deleted_at IS NULL LIMIT 1",
 		"s", $customer_name
@@ -981,6 +1026,13 @@ function find_products_by_search($product_search) {
 	global $db;
 	$p_search = remove_junk($db->escape($product_search));
 	$search = "%{$p_search}%";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		return $db->prepare_select(
+			"SELECT * FROM products WHERE (name LIKE ? OR sku LIKE ? OR description LIKE ?) AND org_id = ? LIMIT 5",
+			"sssi", $search, $search, $search, $org_id
+		);
+	}
 	return $db->prepare_select(
 		"SELECT * FROM products WHERE (name LIKE ? OR sku LIKE ? OR description LIKE ?) LIMIT 5",
 		"sss", $search, $search, $search
@@ -1009,9 +1061,12 @@ function find_all_product_info_by_search($search) {
 	$sql  .=" FROM products p";
 	$sql  .=" LEFT JOIN categories c ON c.id = p.category_id";
 	$sql  .=" LEFT JOIN media m ON m.id = p.media_id";
-	$sql  .=" WHERE ( p.name LIKE ? OR p.sku LIKE ? OR p.description LIKE ? )";
+	$sql  .=" WHERE ( p.name LIKE ? OR p.sku LIKE ? OR p.description LIKE ? ) AND p.org_id = " . (current_org_id_safe() ?? 0);
 	$sql  .=" ORDER BY p.id ASC";
 
+	if (current_org_id_safe() !== null) {
+		return $db->prepare_select($sql, "sssi", $like, $like, $like, current_org_id_safe());
+	}
 	return $db->prepare_select($sql, "sss", $like, $like, $like);
 }
 
@@ -1033,8 +1088,16 @@ function find_products_by_category($cat) {
 	$sql  .=" FROM products p";
 	$sql  .=" LEFT JOIN categories c ON c.id = p.category_id";
 	$sql  .=" LEFT JOIN media m ON m.id = p.media_id";
-	$sql  .=" WHERE c.id = ?";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql  .=" WHERE c.id = ? AND p.org_id = ?";
+	} else {
+		$sql  .=" WHERE c.id = ?";
+	}
 	$sql  .=" ORDER BY p.id ASC";
+	if ($org_id !== null) {
+		return $db->prepare_select($sql, "ii", (int)$cat, $org_id);
+	}
 	return $db->prepare_select($sql, "i", (int)$cat);
 }
 
@@ -1105,6 +1168,10 @@ function find_recent_product_added($limit) {
 	$sql  .= "m.file_name AS image FROM products p";
 	$sql  .= " LEFT JOIN categories c ON c.id = p.category_id";
 	$sql  .= " LEFT JOIN media m ON m.id = p.media_id";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql  .= " WHERE p.org_id = " . $org_id;
+	}
 	$sql  .= " ORDER BY p.id DESC LIMIT ".$db->escape((int)$limit);
 	return find_by_sql($sql);
 }
@@ -1125,7 +1192,12 @@ function find_highest_selling_product($limit) {
 	$sql  = "SELECT p.name, COUNT(s.product_id) AS totalSold, SUM(s.qty) AS totalQty";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON p.id = s.product_id ";
-	$sql .= " WHERE s.deleted_at IS NULL";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql .= " WHERE s.deleted_at IS NULL AND p.org_id = " . $org_id;
+	} else {
+		$sql .= " WHERE s.deleted_at IS NULL";
+	}
 	$sql .= " GROUP BY s.product_id";
 	$sql .= " ORDER BY SUM(s.qty) DESC LIMIT ".$db->escape((int)$limit);
 	return $db->query($sql);
@@ -1147,7 +1219,12 @@ function find_all_sales() {
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN orders o ON s.order_id = o.id";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
-	$sql .= " WHERE s.deleted_at IS NULL";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql .= " WHERE s.deleted_at IS NULL AND p.org_id = " . $org_id;
+	} else {
+		$sql .= " WHERE s.deleted_at IS NULL";
+	}
 	$sql .= " ORDER BY s.date DESC";
 	return find_by_sql($sql);
 }
@@ -1167,7 +1244,12 @@ function find_all_orders() {
 	$sql  = "SELECT o.id,o.sales_id,o.date";
 	$sql .= " FROM orders o";
 	$sql .= " LEFT JOIN sales s ON s.id = o.sales_id";
-	$sql .= " WHERE o.deleted_at IS NULL";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql .= " WHERE o.deleted_at IS NULL AND o.org_id = " . $org_id;
+	} else {
+		$sql .= " WHERE o.deleted_at IS NULL";
+	}
 	$sql .= " ORDER BY o.date DESC";
 	return find_by_sql($sql);
 }
@@ -1189,6 +1271,12 @@ function find_sales_by_order_id($id) {
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN orders o ON s.order_id = o.id";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql .= " WHERE s.order_id = ? AND s.deleted_at IS NULL AND p.org_id = ?";
+		$sql .= " ORDER BY s.date DESC";
+		return $db->prepare_select($sql, "ii", (int)$id, $org_id);
+	}
 	$sql .= " WHERE s.order_id = ? AND s.deleted_at IS NULL";
 	$sql .= " ORDER BY s.date DESC";
 	return $db->prepare_select($sql, "i", (int)$id);
@@ -1212,7 +1300,12 @@ function find_recent_sale_added($limit) {
 	$sql  = "SELECT s.id,s.qty,s.price,s.date,p.name";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
-	$sql .= " WHERE s.deleted_at IS NULL";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql .= " WHERE s.deleted_at IS NULL AND p.org_id = " . $org_id;
+	} else {
+		$sql .= " WHERE s.deleted_at IS NULL";
+	}
 	$sql .= " ORDER BY s.date DESC LIMIT ".$db->escape((int)$limit);
 	return find_by_sql($sql);
 }
@@ -1240,6 +1333,13 @@ function find_sale_by_dates($start_date, $end_date) {
 	$sql .= "SUM(p.buy_price * s.qty) AS total_buying_price ";
 	$sql .= "FROM sales s ";
 	$sql .= "LEFT JOIN products p ON s.product_id = p.id";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql .= " WHERE s.date BETWEEN ? AND ? AND s.deleted_at IS NULL AND p.org_id = ?";
+		$sql .= " GROUP BY DATE(s.date),p.name";
+		$sql .= " ORDER BY DATE(s.date) DESC";
+		return $db->prepare_select($sql, "ssi", $start_date, $end_date, $org_id);
+	}
 	$sql .= " WHERE s.date BETWEEN ? AND ? AND s.deleted_at IS NULL";
 	$sql .= " GROUP BY DATE(s.date),p.name";
 	$sql .= " ORDER BY DATE(s.date) DESC";
@@ -1266,6 +1366,12 @@ function dailySales($year, $month) {
 	$sql .= "SUM(p.sale_price * s.qty) AS total_selling_price";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql .= " WHERE DATE_FORMAT(s.date, '%Y-%m' ) = ? AND s.deleted_at IS NULL AND p.org_id = ?";
+		$sql .= " GROUP BY DATE_FORMAT( s.date,  '%e' ),s.product_id";
+		return $db->prepare_select($sql, "si", $year_month, $org_id);
+	}
 	$sql .= " WHERE DATE_FORMAT(s.date, '%Y-%m' ) = ? AND s.deleted_at IS NULL";
 	$sql .= " GROUP BY DATE_FORMAT( s.date,  '%e' ),s.product_id";
 	return $db->prepare_select($sql, "s", $year_month);
@@ -1289,6 +1395,13 @@ function monthlySales($year) {
 	$sql .= "SUM(p.sale_price * s.qty) AS total_selling_price";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql .= " WHERE DATE_FORMAT(s.date, '%Y' ) = ? AND s.deleted_at IS NULL AND p.org_id = ?";
+		$sql .= " GROUP BY DATE_FORMAT( s.date,  '%c' ),s.product_id";
+		$sql .= " ORDER BY date_format(s.date, '%c' ) ASC";
+		return $db->prepare_select($sql, "si", $year, $org_id);
+	}
 	$sql .= " WHERE DATE_FORMAT(s.date, '%Y' ) = ? AND s.deleted_at IS NULL";
 	$sql .= " GROUP BY DATE_FORMAT( s.date,  '%c' ),s.product_id";
 	$sql .= " ORDER BY date_format(s.date, '%c' ) ASC";
