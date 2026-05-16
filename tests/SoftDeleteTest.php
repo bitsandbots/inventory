@@ -59,7 +59,26 @@ if (!$soft_delete_ready) {
     exit(0);
 }
 
-// Test cases are added in later tasks.
+// Task 7 — table_has_soft_delete introspection.
+test('table_has_soft_delete returns true for in-scope tables', function () {
+    check(table_has_soft_delete('users') === true, 'users should be soft-delete-aware');
+    check(table_has_soft_delete('customers') === true, 'customers should be soft-delete-aware');
+    check(table_has_soft_delete('sales') === true, 'sales should be soft-delete-aware');
+    check(table_has_soft_delete('orders') === true, 'orders should be soft-delete-aware');
+    check(table_has_soft_delete('stock') === true, 'stock should be soft-delete-aware');
+});
+
+test('table_has_soft_delete returns false for out-of-scope tables', function () {
+    check(table_has_soft_delete('products') === false, 'products is out of scope');
+    check(table_has_soft_delete('categories') === false, 'categories is out of scope');
+    check(table_has_soft_delete('log') === false, 'log is out of scope');
+    check(table_has_soft_delete('media') === false, 'media is out of scope');
+    check(table_has_soft_delete('user_groups') === false, 'user_groups is out of scope');
+});
+
+test('table_has_soft_delete returns false for unknown table', function () {
+    check(table_has_soft_delete('definitely_not_a_table') === false, 'unknown table should return false');
+});
 
 echo "\n---\nResults: $pass passed, $fail failed\n";
 exit($fail > 0 ? 1 : 0);

@@ -118,6 +118,50 @@ function delete_by_id($table, $id) {
 
 
 /*--------------------------------------------------------------*/
+/* Soft-delete helpers (PR: soft-delete pattern, 2026-05-16).
+/* In-scope tables: users, customers, sales, orders, stock.
+/*--------------------------------------------------------------*/
+
+/**
+ * In-scope tables for the soft-delete pattern. Adding a table here is
+ * NOT enough to enable soft-delete — the table also needs the
+ * `deleted_at` column from the matching 005-009 migration.
+ */
+const SOFT_DELETE_TABLES = ['users', 'customers', 'sales', 'orders', 'stock'];
+
+/**
+ * Returns true when $table is in the in-scope allowlist AND its
+ * `deleted_at` column exists. Cached per request. Never throws —
+ * a probe failure returns false so the deploy-window fallback works.
+ *
+ * @param string $table
+ * @return bool
+ */
+function table_has_soft_delete(string $table): bool {
+	static $cache = [];
+	if (array_key_exists($table, $cache)) {
+		return $cache[$table];
+	}
+	if (!in_array($table, SOFT_DELETE_TABLES, true)) {
+		return $cache[$table] = false;
+	}
+	global $db;
+	try {
+		$r = $db->connection()->query(
+			"SHOW COLUMNS FROM `" . $db->escape($table) . "` LIKE 'deleted_at'"
+		);
+		$has = ($r !== false && $r->num_rows > 0);
+		if ($r) {
+			$r->free();
+		}
+		return $cache[$table] = $has;
+	} catch (\Throwable $e) {
+		return $cache[$table] = false;
+	}
+}
+
+
+/*--------------------------------------------------------------*/
 /* Function for Delete data from table by ip
 /*--------------------------------------------------------------*/
 
