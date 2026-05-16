@@ -145,5 +145,63 @@ test('purge_by_id removes a soft-deleted row permanently', function () {
     check($row === null, 'row still present after purge');
 });
 
+// Task 9 — generic helpers auto-filter soft-deleted rows.
+test('find_all excludes soft-deleted rows', function () {
+    global $db;
+    // Create + soft-delete a HARNESS_ user.
+    $stmt = $db->prepare_query(
+        "INSERT INTO users (name, username, password, user_level, status) VALUES (?, ?, ?, ?, ?)",
+        "sssii", 'HARNESS_findfilter', 'HARNESS_findfilter', 'x', 3, 1
+    );
+    $id = $db->connection()->insert_id;
+    $stmt->close();
+    soft_delete_by_id('users', $id, 1);
+
+    $all = find_all('users');
+    $ids = array_column($all, 'id');
+    check(!in_array($id, array_map('intval', $ids), true),
+        "find_all('users') leaked soft-deleted id=$id");
+
+    // Cleanup
+    purge_by_id('users', $id);
+});
+
+test('find_by_id returns null for a soft-deleted row', function () {
+    global $db;
+    $stmt = $db->prepare_query(
+        "INSERT INTO users (name, username, password, user_level, status) VALUES (?, ?, ?, ?, ?)",
+        "sssii", 'HARNESS_findbyid', 'HARNESS_findbyid', 'x', 3, 1
+    );
+    $id = $db->connection()->insert_id;
+    $stmt->close();
+    soft_delete_by_id('users', $id, 1);
+
+    $row = find_by_id('users', $id);
+    check($row === null, 'find_by_id returned a soft-deleted row');
+
+    $row2 = find_by_id_with_deleted('users', $id);
+    check($row2 !== null && (int)$row2['id'] === $id,
+        'find_by_id_with_deleted failed to return the soft-deleted row');
+
+    purge_by_id('users', $id);
+});
+
+test('find_with_deleted returns ALL rows including soft-deleted', function () {
+    global $db;
+    $stmt = $db->prepare_query(
+        "INSERT INTO users (name, username, password, user_level, status) VALUES (?, ?, ?, ?, ?)",
+        "sssii", 'HARNESS_withdel', 'HARNESS_withdel', 'x', 3, 1
+    );
+    $id = $db->connection()->insert_id;
+    $stmt->close();
+    soft_delete_by_id('users', $id, 1);
+
+    $all = find_with_deleted('users');
+    $ids = array_map('intval', array_column($all, 'id'));
+    check(in_array($id, $ids, true), 'find_with_deleted did not include soft-deleted id');
+
+    purge_by_id('users', $id);
+});
+
 echo "\n---\nResults: $pass passed, $fail failed\n";
 exit($fail > 0 ? 1 : 0);

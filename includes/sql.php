@@ -20,9 +20,14 @@ require_once 'load.php';
  */
 function find_all($table) {
 	global $db;
-	if (tableExists($table)) {
-		return find_by_sql("SELECT * FROM ".$db->escape($table));
+	if (!tableExists($table)) {
+		return null;
 	}
+	$sql = "SELECT * FROM " . $db->escape($table);
+	if (table_has_soft_delete($table)) {
+		$sql .= " WHERE deleted_at IS NULL";
+	}
+	return find_by_sql($sql);
 }
 
 
@@ -58,13 +63,17 @@ function find_by_sql($sql) {
  */
 function find_by_id($table, $id) {
 	global $db;
-	if (tableExists($table)) {
-		return $db->prepare_select_one(
-			"SELECT * FROM {$db->escape($table)} WHERE id = ? LIMIT 1",
-			"i", (int)$id
-		);
+	if (!tableExists($table)) {
+		return null;
 	}
-	return null;
+	$where = "WHERE id = ?";
+	if (table_has_soft_delete($table)) {
+		$where .= " AND deleted_at IS NULL";
+	}
+	return $db->prepare_select_one(
+		"SELECT * FROM {$db->escape($table)} {$where} LIMIT 1",
+		"i", (int)$id
+	);
 }
 
 
@@ -251,6 +260,21 @@ function find_by_id_with_deleted(string $table, int $id): ?array {
 		"SELECT * FROM `" . $db->escape($table) . "` WHERE id = ? LIMIT 1",
 		"i", (int)$id
 	);
+}
+
+/**
+ * Same as find_all but does NOT filter out soft-deleted rows.
+ * For the trash UI and audit/export lookups.
+ *
+ * @param string $table
+ * @return array|null
+ */
+function find_with_deleted(string $table): ?array {
+	global $db;
+	if (!tableExists($table)) {
+		return null;
+	}
+	return find_by_sql("SELECT * FROM " . $db->escape($table));
 }
 
 
