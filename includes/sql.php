@@ -551,15 +551,19 @@ function require_org_role(string ...$roles): void {
 		return;
 	}
 	if (empty($roles)) {
-		return; // no role requirement — just membership check
+		$row = $db->prepare_select_one(
+			"SELECT role FROM org_members WHERE user_id = ? AND org_id = ?",
+			'ii', $user_id, $org_id
+		);
+	} else {
+		$placeholders = implode(',', array_fill(0, count($roles), '?'));
+		$types = 'ii' . str_repeat('s', count($roles));
+		$args = array_merge([$user_id, $org_id], $roles);
+		$row = $db->prepare_select_one(
+			"SELECT role FROM org_members WHERE user_id = ? AND org_id = ? AND role IN ($placeholders)",
+			$types, ...$args
+		);
 	}
-	$placeholders = implode(',', array_fill(0, count($roles), '?'));
-	$types = 'ii' . str_repeat('s', count($roles));
-	$args = array_merge([$user_id, $org_id], $roles);
-	$row = $db->prepare_select_one(
-		"SELECT role FROM org_members WHERE user_id = ? AND org_id = ? AND role IN ($placeholders)",
-		$types, ...$args
-	);
 	if (!$row) {
 		http_response_code(403);
 		exit('Forbidden');
