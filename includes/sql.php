@@ -18,14 +18,31 @@ require_once 'load.php';
  * @param unknown $table
  * @return unknown
  */
-function find_all($table) {
+function find_all(string $table): ?array {
 	global $db;
 	if (!tableExists($table)) {
 		return null;
 	}
-	$sql = "SELECT * FROM " . $db->escape($table);
+	$where  = [];
+	$params = [];
+	$types  = '';
+
+	if (table_has_org_id($table) && isset($_SESSION['current_org_id'])) {
+		$where[]  = 'org_id = ?';
+		$params[] = current_org_id();
+		$types   .= 'i';
+	}
 	if (table_has_soft_delete($table)) {
-		$sql .= " WHERE deleted_at IS NULL";
+		$where[] = 'deleted_at IS NULL';
+	}
+
+	$sql = 'SELECT * FROM ' . $db->escape($table);
+	if ($where) {
+		$sql .= ' WHERE ' . implode(' AND ', $where);
+	}
+
+	if ($params) {
+		return $db->prepare_select($sql, $types, ...$params);
 	}
 	return find_by_sql($sql);
 }
@@ -61,18 +78,29 @@ function find_by_sql($sql) {
  * @param unknown $id
  * @return unknown
  */
-function find_by_id($table, $id) {
+function find_by_id($table, $id): ?array {
 	global $db;
 	if (!tableExists($table)) {
 		return null;
 	}
-	$where = "WHERE id = ?";
-	if (table_has_soft_delete($table)) {
-		$where .= " AND deleted_at IS NULL";
+	$id = (int)$id;
+	$where  = 'WHERE id = ?';
+	$params = [$id];
+	$types  = 'i';
+
+	if (table_has_org_id($table) && isset($_SESSION['current_org_id'])) {
+		$where   .= ' AND org_id = ?';
+		$params[] = current_org_id();
+		$types   .= 'i';
 	}
+	if (table_has_soft_delete($table)) {
+		$where .= ' AND deleted_at IS NULL';
+	}
+
 	return $db->prepare_select_one(
-		"SELECT * FROM {$db->escape($table)} {$where} LIMIT 1",
-		"i", (int)$id
+		'SELECT * FROM ' . $db->escape($table) . " {$where} LIMIT 1",
+		$types,
+		...$params
 	);
 }
 
@@ -317,9 +345,21 @@ function find_by_id_with_deleted(string $table, int $id): ?array {
 	if (!tableExists($table)) {
 		return null;
 	}
+	$where  = 'WHERE id = ?';
+	$params = [$id];
+	$types  = 'i';
+
+	if (table_has_org_id($table) && isset($_SESSION['current_org_id'])) {
+		$where   .= ' AND org_id = ?';
+		$params[] = current_org_id();
+		$types   .= 'i';
+	}
+	// Note: intentionally do NOT filter deleted_at — that's the purpose of this function
+
 	return $db->prepare_select_one(
-		"SELECT * FROM `" . $db->escape($table) . "` WHERE id = ? LIMIT 1",
-		"i", (int)$id
+		'SELECT * FROM ' . $db->escape($table) . " {$where} LIMIT 1",
+		$types,
+		...$params
 	);
 }
 

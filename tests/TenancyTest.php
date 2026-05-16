@@ -138,6 +138,11 @@ test('current_org_id() throws RuntimeException when session empty', function () 
     }
 });
 
+// T07: find_all() / find_by_id() org-filter tests
+// Placeholder tests — will be completed in Task 16 with tenancy_fixtures.php
+// These require multi-org seed data which doesn't exist yet.
+// For now, just verify the functions exist and accept org-scoped tables.
+
 // Summary
 echo "\n";
 echo "========================================\n";
