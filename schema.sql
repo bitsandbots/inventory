@@ -9,6 +9,7 @@
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
+SET FOREIGN_KEY_CHECKS = 0;
 
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -23,12 +24,36 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `orgs`
+--
+
+CREATE TABLE `orgs` (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` varchar(120) NOT NULL,
+  `slug` varchar(60) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `deleted_by` int(11) UNSIGNED DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_orgs_slug` (`slug`),
+  KEY `idx_orgs_deleted_at` (`deleted_at`),
+  KEY `fk_orgs_deleted_by` (`deleted_by`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `categories`
 --
 
 CREATE TABLE `categories` (
-  `id` int(11) UNSIGNED NOT NULL,
-  `name` varchar(60) NOT NULL
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `org_id` int(11) UNSIGNED NOT NULL DEFAULT 1,
+  `name` varchar(60) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_categories_org_name` (`org_id`, `name`),
+  KEY `idx_categories_org` (`org_id`),
+  CONSTRAINT `fk_categories_org` FOREIGN KEY (`org_id`) REFERENCES `orgs` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -39,7 +64,8 @@ CREATE TABLE `categories` (
 --
 
 CREATE TABLE `customers` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `org_id` int(11) UNSIGNED NOT NULL DEFAULT 1,
   `name` varchar(255) NOT NULL,
   `address` text DEFAULT NULL,
   `city` varchar(255) NOT NULL,
@@ -49,7 +75,15 @@ CREATE TABLE `customers` (
   `email` varchar(255) DEFAULT NULL,
   `paymethod` varchar(10) DEFAULT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL,
-  `deleted_by` int(11) UNSIGNED DEFAULT NULL
+  `deleted_by` int(11) UNSIGNED DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  UNIQUE KEY `uq_customers_org_name` (`org_id`, `name`),
+  KEY `idx_customers_deleted_at` (`deleted_at`),
+  KEY `fk_customers_deleted_by` (`deleted_by`),
+  KEY `idx_customers_org` (`org_id`),
+  CONSTRAINT `fk_customers_org` FOREIGN KEY (`org_id`) REFERENCES `orgs` (`id`),
+  CONSTRAINT `fk_customers_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
@@ -60,11 +94,13 @@ CREATE TABLE `customers` (
 --
 
 CREATE TABLE `log` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) UNSIGNED DEFAULT NULL,
   `remote_ip` varchar(255) NOT NULL,
   `action` varchar(255) DEFAULT NULL,
-  `date` date NOT NULL
+  `date` date NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
@@ -91,17 +127,22 @@ CREATE TABLE `failed_logins` (
 --
 
 CREATE TABLE `media` (
-  `id` int(11) UNSIGNED NOT NULL,
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `org_id` int(11) UNSIGNED NOT NULL DEFAULT 1,
   `file_name` varchar(255) NOT NULL,
-  `file_type` varchar(100) NOT NULL
+  `file_type` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id` (`id`),
+  KEY `idx_media_org` (`org_id`),
+  CONSTRAINT `fk_media_org` FOREIGN KEY (`org_id`) REFERENCES `orgs` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `media`
 --
 
-INSERT INTO `media` (`id`, `file_name`, `file_type`) VALUES
-(1, 'no-image.png', 'image/png');
+INSERT INTO `media` (`id`, `org_id`, `file_name`, `file_type`) VALUES
+(1, 1, 'no-image.png', 'image/png');
 
 -- --------------------------------------------------------
 
@@ -110,13 +151,26 @@ INSERT INTO `media` (`id`, `file_name`, `file_type`) VALUES
 --
 
 CREATE TABLE `orders` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `org_id` int(11) UNSIGNED NOT NULL DEFAULT 1,
   `customer` varchar(255) NOT NULL,
+  `customer_id` int(11) DEFAULT NULL,
+  `status` enum('pending','processing','shipped','fulfilled','cancelled') NOT NULL DEFAULT 'pending',
   `notes` text NOT NULL,
   `paymethod` varchar(10) NOT NULL,
   `date` date NOT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL,
-  `deleted_by` int(11) UNSIGNED DEFAULT NULL
+  `deleted_by` int(11) UNSIGNED DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `FK_orders_customer` (`customer_id`),
+  KEY `idx_orders_date` (`date`),
+  KEY `idx_orders_deleted_at` (`deleted_at`),
+  KEY `fk_orders_deleted_by` (`deleted_by`),
+  KEY `idx_orders_org` (`org_id`),
+  CONSTRAINT `FK_orders_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_orders_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_orders_org` FOREIGN KEY (`org_id`) REFERENCES `orgs` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
@@ -127,17 +181,29 @@ CREATE TABLE `orders` (
 --
 
 CREATE TABLE `products` (
-  `id` int(11) UNSIGNED NOT NULL,
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `org_id` int(11) UNSIGNED NOT NULL DEFAULT 1,
   `name` varchar(255) NOT NULL,
   `description` text NOT NULL,
   `sku` varchar(100) DEFAULT NULL,
   `location` varchar(255) NOT NULL,
   `quantity` int(11) NOT NULL DEFAULT 0,
+  `low_stock_threshold` int(11) NOT NULL DEFAULT 10,
   `buy_price` decimal(25,2) DEFAULT NULL,
   `sale_price` decimal(25,2) NOT NULL,
   `category_id` int(11) UNSIGNED NOT NULL,
   `media_id` int(11) DEFAULT 0,
-  `date` datetime NOT NULL
+  `date` datetime NOT NULL,
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_products_org_name` (`org_id`, `name`),
+  KEY `category_id` (`category_id`),
+  KEY `media_id` (`media_id`),
+  KEY `idx_products_deleted` (`deleted_at`),
+  KEY `idx_products_sku` (`sku`),
+  KEY `idx_products_org` (`org_id`),
+  CONSTRAINT `FK_products` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_products_org` FOREIGN KEY (`org_id`) REFERENCES `orgs` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -148,14 +214,23 @@ CREATE TABLE `products` (
 --
 
 CREATE TABLE `sales` (
-  `id` int(11) UNSIGNED NOT NULL,
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `org_id` int(11) UNSIGNED NOT NULL DEFAULT 1,
   `order_id` int(11) NOT NULL,
   `product_id` int(11) UNSIGNED NOT NULL,
   `qty` int(11) NOT NULL,
   `price` decimal(25,2) NOT NULL,
   `date` date NOT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL,
-  `deleted_by` int(11) UNSIGNED DEFAULT NULL
+  `deleted_by` int(11) UNSIGNED DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `product_id` (`product_id`),
+  KEY `idx_sales_deleted_at` (`deleted_at`),
+  KEY `fk_sales_deleted_by` (`deleted_by`),
+  KEY `idx_sales_org` (`org_id`),
+  CONSTRAINT `SK` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_sales_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_sales_org` FOREIGN KEY (`org_id`) REFERENCES `orgs` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -166,13 +241,23 @@ CREATE TABLE `sales` (
 --
 
 CREATE TABLE `stock` (
-  `id` int(11) UNSIGNED NOT NULL,
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `org_id` int(11) UNSIGNED NOT NULL DEFAULT 1,
   `product_id` int(11) UNSIGNED NOT NULL,
   `quantity` int(11) NOT NULL DEFAULT 0,
   `comments` text NOT NULL,
   `date` datetime NOT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL,
-  `deleted_by` int(11) UNSIGNED DEFAULT NULL
+  `deleted_by` int(11) UNSIGNED DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id` (`id`),
+  KEY `product_id` (`product_id`),
+  KEY `idx_stock_deleted_at` (`deleted_at`),
+  KEY `fk_stock_deleted_by` (`deleted_by`),
+  KEY `idx_stock_org` (`org_id`),
+  CONSTRAINT `FK_stock_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_stock_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_stock_org` FOREIGN KEY (`org_id`) REFERENCES `orgs` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -182,26 +267,63 @@ CREATE TABLE `stock` (
 --
 
 CREATE TABLE `users` (
-  `id` int(11) UNSIGNED NOT NULL,
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` varchar(60) NOT NULL,
   `username` varchar(50) NOT NULL,
+  `email` varchar(255) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
   `user_level` int(11) NOT NULL,
   `image` varchar(255) DEFAULT 'no_image.jpg',
   `status` int(1) NOT NULL,
   `last_login` datetime DEFAULT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL,
-  `deleted_by` int(11) UNSIGNED DEFAULT NULL
+  `deleted_by` int(11) UNSIGNED DEFAULT NULL,
+  `last_active_org_id` int(11) UNSIGNED DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `user_level` (`user_level`),
+  KEY `idx_users_status` (`status`),
+  KEY `idx_users_deleted_at` (`deleted_at`),
+  KEY `fk_users_deleted_by` (`deleted_by`),
+  KEY `fk_users_last_active_org` (`last_active_org_id`),
+  CONSTRAINT `FK_user` FOREIGN KEY (`user_level`) REFERENCES `user_groups` (`group_level`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_users_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_users_last_active_org` FOREIGN KEY (`last_active_org_id`) REFERENCES `orgs` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `username`, `password`, `user_level`, `image`, `status`, `last_login`) VALUES
-(1, 'Admin User', 'admin', '$2y$12$4lTB/7sYLDGYxCcxgcPDmefdGGjOHByyiK3mP0gvgbZdChUbv6WbO', 1, 'no_image.jpg', 1, '2019-02-14 17:29:10'),
-(2, 'Supervisor', 'special', '$2y$12$g6GUH5/jxNLBjm64L7Q3du/QjSvFCTlOhQne/urW8x/f88H2/K40K', 2, 'no_image.jpg', 1, '2019-02-06 11:44:19'),
-(3, 'Default User', 'user', '$2y$12$HqXlq2jMgODWwyShwvXKVun3RaQTHwAoT9o0tnpGGmBryFvWwh9aq', 3, 'no_image.jpg', 1, '2019-02-06 11:43:15');
+INSERT INTO `users` (`id`, `name`, `username`, `email`, `password`, `user_level`, `image`, `status`, `last_login`) VALUES
+(1, 'Admin User', 'admin', NULL, '$2y$12$4lTB/7sYLDGYxCcxgcPDmefdGGjOHByyiK3mP0gvgbZdChUbv6WbO', 1, 'no_image.jpg', 1, '2019-02-14 17:29:10'),
+(2, 'Supervisor', 'special', NULL, '$2y$12$g6GUH5/jxNLBjm64L7Q3du/QjSvFCTlOhQne/urW8x/f88H2/K40K', 2, 'no_image.jpg', 1, '2019-02-06 11:44:19'),
+(3, 'Default User', 'user', NULL, '$2y$12$HqXlq2jMgODWwyShwvXKVun3RaQTHwAoT9o0tnpGGmBryFvWwh9aq', 3, 'no_image.jpg', 1, '2019-02-06 11:43:15');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `org_members`
+--
+
+CREATE TABLE `org_members` (
+  `org_id` int(11) UNSIGNED NOT NULL,
+  `user_id` int(11) UNSIGNED NOT NULL,
+  `role` enum('owner','admin','member') NOT NULL,
+  `joined_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`org_id`, `user_id`),
+  KEY `idx_org_members_user` (`user_id`),
+  CONSTRAINT `fk_org_members_org` FOREIGN KEY (`org_id`) REFERENCES `orgs` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_org_members_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Dumping data for table `orgs`
+--
+
+INSERT INTO `orgs` (`id`, `name`, `slug`) VALUES
+(1, 'Default Organization', 'default');
 
 -- --------------------------------------------------------
 
@@ -232,93 +354,20 @@ INSERT INTO `user_groups` (`id`, `group_name`, `group_level`, `group_status`) VA
 --
 
 CREATE TABLE `settings` (
+  `org_id` int(11) UNSIGNED NOT NULL DEFAULT 1,
   `setting_key` varchar(64) NOT NULL,
   `setting_value` varchar(255) NOT NULL,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`setting_key`)
+  PRIMARY KEY (`org_id`, `setting_key`),
+  CONSTRAINT `fk_settings_org` FOREIGN KEY (`org_id`) REFERENCES `orgs` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `settings`
 --
 
-INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
-('currency_code', 'USD');
-
---
--- Indexes for dumped tables
---
-
---
--- Indexes for table `categories`
---
-ALTER TABLE `categories`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `name` (`name`);
-
---
--- Indexes for table `customers`
---
-ALTER TABLE `customers`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `id` (`id`),
-  ADD UNIQUE KEY `name` (`name`),
-  ADD KEY `idx_customers_deleted_at` (`deleted_at`);
-
---
--- Indexes for table `log`
---
-ALTER TABLE `log`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `id` (`id`);
-
---
--- Indexes for table `media`
---
-ALTER TABLE `media`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `id` (`id`);
-
---
--- Indexes for table `orders`
---
-ALTER TABLE `orders`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `id` (`id`),
-  ADD KEY `idx_orders_deleted_at` (`deleted_at`);
-
---
--- Indexes for table `products`
---
-ALTER TABLE `products`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `name` (`name`),
-  ADD KEY `category_id` (`category_id`),
-  ADD KEY `media_id` (`media_id`);
-
---
--- Indexes for table `sales`
---
-ALTER TABLE `sales`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `product_id` (`product_id`),
-  ADD KEY `idx_sales_deleted_at` (`deleted_at`);
-
---
--- Indexes for table `stock`
---
-ALTER TABLE `stock`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `id` (`id`),
-  ADD KEY `idx_stock_deleted_at` (`deleted_at`);
-
---
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_level` (`user_level`),
-  ADD KEY `idx_users_deleted_at` (`deleted_at`);
+INSERT INTO `settings` (`org_id`, `setting_key`, `setting_value`) VALUES
+(1, 'currency_code', 'USD');
 
 --
 -- Indexes for table `user_groups`
@@ -328,80 +377,14 @@ ALTER TABLE `user_groups`
   ADD UNIQUE KEY `group_level` (`group_level`);
 
 --
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `categories`
---
-ALTER TABLE `categories`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
---
--- AUTO_INCREMENT for table `customers`
---
-ALTER TABLE `customers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
---
--- AUTO_INCREMENT for table `log`
---
-ALTER TABLE `log`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
---
--- AUTO_INCREMENT for table `media`
---
-ALTER TABLE `media`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
---
--- AUTO_INCREMENT for table `orders`
---
-ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=100;
---
--- AUTO_INCREMENT for table `products`
---
-ALTER TABLE `products`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
---
--- AUTO_INCREMENT for table `sales`
---
-ALTER TABLE `sales`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
---
--- AUTO_INCREMENT for table `stock`
---
-ALTER TABLE `stock`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
---
--- AUTO_INCREMENT for table `user_groups`
---
-ALTER TABLE `user_groups`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
---
 -- Constraints for dumped tables
 --
 
 --
--- Constraints for table `products`
+-- Constraints for table `orgs` (deleted_by tracker)
 --
-ALTER TABLE `products`
-  ADD CONSTRAINT `FK_products` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `sales`
---
-ALTER TABLE `sales`
-  ADD CONSTRAINT `SK` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `users`
---
-ALTER TABLE `users`
-  ADD CONSTRAINT `FK_user` FOREIGN KEY (`user_level`) REFERENCES `user_groups` (`group_level`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `orgs`
+  ADD CONSTRAINT `fk_orgs_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `log` (preserves audit trail when users are deleted)
@@ -409,23 +392,7 @@ ALTER TABLE `users`
 ALTER TABLE `log`
   ADD CONSTRAINT `fk_log_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
---
--- Constraints for soft-delete tracking
---
-ALTER TABLE `users`
-  ADD CONSTRAINT `fk_users_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
-ALTER TABLE `customers`
-  ADD CONSTRAINT `fk_customers_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
-ALTER TABLE `sales`
-  ADD CONSTRAINT `fk_sales_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
-ALTER TABLE `orders`
-  ADD CONSTRAINT `fk_orders_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
-ALTER TABLE `stock`
-  ADD CONSTRAINT `fk_stock_deleted_by` FOREIGN KEY (`deleted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+SET FOREIGN_KEY_CHECKS = 1;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
