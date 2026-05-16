@@ -17,7 +17,7 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
     color: var(--text);
     background: var(--silver);
     line-height: 1.6;
@@ -27,7 +27,7 @@
     color: #fff;
     padding: 2rem 1.5rem 1.5rem;
   }
-  header h1 { font-size: 1.8rem; font-weight: 600; }
+  header h1 { font-size: 1.8rem; font-weight: 600; font-family: 'Exo 2', 'Segoe UI', sans-serif; }
   header .subtitle { color: #8ea4c8; margin-top: 0.3rem; font-size: 0.95rem; }
   .topbar-accent {
     height: 3px;
@@ -40,6 +40,7 @@
     border-bottom: 2px solid var(--border);
     padding-bottom: 0.3rem;
     margin: 2rem 0 0.8rem;
+    font-family: 'Exo 2', 'Segoe UI', sans-serif;
   }
   h3 { font-size: 1.05rem; color: var(--navy); margin: 1.2rem 0 0.5rem; }
   p { margin-bottom: 0.7rem; }
@@ -101,6 +102,7 @@
   .badge-green { background: #d4edda; color: #155724; }
   .badge-yellow { background: #fff3cd; color: #856404; }
   .badge-red { background: #f8d7da; color: #721c24; }
+  .badge-blue { background: #cce5ff; color: #004085; }
   .flow-box {
     background: #fff;
     border: 1px solid var(--border);
@@ -112,6 +114,15 @@
   }
   .flow-box .arrow { color: var(--blue); font-weight: bold; }
   .flow-box .step { color: var(--orange); font-weight: 600; }
+  .note {
+    background: #fff3cd;
+    border-left: 4px solid var(--orange);
+    padding: 0.6rem 1rem;
+    border-radius: 0 4px 4px 0;
+    font-size: 0.88rem;
+    margin: 0.5rem 0 1rem;
+    color: #5a4000;
+  }
   footer {
     text-align: center;
     padding: 2rem 1rem;
@@ -127,7 +138,7 @@
 
 <header>
   <h1>Inventory — Blueprint Overview</h1>
-  <p class="subtitle">Self-hosted Inventory Management System · PHP 8.x + MariaDB 10.x · 79 PHP files · MIT License</p>
+  <p class="subtitle">Self-hosted Inventory Management System · PHP 8.x + MariaDB 10.x · 97 PHP files · 14 tables · 6 test suites · 62 tests · MIT License</p>
 </header>
 <div class="topbar-accent"></div>
 
@@ -148,7 +159,7 @@
     </ul>
   </div>
   <div class="card orange">
-    <h4>Sales & Orders</h4>
+    <h4>Sales &amp; Orders</h4>
     <ul>
       <li>Multi-line-item orders per customer</li>
       <li>Add sales by SKU or product search</li>
@@ -166,12 +177,30 @@
     </ul>
   </div>
   <div class="card orange">
-    <h4>Security & Access</h4>
+    <h4>Security &amp; Access</h4>
     <ul>
       <li>3-tier RBAC (Admin/Supervisor/User)</li>
-      <li>bcrypt passwords with legacy SHA1 migration</li>
-      <li>CSRF protection on all forms</li>
-      <li>Parameterized queries throughout</li>
+      <li>bcrypt passwords + legacy SHA1 migration</li>
+      <li>CSRF protection on all forms + GET deletes</li>
+      <li>CSP, rate limiting, session hardening</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>Soft-Delete &amp; Trash</h4>
+    <ul>
+      <li>Reversible delete on users, customers, sales, orders, stock</li>
+      <li>Admin trash UI with restore and purge</li>
+      <li>All list/find queries auto-filter deleted rows</li>
+      <li>Authenticated delete is blocked from soft-deleted accounts</li>
+    </ul>
+  </div>
+  <div class="card orange">
+    <h4>Settings &amp; Configuration</h4>
+    <ul>
+      <li>DB-backed settings table (key/value)</li>
+      <li>Admin-only settings page (currency code, etc.)</li>
+      <li>Per-install currency with live format preview</li>
+      <li>Configurable via .env for credentials; DB for app settings</li>
     </ul>
   </div>
 </div>
@@ -181,12 +210,12 @@
 <div class="flow-box">
   <span class="step">1. HTTP Request</span> → index.php or module page<br>
   <span class="arrow">↓</span> require_once 'includes/load.php'<br>
-  <span class="step">2. Bootstrap</span> → Constants, session hardening, autoload config→functions→session→upload→database→sql<br>
+  <span class="step">2. Bootstrap</span> → Constants, session hardening (httponly/samesite/strict_mode), autoload config→functions→session→upload→database→sql→settings<br>
   <span class="step">3. Config</span> → Parse .env → DB_HOST, DB_USER, DB_PASS, DB_NAME, APP_SECRET<br>
-  <span class="step">4. Session</span> → session_start() with strict_mode, Session class initialized<br>
+  <span class="step">4. Session</span> → session_start() with strict_mode; Session class initialized<br>
   <span class="step">5. Database</span> → MySqli_DB connects, $db global available<br>
-  <span class="step">6. RBAC Gate</span> → page_require_level(N) checks login, status, group, level<br>
-  <span class="step">7. Handler</span> → POST: verify CSRF → process → redirect. GET: query data → render.<br>
+  <span class="step">6. RBAC Gate</span> → page_require_level(N): login → user active → group active → level ≤ required<br>
+  <span class="step">7. Handler</span> → POST: verify_csrf() → validate → execute prepared stmt → redirect with flash msg<br>
   <span class="step">8. Render</span> → header.php (HTML shell, sidebar by role) → page content with h() escaping → footer.php
 </div>
 
@@ -194,150 +223,270 @@
 <pre>
 inventory/
 ├── index.php               Entry point / login
-├── schema.sql              Database schema (9 tables, indexes, seed data)
+├── schema.sql              Canonical schema (14 tables, indexes, seed data)
 ├── .env.example            Configuration template
 ├── Blueprint_Overview.html This file — offline documentation
+├── install.sh              Automated setup (DB, Apache vhost, webuser, .env)
 │
 ├── includes/               Core engine (8 files)
-│   ├── load.php            Bootstrap &amp; autoload
-│   ├── config.php          .env parser → constants
+│   ├── load.php            Bootstrap, session hardening, security headers, autoload
+│   ├── config.php          .env parser → DB_HOST, DB_USER, DB_PASS, DB_NAME, APP_SECRET
 │   ├── database.php        MySqli_DB class (connect, prepare_query, prepare_select)
 │   ├── session.php         Session class (login/logout, flash messages)
-│   ├── functions.php       CSRF, h(), remove_junk(), redirect, helpers
-│   ├── sql.php             Data layer (CRUD, auth, products, sales, reports)
-│   ├── upload.php          Media class (image upload product/user)
-│   └── formatcurrency.php  Currency display
+│   ├── functions.php       CSRF helpers, h(), remove_junk(), redirect, validate_password()
+│   ├── sql.php             Data layer: CRUD, soft-delete, auth, products, sales, reports, rate-limiting
+│   ├── upload.php          Media class (image upload for products and users)
+│   └── formatcurrency.php  Currency display using DB-configured currency code
 │
 ├── layouts/                UI shell (header, footer, 3 role-based sidebars)
-├── products/               9 files — CRUD, categories, stock, search
-├── sales/                  13 files — orders, sales, invoices, picklists
-├── customers/              3 files — CRUD
-├── reports/                6 files — sales (date/daily/monthly), stock
-├── users/                  9 files — user/group CRUD, profile, password
-├── libs/                   Bundled CSS/JS (Bootstrap 5, jQuery 3, Datepicker)
-├── uploads/                User images (users/, products/)
-└── tests/                  3 suites — CSRF (unit), Auth (integration), CRUD (integration)
+│
+├── products/               17 files — CRUD, categories, stock, media, search, view
+├── sales/                  17 files — orders, sales, invoices, picklists, AJAX helpers
+├── customers/               5 files — CRUD, soft-delete aware
+├── reports/                 7 files — sales (date/daily/monthly), stock
+├── users/                  24 files — user/group CRUD, profile, password, auth,
+│                                      settings, log viewer, trash/restore/purge UI
+│
+├── migrations/             009 numbered UP/DOWN SQL files (001–009 applied to main)
+├── packaging/sql/          012 tenancy migrations (010–021, feature/tenancy-schema branch)
+│
+├── libs/                   Bundled CSS/JS (Bootstrap 5, jQuery 3, Datepicker) — no CDN
+├── uploads/                User-uploaded images (products/, users/)
+└── tests/                  6 suites, 62 tests — run via tests/run.sh
 </pre>
 
 <!-- Database -->
-<h2>Database Schema (9 Tables)</h2>
+<h2>Database Schema (14 Tables)</h2>
+<div class="note">Tables marked <strong>tenancy</strong> are defined on the <code>feature/tenancy-schema</code> branch and will land in a future PR.</div>
 <table>
-  <tr><th>Table</th><th>Purpose</th><th>Key Relationships</th></tr>
+  <tr><th>Table</th><th>Purpose</th><th>Key Relationships / Notes</th></tr>
   <tr><td><code>categories</code></td><td>Product categories</td><td>products.category_id → categories.id (CASCADE)</td></tr>
-  <tr><td><code>products</code></td><td>Product catalog</td><td>FK to categories, FK to media</td></tr>
+  <tr><td><code>products</code></td><td>Product catalog</td><td>FK to categories, FK to media; <code>deleted_at</code> on tenancy branch</td></tr>
   <tr><td><code>media</code></td><td>Product images</td><td>Referenced by products.media_id</td></tr>
-  <tr><td><code>orders</code></td><td>Sales orders</td><td>Referenced by sales.order_id</td></tr>
-  <tr><td><code>sales</code></td><td>Order line items</td><td>sales.product_id → products.id (CASCADE)</td></tr>
-  <tr><td><code>stock</code></td><td>Stock adjustments</td><td>stock.product_id → products.id</td></tr>
-  <tr><td><code>customers</code></td><td>Customer directory</td><td>Referenced by orders</td></tr>
-  <tr><td><code>users</code></td><td>User accounts</td><td>users.user_level → user_groups.group_level (CASCADE)</td></tr>
+  <tr><td><code>orders</code></td><td>Sales orders (per customer)</td><td>Referenced by sales.order_id; <code>deleted_at TIMESTAMP</code></td></tr>
+  <tr><td><code>sales</code></td><td>Order line items</td><td>sales.product_id → products.id (CASCADE); <code>deleted_at TIMESTAMP</code></td></tr>
+  <tr><td><code>stock</code></td><td>Stock adjustment history</td><td>stock.product_id → products.id; <code>deleted_at TIMESTAMP</code></td></tr>
+  <tr><td><code>customers</code></td><td>Customer directory</td><td>Referenced by orders.customer; <code>deleted_at TIMESTAMP</code></td></tr>
+  <tr><td><code>users</code></td><td>User accounts (login)</td><td>users.user_level → user_groups.group_level (CASCADE); <code>deleted_at TIMESTAMP</code></td></tr>
   <tr><td><code>user_groups</code></td><td>RBAC group definitions</td><td>3 seed rows: Admin(1), Supervisor(2), User(3)</td></tr>
-  <tr><td><code>log</code></td><td>Activity audit log</td><td>log.user_id → users.id</td></tr>
+  <tr><td><code>log</code></td><td>Activity audit trail</td><td>log.user_id → users.id ON DELETE SET NULL</td></tr>
+  <tr><td><code>failed_logins</code></td><td>Login rate-limit tracking</td><td>Indexed on (ip, attempted_at); pruned probabilistically</td></tr>
+  <tr><td><code>settings</code></td><td>App configuration (key/value)</td><td>PK (setting_key); seed: currency_code=USD</td></tr>
+  <tr><td><code>orgs</code> <em>(tenancy)</em></td><td>Organization registry</td><td>FK source for org_members and 7 business tables</td></tr>
+  <tr><td><code>org_members</code> <em>(tenancy)</em></td><td>User ↔ org membership + role</td><td>UNIQUE (org_id, user_id); role: owner | member | viewer</td></tr>
 </table>
 
-<!-- Core Classes -->
+<!-- Soft-Delete Pattern -->
+<h2>Soft-Delete Pattern</h2>
+<p>Five tables (<code>users</code>, <code>customers</code>, <code>sales</code>, <code>orders</code>, <code>stock</code>) use reversible soft-delete instead of hard <code>DELETE</code>.</p>
+<div class="flow-box">
+  <strong>Delete</strong>  → soft_delete_by_id($table, $id)    → stamps deleted_at = NOW(), deleted_by = $user<br>
+  <strong>Restore</strong> → restore_by_id($table, $id)         → clears deleted_at and deleted_by<br>
+  <strong>Purge</strong>   → purge_by_id($table, $id)           → hard DELETE, only allowed when deleted_at IS NOT NULL<br>
+  <br>
+  find_all() / find_by_id() auto-filter WHERE deleted_at IS NULL (via table_has_soft_delete() probe, cached per request).<br>
+  find_with_deleted() / find_by_id_with_deleted() bypass the filter for trash UI.
+</div>
+<p>The trash UI is at <code>users/trash.php</code> (Admin-only, level 1). Restore and purge are at <code>users/restore.php</code> and <code>users/purge.php</code>.</p>
+
+<!-- Core Abstractions -->
 <h2>Key Abstractions</h2>
 
 <h3>MySqli_DB (<code>includes/database.php</code>)</h3>
-<p>Database abstraction — global <code>$db</code> instance:</p>
 <pre>
-// Prepared INSERT/UPDATE/DELETE
+// Prepared INSERT/UPDATE/DELETE — returns stmt (check affected_rows)
 $db->prepare_query("UPDATE products SET quantity = quantity + ? WHERE id = ?", "ii", $qty, $id);
 
-// Prepared SELECT → array of rows
+// Prepared SELECT → array of associative rows
 $db->prepare_select("SELECT * FROM products WHERE category_id = ?", "i", $cat_id);
 
-// Single row or null
+// Prepared SELECT → single associative row or null
 $db->prepare_select_one("SELECT * FROM users WHERE username = ? LIMIT 1", "s", $user);
+
+// Escape for table/column name interpolation (never for values)
+$db->escape($table_name);
 </pre>
 
 <h3>Session (<code>includes/session.php</code>)</h3>
-<p>Login state — global <code>$session</code> instance. <code>login($id)</code> regenerates session ID for fixation protection. Flash messages survive one redirect.</p>
+<p>Global <code>$session</code>. <code>login($id)</code> calls <code>session_regenerate_id(true)</code> — prevents session fixation. Flash messages (<code>msg()</code>) survive exactly one redirect.</p>
 
 <h3>CSRF Protection (<code>includes/functions.php</code>)</h3>
-<p>Token generated via <code>random_bytes(32)</code>, verified with <code>hash_equals()</code> against session-stored token. <code>csrf_field()</code> emits hidden input — use in every <code>&lt;form method="post"&gt;</code>.</p>
+<pre>
+echo csrf_field();          // hidden input in every &lt;form method="post"&gt;
+verify_csrf();              // POST handler entry — returns bool
+echo csrf_url_param();      // append to GET-based delete links
+verify_get_csrf();          // GET delete handler entry — checks $_GET['csrf_token']
+</pre>
+
+<h3>Soft-Delete Helpers (<code>includes/sql.php</code>)</h3>
+<pre>
+soft_delete_by_id($table, $id)        // stamps deleted_at + deleted_by
+restore_by_id($table, $id)            // clears both columns
+purge_by_id($table, $id)             // hard DELETE (only when already soft-deleted)
+find_by_id_with_deleted($table, $id) // bypasses deleted_at filter (trash UI)
+find_with_deleted($table)            // all rows including deleted (trash UI)
+</pre>
+
+<h3>Rate-Limiting Helpers (<code>includes/sql.php</code>)</h3>
+<pre>
+is_login_rate_limited($ip)             // true when >= 5 attempts in 15 min
+record_failed_login($ip, $username)    // inserts into failed_logins
+clear_failed_logins($ip)              // called on successful login
+prune_failed_logins()                 // probabilistic cleanup, no cron needed
+</pre>
 
 <h3>SQL Helpers (<code>includes/sql.php</code>)</h3>
-<p><code>find_by_id()</code>, <code>find_all()</code>, <code>delete_by_id()</code> — generic table CRUD. <code>authenticate()</code> — bcrypt login with legacy SHA1 auto-upgrade. <code>page_require_level(N)</code> — RBAC gate on protected pages.</p>
+<p><code>find_by_id()</code>, <code>find_all()</code> — generic table CRUD with auto soft-delete filter. <code>authenticate()</code> — bcrypt login with legacy SHA1 auto-upgrade. <code>page_require_level(N)</code> — RBAC gate on every protected page.</p>
 
 <!-- Auth & RBAC -->
 <h2>Authentication &amp; RBAC</h2>
 <table>
   <tr><th>Level</th><th>Role</th><th>Access</th></tr>
-  <tr><td>1</td><td>Admin</td><td>Full CRUD, user/group management, all reports</td></tr>
-  <tr><td>2</td><td>Supervisor</td><td>Product/stock management, sales, reports</td></tr>
-  <tr><td>3</td><td>User</td><td>View products, basic sales entry</td></tr>
+  <tr><td>1</td><td>Admin</td><td>Full CRUD, user/group management, trash UI, all reports, settings</td></tr>
+  <tr><td>2</td><td>Supervisor</td><td>Product/stock management, sales, customer CRUD, reports</td></tr>
+  <tr><td>3</td><td>User</td><td>View products, basic sales entry, order lookup</td></tr>
 </table>
-
-<p><strong>Login flow</strong>: <code>authenticate($username, $password)</code> → prepared SELECT → password_verify() → session_regenerate_id(true) → updateLastLogIn()</p>
-<p><strong>Page guard</strong>: <code>page_require_level(N)</code> checks login → user active → group active → level ≤ required</p>
+<p><strong>Login flow</strong>: <code>authenticate($user, $pass)</code> → prepared SELECT → IP rate-limit check → <code>password_verify()</code> (or SHA1 legacy) → rehash if needed → <code>session_regenerate_id(true)</code> → <code>updateLastLogIn()</code></p>
+<p><strong>Page guard</strong>: <code>page_require_level(N)</code> checks: logged in → user <code>status=1</code> → group <code>group_status=1</code> → <code>user_level ≤ N</code></p>
 
 <!-- Security Summary -->
 <h2>Security Summary</h2>
 <table>
   <tr><th>Feature</th><th>Status</th><th>Implementation</th></tr>
-  <tr><td>SQL injection</td><td><span class="badge badge-green">Protected</span></td><td><code>prepare_query()</code> with bound params</td></tr>
-  <tr><td>Password storage</td><td><span class="badge badge-green">bcrypt</span></td><td><code>password_hash(PASSWORD_BCRYPT)</code></td></tr>
-  <tr><td>CSRF</td><td><span class="badge badge-green">Protected</span></td><td><code>random_bytes(32)</code> token, <code>hash_equals()</code> verify</td></tr>
-  <tr><td>XSS</td><td><span class="badge badge-green">Protected</span></td><td><code>h()</code> escaping; gaps in <code>users/log.php</code>, <code>customers.php</code>, <code>sales_by_order.php</code>, <code>stock.php</code> closed 2026-05-14</td></tr>
-  <tr><td>Session fixation</td><td><span class="badge badge-green">Protected</span></td><td><code>session_regenerate_id(true)</code> on login</td></tr>
-  <tr><td>Session cookies</td><td><span class="badge badge-green">Hardened</span></td><td>httponly, samesite=Lax, strict_mode</td></tr>
-  <tr><td>Disabled-account enforcement</td><td><span class="badge badge-green">Protected</span></td><td>Fixed 2026-05-14: <code>page_require_level()</code> now casts to int (was bypassed due to <code>=== '0'</code> against int from PHP 8.1+ mysqli)</td></tr>
-  <tr><td>Login CSRF</td><td><span class="badge badge-green">Protected</span></td><td>Added 2026-05-14: <code>auth.php</code> now verifies token (form already emitted one)</td></tr>
-  <tr><td>CSP headers</td><td><span class="badge badge-red">Missing</span></td><td>Recommended: add to header.php</td></tr>
-  <tr><td>Rate limiting</td><td><span class="badge badge-yellow">Missing</span></td><td>Recommended: track login attempts per IP</td></tr>
-  <tr><td>Upload SQL</td><td><span class="badge badge-yellow">Legacy</span></td><td><code>upload.php</code> uses string interpolation</td></tr>
-  <tr><td>Schema: quantity column type</td><td><span class="badge badge-yellow">VARCHAR(50)</span></td><td>Should be INT — see gap-analysis.md</td></tr>
+  <tr><td>SQL injection</td><td><span class="badge badge-green">Protected</span></td><td><code>prepare_query()</code> / <code>prepare_select()</code> with bound params throughout</td></tr>
+  <tr><td>Password storage</td><td><span class="badge badge-green">bcrypt</span></td><td><code>password_hash(PASSWORD_BCRYPT)</code>; SHA1 auto-upgrade on login; <code>password_needs_rehash()</code> check</td></tr>
+  <tr><td>CSRF (POST forms)</td><td><span class="badge badge-green">Protected</span></td><td><code>random_bytes(32)</code> token, <code>hash_equals()</code> verify via <code>verify_csrf()</code></td></tr>
+  <tr><td>CSRF (GET deletes)</td><td><span class="badge badge-green">Protected</span></td><td><code>csrf_url_param()</code> on links; <code>verify_get_csrf()</code> in handler</td></tr>
+  <tr><td>XSS prevention</td><td><span class="badge badge-green">Protected</span></td><td><code>h()</code> — <code>htmlspecialchars(ENT_QUOTES, UTF-8)</code> on all dynamic output</td></tr>
+  <tr><td>Session fixation</td><td><span class="badge badge-green">Protected</span></td><td><code>session_regenerate_id(true)</code> on every login</td></tr>
+  <tr><td>Session cookies</td><td><span class="badge badge-green">Hardened</span></td><td>httponly, samesite=Lax, strict_mode, secure (when HTTPS) — set before session_start()</td></tr>
+  <tr><td>RBAC enforcement</td><td><span class="badge badge-green">Protected</span></td><td><code>page_require_level()</code> on every protected page; disabled user/group enforced (cast to int)</td></tr>
+  <tr><td>CSP headers</td><td><span class="badge badge-green">Protected</span></td><td><code>script-src 'self'</code>, <code>style-src 'self'</code> — no <code>unsafe-inline</code>; emitted on every request from <code>load.php</code></td></tr>
+  <tr><td>Login rate limiting</td><td><span class="badge badge-green">Protected</span></td><td>5 attempts per IP per 15 min via <code>failed_logins</code> table; auto-cleared on success</td></tr>
+  <tr><td>Password complexity</td><td><span class="badge badge-green">Enforced</span></td><td><code>validate_password()</code>: min 8 chars, requires letter + digit, common-password denylist</td></tr>
+  <tr><td>Upload SQL</td><td><span class="badge badge-green">Protected</span></td><td><code>insert_media()</code> and <code>update_userImg()</code> use <code>prepare_query()</code></td></tr>
+  <tr><td>Security headers</td><td><span class="badge badge-green">Present</span></td><td>X-Frame-Options: DENY, X-Content-Type-Options: nosniff, Referrer-Policy, Permissions-Policy</td></tr>
+  <tr><td>Directory listing</td><td><span class="badge badge-green">Blocked</span></td><td><code>.htaccess</code> in includes/, uploads/, and root deny directory indexing</td></tr>
+  <tr><td>Activity logging</td><td><span class="badge badge-green">Active</span></td><td>Every page request logged with user_id, IP, action, timestamp to <code>log</code> table</td></tr>
+  <tr><td>MIME re-validation on upload</td><td><span class="badge badge-yellow">Partial</span></td><td><code>getimagesize()</code> called but magic-byte deep check not performed; extension whitelist in place</td></tr>
+  <tr><td>Soft-delete coverage</td><td><span class="badge badge-yellow">Partial</span></td><td>users/customers/sales/orders/stock covered; products and categories still hard-delete</td></tr>
 </table>
 
 <!-- Test Coverage -->
-<h2>Test Coverage (3 Suites)</h2>
+<h2>Test Coverage (6 Suites, 62 Tests)</h2>
 <table>
   <tr><th>Suite</th><th>Type</th><th>Tests</th><th>Coverage</th></tr>
-  <tr><td>CSRFTest.php</td><td>Unit</td><td>16 / 16 pass</td><td>Token lifecycle, POST + GET verification, multibyte, stale-token rejection</td></tr>
-  <tr><td>AuthTest.php</td><td>Integration</td><td>9 / 9 pass</td><td>All 3 user logins, wrong password, non-existent user, SHA1→bcrypt migration, session fixation</td></tr>
-  <tr><td>CRUDTest.php</td><td>Integration</td><td>10 / 11 pass</td><td>Product CRUD, quantity adjust, SQL-injection resistance. <strong>Fails on insert</strong> due to wrong column name in test (<code>categ_id</code> vs <code>category_id</code>) — see gap-analysis.md</td></tr>
+  <tr><td><code>AuthTest.php</code></td><td>Integration</td><td>9 / 9 pass</td><td>All 3 user logins, wrong password, non-existent user, SHA1→bcrypt migration, session fixation prevention</td></tr>
+  <tr><td><code>CSRFTest.php</code></td><td>Unit</td><td>16 / 16 pass</td><td>Token lifecycle, POST + GET verification, multibyte, stale-token rejection, csrf_url_param()</td></tr>
+  <tr><td><code>CRUDTest.php</code></td><td>Integration</td><td>11 / 11 pass</td><td>Product CRUD, quantity adjust, SQL-injection resistance</td></tr>
+  <tr><td><code>SecurityHeadersTest.php</code></td><td>HTTP Integration</td><td>7 / 7 pass</td><td>CSP present, no unsafe-inline/eval, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy</td></tr>
+  <tr><td><code>SettingsTest.php</code></td><td>Integration</td><td>6 / 6 pass</td><td>Settings::get() defaults, Settings::set() persistence, currency code round-trip, formatcurrency() fallback</td></tr>
+  <tr><td><code>SoftDeleteTest.php</code></td><td>Integration</td><td>13 / 13 pass</td><td>table_has_soft_delete probe, soft-delete/restore/purge lifecycle, find_all/find_by_id filters, authenticate() rejects deleted user</td></tr>
 </table>
-<p style="font-size:0.9em;color:var(--muted);">Note: PHP <code>assert()</code> is a no-op without <code>zend.assertions=1</code>. The test suites use <code>assert()</code> and a custom <code>test()</code> wrapper that catches throws — so passes are reliable but failures inside <code>assert()</code> may silently slip. Tracked in gap-analysis.md.</p>
+<p style="font-size:0.9em;color:var(--muted);">Run all suites: <code>bash tests/run.sh</code>. Tests use a custom <code>test()</code> / <code>check()</code> harness (not PHPUnit) with HARNESS_ prefixed data for isolation from production records.</p>
 
 <!-- Quick Start -->
 <h2>Quick Start</h2>
 <pre>
-# Clone and run the installer — handles database, app user,
-# .env, Apache vhost, permissions in one step.
 git clone https://github.com/bitsandbots/inventory.git
 cd inventory
 bash install.sh
 
-# Then browse: http://&lt;server&gt;:8080
-# Login: admin / admin (change immediately!)
+# Access at http://&lt;server&gt;:8080
+# Default credentials — change all three immediately:
+#   admin / admin   (level 1 — full access)
+#   special / special (level 2 — supervisor)
+#   user / user     (level 3 — basic)
 </pre>
-<p>To reinstall from scratch (wipes database, vhost, symlink, uploads, <code>.env</code>):</p>
+<p>Reinstall from scratch (wipes database, vhost, symlink, uploads, <code>.env</code>):</p>
 <pre>
-bash install.sh --reinstall      # prompts: type 'RESET' to confirm
+bash install.sh --reinstall      # prompts: type RESET to confirm
 bash install.sh --reinstall -y   # non-interactive
 </pre>
-<p>Manual install steps and troubleshooting are in <a href="docs/setup-and-usage.md">docs/setup-and-usage.md</a>.</p>
+<p>Full installation steps, Apache vhost config, and troubleshooting: <a href="docs/setup-and-usage.md">docs/setup-and-usage.md</a></p>
 
-<h2>Gap Analysis — Current Top Items</h2>
+<!-- Gap Analysis -->
+<h2>Gap Analysis — Current Items</h2>
 <table>
-  <tr><th>Priority</th><th>Gap</th><th>Recommendation</th></tr>
-  <tr><td>High</td><td>Schema: <code>quantity</code> column is VARCHAR(50)</td><td>Migrate to INT NOT NULL DEFAULT 0; arithmetic and sort/compare are unsafe today</td></tr>
-  <tr><td>High</td><td>Test assertions silently pass (PHP <code>assert()</code> is a no-op by default)</td><td>Replace <code>assert()</code> with explicit throw, or set <code>zend.assertions=1</code> + <code>assert.exception=1</code> in tests bootstrap</td></tr>
-  <tr><td>High</td><td>No CSP headers</td><td>Emit <code>Content-Security-Policy</code> in <code>layouts/header.php</code></td></tr>
-  <tr><td>Medium</td><td>No rate limiting on <code>auth.php</code></td><td>Track failed logins per IP with exponential backoff</td></tr>
-  <tr><td>Medium</td><td>No password complexity enforcement</td><td>Min 8 chars; reject top-1000 weak passwords on add/change</td></tr>
-  <tr><td>Medium</td><td>upload.php legacy string interpolation</td><td>Refactor <code>insert_media()</code>, <code>update_userImg()</code> to prepared statements</td></tr>
-  <tr><td>Low</td><td>No CI pipeline</td><td>GitHub Actions running <code>tests/run.sh</code> on push/PR</td></tr>
+  <tr><th>Severity</th><th>Gap</th><th>Location</th></tr>
+  <tr>
+    <td><span class="badge badge-red">Critical</span></td>
+    <td>Products and categories have no soft-delete — hard DELETE permanently removes records and breaks historical sales/report data</td>
+    <td><code>schema.sql</code>, <code>includes/sql.php:139</code></td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-red">Critical</span></td>
+    <td>Hand-written SQL queries (join_product_table, find_all_sales, etc.) have no <code>org_id</code> filter — cross-tenant data leaks when tenancy lands</td>
+    <td><code>includes/sql.php:610,923,944</code></td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-red">Critical</span></td>
+    <td>File upload: MIME type not re-validated against magic bytes after upload — extension whitelist can be bypassed with crafted files</td>
+    <td><code>includes/upload.php:67,127,173</code></td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-yellow">Significant</span></td>
+    <td>Zero tests for products, customers, sales, and reports modules — no regression detection for these workflows</td>
+    <td><code>tests/</code></td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-yellow">Significant</span></td>
+    <td>Login rate limiting tracks only by IP — brute force by rotating usernames on same IP is undetected</td>
+    <td><code>users/auth.php</code>, <code>includes/sql.php:1097</code></td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-yellow">Significant</span></td>
+    <td>No numeric range validation on product price/quantity fields — negative quantities and inverted prices accepted</td>
+    <td><code>products/add_product.php:27–29</code></td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-yellow">Significant</span></td>
+    <td>unlink() in upload.php returns true unconditionally even on permission failure — silent orphaned-file accumulation</td>
+    <td><code>includes/upload.php:223,271</code></td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-blue">Minor</span></td>
+    <td>Ajax endpoints (ajax_customer.php, ajax_sku.php) check isUserLoggedIn() only, not page_require_level() — inconsistent authz</td>
+    <td><code>sales/ajax_customer.php:10</code>, <code>sales/ajax_sku.php</code></td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-blue">Minor</span></td>
+    <td>find_by_name() has no deleted_at filter — soft-deleted records block re-creation of same-named entities</td>
+    <td><code>includes/sql.php:91–99</code></td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-blue">Minor</span></td>
+    <td>join_product_table() uses legacy find_by_sql() and has no deleted_at filter — soft-deleted products appear in listings</td>
+    <td><code>includes/sql.php:610–618</code></td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-blue">Minor</span></td>
+    <td>Admin actions (user creation, deletion, role changes) are not logged to the audit log table</td>
+    <td><code>users/add_user.php</code>, <code>users/edit_user.php</code></td>
+  </tr>
 </table>
-<p>Full breakdown — including fixed bugs from this cycle — is in <a href="docs/gap-analysis.md">docs/gap-analysis.md</a>.</p>
+<p>Full breakdown with resolved history: <a href="docs/gap-analysis.md">docs/gap-analysis.md</a></p>
+
+<!-- Tenancy Roadmap -->
+<h2>Tenancy Roadmap (In Progress)</h2>
+<p>Branch: <code>feature/tenancy-schema</code>. Two-PR plan:</p>
+<div class="flow-box">
+  <strong>PR 1 (schema + guards)</strong> — migrations 010–021:<br>
+  &nbsp; 010 orgs table → 011 org_members → 012 default org seed<br>
+  &nbsp; 013–019 org_id FK on customers/products/categories/sales/orders/stock/media<br>
+  &nbsp; 020 settings PK reshape → 021 users.last_active_org_id<br>
+  &nbsp; Auto-filter in find_all/find_by_id · switch_org endpoint · shim for page_require_level<br>
+  <br>
+  <strong>PR 2 (org UI)</strong>:<br>
+  &nbsp; Org create/rename/soft-delete · member add/role-change/remove · topbar org switcher · remove shim
+</div>
 
 </div>
 
 <footer>
   <p>Inventory · MIT License · Enhanced by <a href="https://coreconduit.com">CoreConduit Consulting Services</a></p>
-  <p>Originally created by Siamon Hasan · Built with PHP, MySQL/MariaDB, Bootstrap</p>
-  <p>Full documentation: <a href="docs/README.md">docs/</a> · Generated 2026-05-14</p>
+  <p>Originally created by Siamon Hasan · Built with PHP, MySQL/MariaDB, Bootstrap 5</p>
+  <p>Full documentation: <a href="docs/README.md">docs/</a> · Generated 2026-05-16</p>
 </footer>
 
 </body>

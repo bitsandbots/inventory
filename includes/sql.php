@@ -507,6 +507,67 @@ function resolve_login_org(int $user_id, ?int $last_active_org_id): int|false {
 
 
 /**
+ * Find all members of an organization with user details.
+ *
+ * @param int $org_id
+ * @return array  Array of member records, each with id, name, username, email, status, role, joined_at
+ */
+function find_org_members(int $org_id): array {
+	global $db;
+	$rows = $db->prepare_select(
+		"SELECT u.id, u.name, u.username, u.email, u.status,
+		        m.role, m.joined_at
+		   FROM org_members m
+		   JOIN users u ON u.id = m.user_id
+		  WHERE m.org_id = ?
+		  ORDER BY FIELD(m.role,'owner','admin','member'), u.name",
+		'i', $org_id
+	);
+	return $rows ?? [];
+}
+
+
+/**
+ * Validate that the current user is a member of the current org with required role(s).
+ * ROLE_ADMIN bypasses this check.
+ *
+ * @param string ...$roles  One or more roles to check (e.g., 'owner', 'admin', 'member')
+ * @return void  Exits with 403 if user is not a member or lacks required role
+ */
+function require_org_role(string ...$roles): void {
+	global $db;
+	$org_id = current_org_id();
+	$user_id = (int)($_SESSION['user_id'] ?? 0);
+	if (!$user_id) {
+		http_response_code(403);
+		exit('Forbidden');
+	}
+	// ROLE_ADMIN bypasses org-role checks
+	$user = $db->prepare_select_one(
+		"SELECT user_level FROM users WHERE id = ?",
+		'i', $user_id
+	);
+	if ($user && (int)$user['user_level'] === ROLE_ADMIN) {
+		return;
+	}
+	if (empty($roles)) {
+		return; // no role requirement — just membership check
+	}
+	$placeholders = implode(',', array_fill(0, count($roles), '?'));
+	$types = 'ii' . str_repeat('s', count($roles));
+	$args = array_merge([$user_id, $org_id], $roles);
+	$row = $db->prepare_select_one(
+		"SELECT role FROM org_members WHERE user_id = ? AND org_id = ? AND role IN ($placeholders)",
+		$types, ...$args
+	);
+	if (!$row) {
+		http_response_code(403);
+		exit('Forbidden');
+	}
+}
+
+
+/**
  * Authenticate a user by username and password.
  * Supports legacy SHA1 hashes and modern bcrypt hashes. Automatic rehash
  * on login: SHA1 → bcrypt on first login after migration, and bcrypt →
@@ -730,6 +791,20 @@ function page_require_level($require_level) {
 		redirect('../users/home.php', false);
 	//cheackin log in User level and Require level is Less than or equal to
 	elseif ($current_user['user_level'] <= (int)$require_level):
+		// Validate org membership: if session has current_org_id, ensure
+		// user is actually a member. ROLE_ADMIN bypasses this check.
+		if (isset($_SESSION['current_org_id']) && (int)$current_user['user_level'] !== ROLE_ADMIN) {
+			global $db;
+			$row = $db->prepare_select_one(
+				"SELECT 1 FROM org_members WHERE user_id = ? AND org_id = ?",
+				'ii', (int)$current_user['id'], (int)$_SESSION['current_org_id']
+			);
+			if (!$row) {
+				unset($_SESSION['current_org_id']);
+				$session->msg("d", "You do not have access to that organization.");
+				redirect('../users/home.php', false);
+			}
+		}
 		return true;
 	else:
 		$session->msg("d", "Sorry! you dont have permission to view the page.");

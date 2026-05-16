@@ -2,124 +2,147 @@
 
 Snapshot of feature completeness, test coverage, and known issues for the Inventory Management System.
 
-**Last regenerated**: 2026-05-15 (fourth pass — `style-src` tightened to `'self'` only)
-**Codebase commit**: post-install.sh-reinstall, post-PHP8-type-strictness fixes, post-hardening pass, post-CI
+**Last regenerated**: 2026-05-16 (post-soft-delete merge, tenancy branch active)
+**Codebase state**: `main` at `119f59b` (soft-delete merged); `feature/tenancy-schema` at `c288766` (migrations 010–021 staged)
 
 ---
 
 ## 1. What works (verified)
 
 ### Core workflows
-- **Authentication**: bcrypt password hashing, SHA1 → bcrypt auto-upgrade on login, session-fixation prevention via `session_regenerate_id(true)`, login form CSRF.
-- **RBAC**: three roles (Admin / Supervisor / User) enforced by `page_require_level()` on every protected page.
+- **Authentication**: bcrypt password hashing, SHA1 → bcrypt auto-upgrade on login, session-fixation prevention via `session_regenerate_id(true)`, login form CSRF, IP-based rate limiting (5 attempts / 15 min).
+- **RBAC**: Three roles (Admin / Supervisor / User) enforced by `page_require_level()` on every protected page. Disabled users and disabled groups are both blocked (PHP 8.1+ int cast fix applied).
 - **CRUD modules**: products, categories, customers, sales, orders, stock, media, users, user_groups, log.
 - **Reports**: daily sales, monthly sales, sales-by-product, stock-low, with date-range filters.
 - **Invoices & picklists**: PDF-style printable views from sales records.
 - **Audit log**: every page request and state change recorded with user_id + IP.
-- **CSRF**: POST forms use `verify_csrf()`; state-changing GET deletes use `verify_get_csrf()` + `csrf_url_param()` URL helper.
-- **Output escaping**: `h()` helper available; used on most views (gaps listed below).
-- **Database**: prepared statements via `prepare_query()` / `prepare_select()`, silent-failure detection via `execute()` check.
-- **Deployment**: `install.sh` wires database, Apache vhost on port 8080, symlink from `/var/www/html/inventory`, default app user `webuser@localhost` with minimal grants. `--reinstall` flag tears down + reinstalls; preserves git-tracked seed images.
+- **CSRF**: POST forms use `verify_csrf()`; state-changing GET deletes use `verify_get_csrf()` + `csrf_url_param()`.
+- **Output escaping**: `h()` helper used on all dynamic output in views.
+- **CSP**: `script-src 'self'` and `style-src 'self'` emitted on every request from `load.php` via `header()`.
+- **Security headers**: X-Frame-Options: DENY, X-Content-Type-Options: nosniff, Referrer-Policy, Permissions-Policy.
+- **Password complexity**: `validate_password()` — min 8 chars, requires letter + digit, common-password denylist.
+- **Soft-delete**: `users`, `customers`, `sales`, `orders`, `stock` all have `deleted_at TIMESTAMP`; `find_all()`/`find_by_id()` auto-filter; trash/restore/purge UI at `users/trash.php`, `users/restore.php`, `users/purge.php` (Admin-level-1 only).
+- **Settings**: DB-backed `settings(setting_key, setting_value)` table; `Settings::get()` / `Settings::set()`; admin UI at `users/settings.php`; currency code configurable.
+- **CI**: `.github/workflows/ci.yml` runs `php -l` lint + full test suite on push/PR.
+- **Pre-commit hook**: `php -l` on staged PHP files via `.githooks/pre-commit` + `scripts/install-hooks.sh`.
 
-### Verified by tests
-| Suite | Result | Coverage |
+### Verified by tests (62 total)
+
+| Suite | Tests | Coverage |
 |---|---|---|
-| `tests/AuthTest.php` | 9/9 pass | login, password verify, SHA1 migration, session fixation |
-| `tests/CSRFTest.php` | 16/16 pass | token lifecycle, POST + GET verification, multibyte, stale-token |
-| `tests/CRUDTest.php` | 10/11 pass | product CRUD, quantity adjust, SQL-injection resistance |
+| `AuthTest.php` | 9 / 9 pass | Login (all 3 roles), wrong password, non-existent user, SHA1→bcrypt migration, session fixation |
+| `CSRFTest.php` | 16 / 16 pass | Token lifecycle, POST + GET verification, multibyte, stale-token rejection |
+| `CRUDTest.php` | 11 / 11 pass | Product CRUD, quantity adjust, SQL-injection resistance |
+| `SecurityHeadersTest.php` | 7 / 7 pass | CSP present, no unsafe-inline/eval, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy |
+| `SettingsTest.php` | 6 / 6 pass | Settings::get() defaults, Settings::set() persistence, currency code round-trip, formatcurrency() fallback |
+| `SoftDeleteTest.php` | 13 / 13 pass | table_has_soft_delete probe, soft-delete/restore/purge lifecycle, find_all/find_by_id filters, authenticate() rejects deleted user |
 
 ---
 
-## 2. Recently fixed (this maintenance cycle)
+## 2. Recently fixed (2026-05-16 cycle)
 
-These were live bugs in `main` and have been patched:
-
-| Bug | File | Severity | Fix |
-|---|---|---|---|
-| Admin login redirected to logout because role checks used `=== '1'` (string) on int from mysqli | `layouts/header.php:74-82` | CRITICAL | Cast to int before strict comparison |
-| Disabled accounts and disabled groups could access every page (status check used `=== '0'`) | `includes/sql.php:408,411` | CRITICAL | Cast to int |
-| Login POST handler did not call `verify_csrf()` despite form emitting token | `users/auth.php` | CRITICAL | Added CSRF check at handler entry |
-| User edit form rendered `csrf_field()` inside `action=` attribute (token never submitted) | `users/edit_user.php:111-112` | CRITICAL | Move token output outside the `<form>` tag attribute |
-| User and group list pages displayed every active record as "Deactive" | `users/users.php:72`, `users/group.php:65` | HIGH | Cast to int in display logic |
-| Edit forms pre-selected wrong status/level dropdown option | `users/edit_user.php:128,136-137`, `users/edit_group.php:85-86` | HIGH | Cast to int |
-| Stored XSS in audit log viewer (`$log['action']`, `$user['name']`) | `users/log.php:92,99` | HIGH | Wrap in `h()` |
-| Stored XSS in order notes | `sales/sales_by_order.php:71` | HIGH | Wrap in `h()` |
-| Stored XSS in stock comments (view + edit form) | `products/stock.php:72`, `products/edit_stock.php:114` | HIGH | Wrap in `h()` |
-| Stored XSS in customer name column | `customers/customers.php:61` | HIGH | Wrap in `h()` |
-| `users/index.php` echoed undefined `$username`/`$password` (every page load) | `users/index.php:23,27` | LOW | Pre-define `$username = ''`, never reflect password |
-| AuthTest treated `authenticate()` return as array, but it returns int user_id | `tests/AuthTest.php:33-51` | MEDIUM | Look up user via `find_by_id()` after auth |
-| Apache `configtest` grep checked stdout, but `apache2ctl` writes "Syntax OK" to stderr — Apache reload was silently skipped | `install.sh` | MEDIUM | Merge streams (`2>&1`) before grep |
-| `apache2ctl -S` user extraction returned `name="www-data"` literal on newer Apache | `install.sh` | LOW | Parse via `sed` regex |
-| `--reinstall` wiped tracked seed images (no_image.jpg etc.) from `uploads/` | `install.sh` | MEDIUM | Use `git clean` + `git checkout HEAD --` to preserve tracked files |
-| 6 more `=== '0'` bugs on `media_id` (caused product images to never resolve correctly) | `home.php`, `admin.php`, `add_sale_by_search.php`, `add_sale_to_order.php`, `ajax_product.php`, `products.php` | HIGH | Cast to int |
-| Seed user `'Special'` (uppercase) vs docs/tests `'special'` (lowercase) | `schema.sql:177` | LOW | Renamed seed row to lowercase |
-| `tests/CRUDTest.php` failed silently — wrong column name + missing NOT NULL fields + missing parent category | `tests/CRUDTest.php` | HIGH | Fixed column name, provisioned HARNESS category for FK, used `check()` helper instead of `assert()` |
-| `tests/bootstrap.php` did not buffer output, so `session_regenerate_id()` failed in the SessionTest after prior `echo`s | `tests/bootstrap.php` | MEDIUM | Added `ob_start()` at bootstrap entry |
-| `tests/*.php` used `assert()` — a no-op on default PHP 8 configurations | `tests/AuthTest.php`, `tests/CRUDTest.php` | MEDIUM | Added `check()` helper that throws on failure |
-| CSP / X-Frame-Options / Referrer-Policy / Permissions-Policy headers missing | `includes/load.php` | HIGH | Emit on every request (CSP is `'self'` only for `script-src` *and* `style-src` — no `'unsafe-inline'`) |
-| No login rate limiting — credential stuffing unmitigated | `users/auth.php`, `failed_logins` table | HIGH | Added migration 002, helpers in `sql.php`, check + record + clear in `auth.php` (5 attempts per 15 min per IP) |
-| No password complexity enforcement — single-char passwords accepted | `users/add_user.php`, `users/edit_user.php`, `users/change_password.php` | MEDIUM | Added `validate_password()` helper (min 8 chars, must contain letter + digit, denylist of common passwords) |
-| `quantity` columns were VARCHAR(50) | `schema.sql`, `migrations/001_quantity_int.up.sql`, `migrations/001_quantity_int.down.sql` | HIGH | Migration 001 created; `schema.sql` updated for fresh installs (INT NOT NULL DEFAULT 0) |
+| Fix | File | Severity |
+|---|---|---|
+| Soft-delete pattern: 5 migrations, sql.php helpers, trash/restore/purge UI, 13 tests | `migrations/005–009`, `includes/sql.php`, `users/trash.php` | HIGH |
+| Settings table + currency admin UI + `Settings` class | `migrations/004`, `includes/settings.php`, `users/settings.php` | MEDIUM |
+| CSP headers (`script-src 'self'`, `style-src 'self'`) — no inline styles or scripts | `includes/load.php`, `libs/css/main.css` | HIGH |
+| Login CSRF — `auth.php` now verifies token at handler entry | `users/auth.php` | CRITICAL |
+| Disabled-account bypass — `=== '0'` string compare on PHP 8.1+ int | `includes/sql.php:583,587` | CRITICAL |
+| Stored XSS in log viewer, orders, stock, customer name column | `users/log.php`, `sales/sales_by_order.php`, `products/stock.php`, `customers/customers.php` | HIGH |
+| Admin login redirect bug — role check used string compare on int from mysqli | `layouts/header.php:74–82` | CRITICAL |
+| No login rate limiting — credential stuffing unmitigated | `users/auth.php`, `failed_logins` table | HIGH |
+| No password complexity — single-char passwords accepted | `users/add_user.php`, `users/edit_user.php`, `users/change_password.php` | MEDIUM |
+| `quantity` columns were VARCHAR(50) — arithmetic unsafe | `migrations/001_quantity_int` | HIGH |
+| Upload.php `insert_media()` / `update_userImg()` used string interpolation | `includes/upload.php` | HIGH |
+| CI pipeline missing | `.github/workflows/ci.yml` | MEDIUM |
+| CRUDTest silent assert failures (PHP assert() is no-op by default) | `tests/CRUDTest.php` | MEDIUM |
+| install.sh: `configtest` grep checked stdout, Apache writes to stderr | `install.sh` | MEDIUM |
 
 ---
 
 ## 3. Known issues (not yet fixed)
 
-### MEDIUM
+### Critical
 
-**Soft-delete pattern not implemented**
-- `delete_by_id()` is a hard DELETE. For audit-heavy tables (users, sales, orders, stock) a `deleted_at` soft-delete pattern would be safer and reversible. Scope: 7+ schema changes, refactor every SELECT in `includes/sql.php` to filter `WHERE deleted_at IS NULL`, add `restore_by_id()` and admin UI for restoration. Deferred — needs its own PR.
-- Partial mitigation already in place: migration 003 adds `log.user_id ON DELETE SET NULL` so deleting a user preserves audit trail.
+**Products and categories have no soft-delete** — `delete_by_id()` on `products` or `categories` is a hard DELETE. This permanently removes records that are referenced in historical `sales` rows (via FK with CASCADE), breaking all historical reporting for deleted products.
+- `SOFT_DELETE_TABLES` in `includes/sql.php:139` does not include `products` or `categories`.
+- `schema.sql` has `products.deleted_at` as `datetime` (inconsistent with other tables' `timestamp`).
+- Scope: add `deleted_at TIMESTAMP` migration, add both to `SOFT_DELETE_TABLES`, update product-specific SQL helpers.
 
-**Migration 003 (log FK) needs to be applied to running deployments**
-- `schema.sql` includes it for fresh installs; existing deployments must run `migrations/003_log_user_fk.up.sql` after a backup.
+**Hand-written SQL queries have no `org_id` filter (tenancy readiness)** — When tenancy lands (PR1 of `feature/tenancy-schema`), all queries that lack `WHERE org_id = ?` will return cross-tenant data.
+- Affected: `join_product_table()` (sql.php:610), `find_all_product_info_by_title()` (sql.php:656), `find_all_sales()` (sql.php:923), `find_all_orders()` (sql.php:944), `find_all_product_info_by_sku()` (sql.php:697) and INSERT handlers in `sales/add_sale_by_sku.php`, `sales/add_sale_by_search.php`, `products/add_product.php`, `customers/add_customer.php`.
+- These must be updated as part of tenancy PR1 before the feature ships.
 
-### LOW
+**File upload MIME re-validation missing** — `includes/upload.php:67` calls `getimagesize()` but does not re-validate the MIME type against magic bytes after upload. Extension whitelist in `file_ext()` (upload.php:43) can be bypassed with a crafted file (e.g., shell.php.jpg with a prepended image header).
+- Risk: stored PHP execution if Apache is configured to execute `.php` in `uploads/`.
+- Fix: add `exif_imagetype()` or `finfo_file()` check after move_uploaded_file().
 
-**Currency code hard-coded to USD in `includes/load.php`** — no per-tenant currency switcher.
+### Significant
 
-**No browser-level UI/integration tests** — `tests/SecurityHeadersTest.php` exercises HTTP responses but there's no Playwright/Selenium coverage of actual page interactions.
+**Zero tests for products, customers, sales, and reports modules** — `tests/CRUDTest.php` covers basic product insert/update/delete but there are no dedicated integration tests for:
+- Customer CRUD workflows
+- Sales/order creation and quantity decrease
+- Report query functions (`find_sale_by_dates()`, `dailySales()`, `monthlySales()`)
 
-**`orders.customer` is a varchar (denormalized)** — should be FK to `customers.id` for referential integrity. Pre-existing schema decision; preserved to avoid breaking changes.
+**Login rate limiting is IP-only, not per-username** — `record_failed_login()` and `is_login_rate_limited()` in `sql.php` track by IP. An attacker rotating usernames across the same IP is not detected. Per-username lockout is standard practice.
+
+**No numeric range validation on price/quantity fields** — `products/add_product.php:27–29` and `edit_product.php` call `remove_junk()` on `buy_price`, `sale_price`, and `quantity` but never validate that they are positive numbers or that `buy_price < sale_price`.
+
+**`unlink()` failures are silent** — `includes/upload.php:223` and `271` call `unlink()` and return `true` unconditionally even if the file doesn't exist or permission is denied. Orphaned files accumulate with no log entry.
+
+**No cleanup on failed `move_uploaded_file()`** — `includes/upload.php:127–137` checks the return value of `move_uploaded_file()` but does not roll back the `insert_media()` DB row if the file move fails. Leaves orphaned media rows in the database.
+
+### Minor
+
+**`find_by_name()` has no `deleted_at` filter** — `includes/sql.php:91–99` will return a soft-deleted record as "already exists", preventing re-creation of a previously deleted entity.
+
+**`join_product_table()` uses legacy `find_by_sql()` and has no `deleted_at` filter** — `includes/sql.php:610–618`. Soft-deleted products appear in product listings until the query is updated.
+
+**AJAX endpoints use `isUserLoggedIn()` instead of `page_require_level()`** — `sales/ajax_customer.php:10` and `ajax_sku.php` only verify login status, not user level. Inconsistent with the rest of the codebase.
+
+**No audit logging for admin mutations** — `users/add_user.php`, `users/edit_user.php`, `users/delete_user.php` don't log to the `log` table. Failed logins are logged; successful admin actions (create/role-change/delete) are not.
+
+**`products.deleted_at` column type is `datetime` not `timestamp`** — `schema.sql:197`. Inconsistency with the other 4 soft-delete tables which use `TIMESTAMP`. `soft_delete_by_id()` calls `NOW()` which works with both, but the inconsistency signals an incomplete migration.
 
 ---
 
 ## 4. Documented but missing
 
-Cross-reference of `docs/*.md` claims against actual code:
-
 | Claim | Source doc | Status |
 |---|---|---|
-| "CSP headers on all responses" | `tech-stack.md`, project-wide PHP rules | ✅ IMPLEMENTED 2026-05-14 — `includes/load.php` emits CSP + X-Frame-Options + Referrer-Policy + Permissions-Policy + X-Content-Type-Options |
-| "Rate limiting on login" | implied by security baseline | ✅ IMPLEMENTED 2026-05-14 — 5 attempts per 15 min per IP via `failed_logins` table |
-| "Password complexity enforcement" | implied by security baseline | ✅ IMPLEMENTED 2026-05-14 — `validate_password()` helper applied at all three password-write sites |
-| "Migration 001 (quantity → INT) applied" | `gap-analysis.md` prior pass | ✅ APPLIED 2026-05-15 on running deployment |
-| "Upload.php prepared statements" | `gap-analysis.md` prior pass | ✅ IMPLEMENTED 2026-05-15 — `insert_media()` and `update_userImg()` now use `prepare_query()` |
-| "CI pipeline" | `gap-analysis.md` prior pass | ✅ ADDED 2026-05-15 — `.github/workflows/ci.yml` runs `php -l` + full test suite on push/PR |
-| "Security headers test" | `gap-analysis.md` prior pass | ✅ ADDED 2026-05-15 — `tests/SecurityHeadersTest.php` (7 tests) |
-| "failed_logins housekeeping" | `gap-analysis.md` prior pass | ✅ ADDED 2026-05-15 — probabilistic prune (~1% of page loads) via `prune_failed_logins()` |
-| "Inline JS / CSP tightening" | `gap-analysis.md` prior pass | ✅ DONE 2026-05-15 — `script-src 'self'` after moving `closePanel()` to `libs/js/functions.js`; `style-src 'self'` after replacing 117 `style="width:X"` attrs with `col-w-*` utility classes (`libs/css/main.css`) and extracting 4 print blocks into `libs/css/print.css` |
-| "log.user_id FK for audit-trail preservation" | `gap-analysis.md` prior pass | ✅ DESIGNED 2026-05-15 — migration 003 ready; schema.sql updated for fresh installs |
-| "Soft delete with restore" | none — but typical for audit-heavy apps | NOT IMPLEMENTED — `delete_by_id()` is hard delete. Scoped + deferred (see section 3) |
+| "Soft-delete with restore" | gap-analysis.md (prior pass) | ✅ IMPLEMENTED 2026-05-16 — migrations 005–009, sql.php helpers, trash/restore/purge UI |
+| "Per-tenant currency" | gap-analysis.md | ✅ IMPLEMENTED 2026-05-15 — single-install `settings` table; per-org pending tenancy PR2 |
+| "Playwright UI tests" | gap-analysis.md | ❌ NOT IMPLEMENTED — scoped to future work |
+| "CSP headers on all responses" | tech-stack.md | ✅ IMPLEMENTED 2026-05-15 — load.php emits CSP + security headers |
+| "Rate limiting on login" | implied by security baseline | ✅ IMPLEMENTED 2026-05-15 — 5 attempts / 15 min per IP |
+| "Migration 001 applied" | gap-analysis.md (prior pass) | ✅ APPLIED 2026-05-15 on live DB |
+| "Upload.php prepared statements" | gap-analysis.md (prior pass) | ✅ IMPLEMENTED 2026-05-15 |
+| "CI pipeline" | gap-analysis.md (prior pass) | ✅ ADDED 2026-05-15 — .github/workflows/ci.yml |
 
 ---
 
-## 5. Implemented but undocumented
+## 5. Tenancy status (`feature/tenancy-schema` branch)
 
-| Feature | Notes |
-|---|---|
-| `csrf_url_param()` + `verify_get_csrf()` GET-based CSRF | Documented in `api-components.md`; mention in `architecture.md` security section recommended |
-| `prepare_query()` execute-failure detection (dies with error_log on failed INSERT/UPDATE/DELETE) | Worth a one-line note in `api-components.md` |
-| `--reinstall` flag on `install.sh` | Now documented in script's `--help`; should be linked from `setup-and-usage.md` |
-| Automatic SHA1 → bcrypt password upgrade on first login | Mentioned briefly in `architecture.md`; could use a dedicated section |
+Migrations 010–021 are complete. Spec and implementation plan reviewed.
 
----
+**PR1 scope (schema + guards)**:
+- `orgs` table, `org_members` table, default org seed
+- `org_id` FK added to: customers, products, categories, sales, orders, stock, media
+- `settings` PK reshaped to `(org_id, setting_key)`
+- `users.last_active_org_id` added
+- Auto-filter in `find_all()` / `find_by_id()` — requires org context in session
+- `switch_org` endpoint — no UI yet
+- Shim preserving `page_require_level()` call sites
 
-## 6. Recommended next steps
+**PR2 scope (org UI — future branch from main)**:
+- Org create/rename/soft-delete
+- Member add/role-change/remove
+- Topbar org switcher
+- Remove shim
 
-Most prior-pass items now resolved (see section 4 below). Remaining work:
-
-1. **Soft-delete refactor** (its own PR) — `deleted_at` columns + `soft_delete_by_id()` + `restore_by_id()` + filter every SELECT. See section 3 above for scope.
-2. ~~**Per-tenant currency**~~ — ✅ ADDED 2026-05-15 (single-tenant variant) — migration 004 creates a `settings(setting_key, setting_value)` table; `Settings::get('currency_code', 'USD')` in load.php; admin-only `/users/settings.php` page to edit the value. Per-org/per-user currency still future work and requires a tenancy model.
-3. **Browser-level UI tests** — Playwright covering the login → add-product → add-sale → invoice happy path.
-4. ~~**Pre-commit hook** for `php -l` on staged files~~ — ✅ ADDED 2026-05-15 — `.githooks/pre-commit` + `scripts/install-hooks.sh`; opt-in per clone (`bash scripts/install-hooks.sh`).
+**Outstanding before PR1 can ship**:
+1. Wire `org_id` into session on login (`users/auth.php`)
+2. Update all hand-written SQL queries (see Critical section above)
+3. Update INSERTs to include `org_id` from session
+4. Integration tests for `switch_org` endpoint
+5. Audit existing test suite — HARNESS_ data must include `org_id`
