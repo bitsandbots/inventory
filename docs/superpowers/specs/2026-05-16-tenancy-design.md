@@ -45,7 +45,7 @@ These are pinned by the brainstorming Q&A; the design below depends on each:
 - **Org scope:** Business data only — `customers`, `products`, `categories`, `sales`, `orders`, `stock`, `media`. Identity tables (`users`, `user_groups`, `log`, `failed_logins`) stay global.
 - **Role model:** Per-membership. `org_members(user_id, org_id, role)` where `role IN ('owner','admin','member')`. The legacy `users.user_level` is not used for tenancy authorization.
 - **Backfill:** Auto-create `orgs(id=1, slug='default', name='Default Organization')`, backfill every business row to `org_id=1`, enroll every existing user (mapping `user_level=1 → owner`, `2 → admin`, `3 → member`).
-- **New-org creation:** Any user creates orgs from the UI (PR2); creator gets `role='owner'`. Owners and admins of an org can add existing users as members.
+- **New-org creation:** Any user who is already an `owner` of at least one org may create additional orgs from the UI (PR2); the creator becomes `owner` of the new org. After backfill, the default-org owner is the only user who can create more orgs; promotion through the existing member-management flow widens the pool. Owners and admins of an org can add existing users as members.
 - **Default-org-on-login:** `users.last_active_org_id` if still a member there, else oldest membership by `joined_at`, else login is rejected with a clear "no organization access" message.
 - **Settings shape:** `settings` gets `org_id` added, PK reshaped to `(org_id, setting_key)`. Currency moves to per-org with no code change at call sites beyond `Settings::get/set` becoming org-scoped.
 
@@ -164,7 +164,17 @@ function require_org_role(string ...$allowed): array {
     if (!in_array($m['role'], $allowed, true)) { /* redirect with 'No permission' */ }
     return $m;
 }
+
+function find_membership(int $user_id, int $org_id): ?array {
+    // SELECT m.role, m.joined_at
+    //   FROM org_members m
+    //   JOIN orgs o ON o.id = m.org_id
+    //  WHERE m.user_id = ? AND m.org_id = ? AND o.deleted_at IS NULL
+    //  LIMIT 1
+}
 ```
+
+The join to `orgs` on `deleted_at IS NULL` means a soft-deleted org auto-revokes access on the next page load — including for users who were already mid-session in that org. Restoring the org (clearing `deleted_at`) restores access on the next page load.
 
 Old `page_require_level()` is kept in PR1 as a shim:
 
@@ -235,7 +245,7 @@ function find_all(string $table): array {
 
 ### 6.3 Hand-written-query audit pass
 
-Roughly 25 hand-written `SELECT`s in `includes/sql.php` reference org-scoped tables. Each gets an `AND <alias>.org_id = ?` clause and a `current_org_id()` bind. The audit is mechanical; the spec's implementation plan will list every line number.
+22 hand-written `SELECT`s in `includes/sql.php` reference org-scoped tables (counted at spec time via `grep -rnE "FROM\s+\`?(customers|products|categories|sales|orders|stock|media)\`?\b" --include="*.php"`). Each gets an `AND <alias>.org_id = ?` clause and a `current_org_id()` bind. The audit is mechanical; the implementation plan will list every line number.
 
 A pre-commit grep guard (extending PR #33) catches regressions:
 
@@ -248,9 +258,10 @@ git diff --cached -- '*.php' \
 
 ### 6.4 Insert / update / delete
 
-- **INSERT** into any `ORG_SCOPED_TABLES` table must include `org_id = current_org_id()`. There are ~12 insert sites (one per `add_*.php` plus a few in `sql.php` helpers).
-- **UPDATE / DELETE** on these tables must include `AND org_id = current_org_id()` in the `WHERE` clause. This means an attacker who guesses an id from another org can't modify it.
-- **Soft-delete** (`delete_resource()` from PR #34) gets the same predicate.
+- **INSERT** into any `ORG_SCOPED_TABLES` table must include `org_id = current_org_id()`. 14 insert sites at spec time (one per `add_*.php` plus a few in `sql.php` helpers).
+- **UPDATE** on these tables must include `AND org_id = current_org_id()` in the `WHERE` clause — 9 sites at spec time. This means an attacker who guesses an id from another org can't modify it.
+- **DELETE** — no hard-deletes remain in app code after PR #34 (verified: zero `DELETE FROM (customers|...)` sites). All deletes go through the soft-delete `delete_resource()` helper.
+- **Soft-delete** (`delete_resource()` from PR #34) gets the same `AND org_id = current_org_id()` predicate added.
 
 ### 6.5 Users list — JOIN-via-membership
 
@@ -357,7 +368,7 @@ Branches from `main` after PR1 lands and is smoked.
 
 - New pages under `users/`:
   - `users/orgs.php` — list orgs the current user is a member of
-  - `users/add_org.php` — create new org (any logged-in user; creator gets `role='owner'`)
+  - `users/add_org.php` — create new org (gated to users who are `owner` of at least one existing org; creator becomes `owner` of the new org)
   - `users/edit_org.php` — rename / soft-delete (owner only)
   - `users/org_members.php` — list members with role chips
   - `users/add_org_member.php` — username dropdown + role select (owner / admin only)
@@ -412,7 +423,7 @@ Switch endpoint (2):
 1. Create org → creator gets `role='owner'`, `last_active_org_id` updated to new org.
 2. Rename org succeeds when role is owner.
 3. Rename org rejected when role is admin or member.
-4. Soft-delete org succeeds when role is owner; membership rows preserved; `users.last_active_org_id` cleared by FK `ON DELETE SET NULL` for affected users.
+4. Soft-delete org succeeds when role is owner; membership rows preserved (so restore works); on the next page load, members of the soft-deleted org hit the "no access" flow because `find_membership` filters on `orgs.deleted_at IS NULL`. Their `users.last_active_org_id` stays pointing at the soft-deleted org — login fallback chain (§ 5.2) finds the oldest non-deleted membership instead.
 5. Add member by username — owner can, admin can, member can't.
 6. Add member fails when target user doesn't exist.
 7. Add member fails when target user is already a member.
