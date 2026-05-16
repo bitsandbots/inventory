@@ -34,8 +34,8 @@ $req_field = array('product_id', 'quantity');
 	$comments = remove_junk($db->escape($_POST['comments']));
 	$current_date    = make_date();
 	if (empty($errors)) {
-		$sql  = "INSERT INTO stock (product_id,quantity,comments,date)";
-		$sql .= " VALUES ('{$product_id}','{$quantity}','{$comments}','{$current_date}')";
+		$sql  = "INSERT INTO stock (product_id,quantity,comments,date,org_id)";
+		$sql .= " VALUES ('{$product_id}','{$quantity}','{$comments}','{$current_date}','" . current_org_id() . "')";
 		$result = $db->query($sql);
 		if ( $result && $db->affected_rows() === 1) {
 			increase_product_qty($quantity, $product_id);

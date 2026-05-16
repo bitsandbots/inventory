@@ -105,7 +105,9 @@ class MySqli_DB {
 			error_log("Prepare failed: " . $this->con->error . " | SQL: " . $sql);
 			die("A database error occurred. Please try again later.");
 		}
-		$stmt->bind_param($types, ...$params);
+		if ($params) {
+			$stmt->bind_param($types, ...$params);
+		}
 		if (!$stmt->execute()) {
 			error_log("Execute failed: " . $stmt->error . " | SQL: " . $sql);
 			die("A database error occurred. Please try again later.");

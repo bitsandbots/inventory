@@ -24,6 +24,16 @@ bash install.sh --reinstall
 
 For manual install, troubleshooting, role-based workflows, and daily operations, see **[docs/setup-and-usage.md](docs/setup-and-usage.md)**.
 
+### Demo data (optional)
+
+To populate the app with realistic sample data (12 products, 8 customers, 6 orders, 14 sales):
+
+```bash
+php scripts/demo_seed.php
+```
+
+Re-seed any time with `php scripts/demo_seed.php --clean`. See [docs/setup-and-usage.md](docs/setup-and-usage.md) for the full breakdown.
+
 ### Developer hooks (optional)
 
 To run `php -l` on staged PHP files before each commit (same check CI runs):

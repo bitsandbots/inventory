@@ -18,14 +18,31 @@ require_once 'load.php';
  * @param unknown $table
  * @return unknown
  */
-function find_all($table) {
+function find_all(string $table): ?array {
 	global $db;
 	if (!tableExists($table)) {
 		return null;
 	}
-	$sql = "SELECT * FROM " . $db->escape($table);
+	$where  = [];
+	$params = [];
+	$types  = '';
+
+	if (table_has_org_id($table) && isset($_SESSION['current_org_id'])) {
+		$where[]  = 'org_id = ?';
+		$params[] = current_org_id();
+		$types   .= 'i';
+	}
 	if (table_has_soft_delete($table)) {
-		$sql .= " WHERE deleted_at IS NULL";
+		$where[] = 'deleted_at IS NULL';
+	}
+
+	$sql = 'SELECT * FROM ' . $db->escape($table);
+	if ($where) {
+		$sql .= ' WHERE ' . implode(' AND ', $where);
+	}
+
+	if ($params) {
+		return $db->prepare_select($sql, $types, ...$params);
 	}
 	return find_by_sql($sql);
 }
@@ -61,18 +78,29 @@ function find_by_sql($sql) {
  * @param unknown $id
  * @return unknown
  */
-function find_by_id($table, $id) {
+function find_by_id($table, $id): ?array {
 	global $db;
 	if (!tableExists($table)) {
 		return null;
 	}
-	$where = "WHERE id = ?";
-	if (table_has_soft_delete($table)) {
-		$where .= " AND deleted_at IS NULL";
+	$id = (int)$id;
+	$where  = 'WHERE id = ?';
+	$params = [$id];
+	$types  = 'i';
+
+	if (table_has_org_id($table) && isset($_SESSION['current_org_id'])) {
+		$where   .= ' AND org_id = ?';
+		$params[] = current_org_id();
+		$types   .= 'i';
 	}
+	if (table_has_soft_delete($table)) {
+		$where .= ' AND deleted_at IS NULL';
+	}
+
 	return $db->prepare_select_one(
-		"SELECT * FROM {$db->escape($table)} {$where} LIMIT 1",
-		"i", (int)$id
+		'SELECT * FROM ' . $db->escape($table) . " {$where} LIMIT 1",
+		$types,
+		...$params
 	);
 }
 
@@ -114,10 +142,21 @@ function find_by_name($table, $name) {
 function delete_by_id($table, $id) {
 	global $db;
 	if (tableExists($table)) {
-		$stmt = $db->prepare_query(
-			"DELETE FROM ".$db->escape($table)." WHERE id = ? LIMIT 1",
-			"i", (int)$id
-		);
+		$id = (int)$id;
+
+		// Add org_id guard for org-scoped tables
+		if (table_has_org_id($table)) {
+			$stmt = $db->prepare_query(
+				"DELETE FROM ".$db->escape($table)." WHERE id = ? AND org_id = ? LIMIT 1",
+				"ii", $id, current_org_id()
+			);
+		} else {
+			$stmt = $db->prepare_query(
+				"DELETE FROM ".$db->escape($table)." WHERE id = ? LIMIT 1",
+				"i", $id
+			);
+		}
+
 		$affected = $stmt->affected_rows;
 		$stmt->close();
 		return ($affected === 1);
@@ -169,6 +208,77 @@ function table_has_soft_delete(string $table): bool {
 	}
 }
 
+/*--------------------------------------------------------------*/
+/* Tenancy: org-scoped tables and helpers
+/*--------------------------------------------------------------*/
+
+/**
+ * In-scope tables for the org-scoping pattern. Adding a table here is
+ * NOT enough to enable org-scoping — the table also needs the
+ * `org_id` column from the matching 013-019 migration.
+ */
+const ORG_SCOPED_TABLES = [
+	'customers', 'products', 'categories',
+	'sales', 'orders', 'stock', 'media',
+];
+
+/**
+ * Returns true when $table is in the in-scope allowlist AND its
+ * `org_id` column exists. Cached per request. Never throws —
+ * a probe failure returns false so the deploy-window fallback works.
+ *
+ * @param string $table
+ * @return bool
+ */
+function table_has_org_id(string $table): bool {
+	static $cache = [];
+	if (array_key_exists($table, $cache)) {
+		return $cache[$table];
+	}
+	if (!in_array($table, ORG_SCOPED_TABLES, true)) {
+		return $cache[$table] = false;
+	}
+	global $db;
+	try {
+		$r = $db->connection()->query(
+			"SHOW COLUMNS FROM `" . $db->escape($table) . "` LIKE 'org_id'"
+		);
+		$has = ($r !== false && $r->num_rows > 0);
+		if ($r) {
+			$r->free();
+		}
+		return $cache[$table] = $has;
+	} catch (\Throwable $e) {
+		return $cache[$table] = false;
+	}
+}
+
+/**
+ * Returns the active org_id from the session.
+ * Throws RuntimeException when called outside an authenticated session.
+ *
+ * @return int
+ * @throws RuntimeException
+ */
+function current_org_id(): int {
+	if (empty($_SESSION['current_org_id'])) {
+		throw new \RuntimeException(
+			'current_org_id() called with no active org — session not initialized'
+		);
+	}
+	return (int)$_SESSION['current_org_id'];
+}
+
+/**
+ * Returns the active org_id if session is set, otherwise returns null.
+ * Safe for use in tests and reports that may not have an authenticated session.
+ *
+ * @return int|null
+ */
+function current_org_id_safe(): ?int {
+	return isset($_SESSION['current_org_id']) ? (int)$_SESSION['current_org_id'] : null;
+}
+
 /**
  * Soft-delete a row. Stamps deleted_at = NOW() and deleted_by = actor.
  * No-op when the table is not in scope.
@@ -186,12 +296,24 @@ function soft_delete_by_id(string $table, int $id, ?int $actor_user_id = null): 
 		$actor_user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
 	}
 	global $db;
-	$stmt = $db->prepare_query(
-		"UPDATE `" . $db->escape($table) . "`
-			SET deleted_at = NOW(), deleted_by = ?
-		  WHERE id = ? AND deleted_at IS NULL LIMIT 1",
-		"ii", $actor_user_id, $id
-	);
+
+	// Add org_id guard for org-scoped tables
+	if (table_has_org_id($table)) {
+		$stmt = $db->prepare_query(
+			"UPDATE `" . $db->escape($table) . "`
+				SET deleted_at = NOW(), deleted_by = ?
+			  WHERE id = ? AND deleted_at IS NULL AND org_id = ? LIMIT 1",
+			"iii", $actor_user_id, $id, current_org_id()
+		);
+	} else {
+		$stmt = $db->prepare_query(
+			"UPDATE `" . $db->escape($table) . "`
+				SET deleted_at = NOW(), deleted_by = ?
+			  WHERE id = ? AND deleted_at IS NULL LIMIT 1",
+			"ii", $actor_user_id, $id
+		);
+	}
+
 	$affected = $stmt->affected_rows;
 	$stmt->close();
 	return ($affected === 1);
@@ -209,12 +331,24 @@ function restore_by_id(string $table, int $id): bool {
 		return false;
 	}
 	global $db;
-	$stmt = $db->prepare_query(
-		"UPDATE `" . $db->escape($table) . "`
-			SET deleted_at = NULL, deleted_by = NULL
-		  WHERE id = ? AND deleted_at IS NOT NULL LIMIT 1",
-		"i", $id
-	);
+
+	// Add org_id guard for org-scoped tables
+	if (table_has_org_id($table)) {
+		$stmt = $db->prepare_query(
+			"UPDATE `" . $db->escape($table) . "`
+				SET deleted_at = NULL, deleted_by = NULL
+			  WHERE id = ? AND deleted_at IS NOT NULL AND org_id = ? LIMIT 1",
+			"ii", $id, current_org_id()
+		);
+	} else {
+		$stmt = $db->prepare_query(
+			"UPDATE `" . $db->escape($table) . "`
+				SET deleted_at = NULL, deleted_by = NULL
+			  WHERE id = ? AND deleted_at IS NOT NULL LIMIT 1",
+			"i", $id
+		);
+	}
+
 	$affected = $stmt->affected_rows;
 	$stmt->close();
 	return ($affected === 1);
@@ -233,11 +367,21 @@ function purge_by_id(string $table, int $id): bool {
 		return false;
 	}
 	global $db;
-	$stmt = $db->prepare_query(
-		"DELETE FROM `" . $db->escape($table) . "`
-		  WHERE id = ? AND deleted_at IS NOT NULL LIMIT 1",
-		"i", $id
-	);
+
+	// Add org_id guard for org-scoped tables
+	if (table_has_org_id($table)) {
+		$stmt = $db->prepare_query(
+			"DELETE FROM `" . $db->escape($table) . "`
+			  WHERE id = ? AND deleted_at IS NOT NULL AND org_id = ? LIMIT 1",
+			"ii", $id, current_org_id()
+		);
+	} else {
+		$stmt = $db->prepare_query(
+			"DELETE FROM `" . $db->escape($table) . "`
+			  WHERE id = ? AND deleted_at IS NOT NULL LIMIT 1",
+			"i", $id
+		);
+	}
 	$affected = $stmt->affected_rows;
 	$stmt->close();
 	return ($affected === 1);
@@ -256,9 +400,21 @@ function find_by_id_with_deleted(string $table, int $id): ?array {
 	if (!tableExists($table)) {
 		return null;
 	}
+	$where  = 'WHERE id = ?';
+	$params = [$id];
+	$types  = 'i';
+
+	if (table_has_org_id($table) && isset($_SESSION['current_org_id'])) {
+		$where   .= ' AND org_id = ?';
+		$params[] = current_org_id();
+		$types   .= 'i';
+	}
+	// Note: intentionally do NOT filter deleted_at — that's the purpose of this function
+
 	return $db->prepare_select_one(
-		"SELECT * FROM `" . $db->escape($table) . "` WHERE id = ? LIMIT 1",
-		"i", (int)$id
+		'SELECT * FROM ' . $db->escape($table) . " {$where} LIMIT 1",
+		$types,
+		...$params
 	);
 }
 
@@ -373,6 +529,104 @@ function tableExists($table) {
 
 
 /**
+ * Resolves which org_id to use at login for a given user.
+ * Returns org_id (int) or false if user has no accessible org.
+ *
+ * Resolution order:
+ * 1. last_active_org_id if set and membership exists for a live org
+ * 2. Oldest membership by joined_at for a live (non-soft-deleted) org
+ * 3. false — user has no org access
+ */
+function resolve_login_org(int $user_id, ?int $last_active_org_id): int|false {
+	global $db;
+	if ($last_active_org_id !== null) {
+		$row = $db->prepare_select_one(
+			"SELECT m.org_id FROM org_members m
+			   JOIN orgs o ON o.id = m.org_id
+			  WHERE m.user_id = ? AND m.org_id = ? AND o.deleted_at IS NULL",
+			'ii', $user_id, $last_active_org_id
+		);
+		if ($row) {
+			return (int)$row['org_id'];
+		}
+	}
+	$row = $db->prepare_select_one(
+		"SELECT m.org_id FROM org_members m
+		   JOIN orgs o ON o.id = m.org_id
+		  WHERE m.user_id = ? AND o.deleted_at IS NULL
+		  ORDER BY m.joined_at ASC LIMIT 1",
+		'i', $user_id
+	);
+	return $row ? (int)$row['org_id'] : false;
+}
+
+
+/**
+ * Find all members of an organization with user details.
+ *
+ * @param int $org_id
+ * @return array  Array of member records, each with id, name, username, email, status, role, joined_at
+ */
+function find_org_members(int $org_id): array {
+	global $db;
+	$rows = $db->prepare_select(
+		"SELECT u.id, u.name, u.username, u.email, u.status,
+		        m.role, m.joined_at
+		   FROM org_members m
+		   JOIN users u ON u.id = m.user_id
+		  WHERE m.org_id = ?
+		  ORDER BY FIELD(m.role,'owner','admin','member'), u.name",
+		'i', $org_id
+	);
+	return $rows ?? [];
+}
+
+
+/**
+ * Validate that the current user is a member of the current org with required role(s).
+ * ROLE_ADMIN bypasses this check.
+ *
+ * @param string ...$roles  One or more roles to check (e.g., 'owner', 'admin', 'member')
+ * @return void  Exits with 403 if user is not a member or lacks required role
+ */
+function require_org_role(string ...$roles): void {
+	global $db;
+	$org_id = current_org_id();
+	$user_id = (int)($_SESSION['user_id'] ?? 0);
+	if (!$user_id) {
+		http_response_code(403);
+		exit('Forbidden');
+	}
+	// ROLE_ADMIN bypasses org-role checks
+	$user = $db->prepare_select_one(
+		"SELECT user_level FROM users WHERE id = ?",
+		'i', $user_id
+	);
+	if ($user && (int)$user['user_level'] === ROLE_ADMIN) {
+		return;
+	}
+	if (empty($roles)) {
+		$row = $db->prepare_select_one(
+			"SELECT role FROM org_members WHERE user_id = ? AND org_id = ?",
+			'ii', $user_id, $org_id
+		);
+	} else {
+		$placeholders = implode(',', array_fill(0, count($roles), '?'));
+		$types = 'ii' . str_repeat('s', count($roles));
+		$args = array_merge([$user_id, $org_id], $roles);
+		$row = $db->prepare_select_one(
+			"SELECT role FROM org_members WHERE user_id = ? AND org_id = ? AND role IN ($placeholders)",
+			$types, ...$args
+		);
+	}
+	if (!$row) {
+		http_response_code(403);
+		exit('Forbidden');
+	}
+}
+
+
+/**
  * Authenticate a user by username and password.
  * Supports legacy SHA1 hashes and modern bcrypt hashes. Automatic rehash
  * on login: SHA1 → bcrypt on first login after migration, and bcrypt →
@@ -380,11 +634,11 @@ function tableExists($table) {
  *
  * @param string $username
  * @param string $password
- * @return int|false  User ID on success, false on failure
+ * @return array|false  ['user_id' => int, 'org_id' => int] on success, false on failure
  */
 function authenticate($username='', $password='') {
 	global $db;
-	$sql  = "SELECT id,username,password,user_level FROM users WHERE username = ? AND deleted_at IS NULL LIMIT 1";
+	$sql  = "SELECT id,username,password,user_level,last_active_org_id FROM users WHERE username = ? AND deleted_at IS NULL LIMIT 1";
 	$result = $db->prepare_select_one($sql, "s", $username);
 
 	if ($result) {
@@ -400,7 +654,11 @@ function authenticate($username='', $password='') {
 					"UPDATE users SET password = ? WHERE id = ?",
 					"si", $new_hash, $result['id']
 				);
-				return $result['id'];
+				$org_id = resolve_login_org((int)$result['id'], isset($result['last_active_org_id']) ? (int)$result['last_active_org_id'] : null);
+				if ($org_id === false) {
+					return false;
+				}
+				return ['user_id' => (int)$result['id'], 'org_id' => $org_id];
 			}
 		} else {
 			// Modern bcrypt comparison
@@ -413,7 +671,11 @@ function authenticate($username='', $password='') {
 						"si", $new_hash, $result['id']
 					);
 				}
-				return $result['id'];
+				$org_id = resolve_login_org((int)$result['id'], isset($result['last_active_org_id']) ? (int)$result['last_active_org_id'] : null);
+				if ($org_id === false) {
+					return false;
+				}
+				return ['user_id' => (int)$result['id'], 'org_id' => $org_id];
 			}
 		}
 	}
@@ -588,6 +850,20 @@ function page_require_level($require_level) {
 		redirect('../users/home.php', false);
 	//cheackin log in User level and Require level is Less than or equal to
 	elseif ($current_user['user_level'] <= (int)$require_level):
+		// Validate org membership: if session has current_org_id, ensure
+		// user is actually a member. ROLE_ADMIN bypasses this check.
+		if (isset($_SESSION['current_org_id']) && (int)$current_user['user_level'] !== ROLE_ADMIN) {
+			global $db;
+			$row = $db->prepare_select_one(
+				"SELECT 1 FROM org_members WHERE user_id = ? AND org_id = ?",
+				'ii', (int)$current_user['id'], (int)$_SESSION['current_org_id']
+			);
+			if (!$row) {
+				unset($_SESSION['current_org_id']);
+				$session->msg("d", "You do not have access to that organization.");
+				redirect('../users/home.php', false);
+			}
+		}
 		return true;
 	else:
 		$session->msg("d", "Sorry! you dont have permission to view the page.");
@@ -635,6 +911,13 @@ function find_product_by_title($product_name) {
 	global $db;
 	$p_name = remove_junk($db->escape($product_name));
 	$search = "%{$p_name}%";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		return $db->prepare_select(
+			"SELECT name FROM products WHERE name LIKE ? AND org_id = ? LIMIT 5",
+			"si", $search, $org_id
+		);
+	}
 	return $db->prepare_select(
 		"SELECT name FROM products WHERE name LIKE ? LIMIT 5",
 		"s", $search
@@ -655,6 +938,13 @@ function find_product_by_title($product_name) {
  */
 function find_all_product_info_by_title($title) {
 	global $db;
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		return $db->prepare_select(
+			"SELECT * FROM products WHERE name = ? AND org_id = ? LIMIT 1",
+			"si", $title, $org_id
+		);
+	}
 	return $db->prepare_select(
 		"SELECT * FROM products WHERE name = ? LIMIT 1",
 		"s", $title
@@ -677,8 +967,8 @@ function find_product_by_sku($product_sku) {
 	global $db;
 	$search = "%{$product_sku}%";
 	return $db->prepare_select(
-		"SELECT sku FROM products WHERE sku LIKE ? LIMIT 5",
-		"s", $search
+		"SELECT sku FROM products WHERE sku LIKE ? AND org_id = ? LIMIT 5",
+		"si", $search, current_org_id_safe()
 	);
 }
 
@@ -696,6 +986,13 @@ function find_product_by_sku($product_sku) {
  */
 function find_all_product_info_by_sku($product_sku) {
 	global $db;
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		return $db->prepare_select(
+			"SELECT * FROM products WHERE sku = ? AND org_id = ? LIMIT 1",
+			"si", $product_sku, $org_id
+		);
+	}
 	return $db->prepare_select(
 		"SELECT * FROM products WHERE sku = ? LIMIT 1",
 		"s", $product_sku
@@ -718,6 +1015,13 @@ function find_customer_by_name($customer_name) {
 	global $db;
 	$customer = remove_junk($db->escape($customer_name));
 	$search = "%{$customer}%";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		return $db->prepare_select(
+			"SELECT name FROM customers WHERE name LIKE ? AND deleted_at IS NULL AND org_id = ? LIMIT 5",
+			"si", $search, $org_id
+		);
+	}
 	return $db->prepare_select(
 		"SELECT name FROM customers WHERE name LIKE ? AND deleted_at IS NULL LIMIT 5",
 		"s", $search
@@ -738,6 +1042,13 @@ function find_customer_by_name($customer_name) {
  */
 function find_all_customer_info_by_name($customer_name) {
 	global $db;
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		return $db->prepare_select(
+			"SELECT * FROM customers WHERE name = ? AND deleted_at IS NULL AND org_id = ? LIMIT 1",
+			"si", $customer_name, $org_id
+		);
+	}
 	return $db->prepare_select(
 		"SELECT * FROM customers WHERE name = ? AND deleted_at IS NULL LIMIT 1",
 		"s", $customer_name
@@ -760,6 +1071,13 @@ function find_products_by_search($product_search) {
 	global $db;
 	$p_search = remove_junk($db->escape($product_search));
 	$search = "%{$p_search}%";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		return $db->prepare_select(
+			"SELECT * FROM products WHERE (name LIKE ? OR sku LIKE ? OR description LIKE ?) AND org_id = ? LIMIT 5",
+			"sssi", $search, $search, $search, $org_id
+		);
+	}
 	return $db->prepare_select(
 		"SELECT * FROM products WHERE (name LIKE ? OR sku LIKE ? OR description LIKE ?) LIMIT 5",
 		"sss", $search, $search, $search
@@ -788,9 +1106,12 @@ function find_all_product_info_by_search($search) {
 	$sql  .=" FROM products p";
 	$sql  .=" LEFT JOIN categories c ON c.id = p.category_id";
 	$sql  .=" LEFT JOIN media m ON m.id = p.media_id";
-	$sql  .=" WHERE ( p.name LIKE ? OR p.sku LIKE ? OR p.description LIKE ? )";
+	$sql  .=" WHERE ( p.name LIKE ? OR p.sku LIKE ? OR p.description LIKE ? ) AND p.org_id = " . (current_org_id_safe() ?? 0);
 	$sql  .=" ORDER BY p.id ASC";
 
+	if (current_org_id_safe() !== null) {
+		return $db->prepare_select($sql, "sssi", $like, $like, $like, current_org_id_safe());
+	}
 	return $db->prepare_select($sql, "sss", $like, $like, $like);
 }
 
@@ -812,8 +1133,16 @@ function find_products_by_category($cat) {
 	$sql  .=" FROM products p";
 	$sql  .=" LEFT JOIN categories c ON c.id = p.category_id";
 	$sql  .=" LEFT JOIN media m ON m.id = p.media_id";
-	$sql  .=" WHERE c.id = ?";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql  .=" WHERE c.id = ? AND p.org_id = ?";
+	} else {
+		$sql  .=" WHERE c.id = ?";
+	}
 	$sql  .=" ORDER BY p.id ASC";
+	if ($org_id !== null) {
+		return $db->prepare_select($sql, "ii", (int)$cat, $org_id);
+	}
 	return $db->prepare_select($sql, "i", (int)$cat);
 }
 
@@ -834,8 +1163,8 @@ function increase_product_qty($qty, $p_id) {
 	$qty = (int) $qty;
 	$id  = (int) $p_id;
 	$stmt = $db->prepare_query(
-		"UPDATE products SET quantity = quantity + ? WHERE id = ?",
-		"ii", $qty, $id
+		"UPDATE products SET quantity = quantity + ? WHERE id = ? AND org_id = ?",
+		"iii", $qty, $id, current_org_id()
 	);
 	$affected = $stmt->affected_rows;
 	$stmt->close();
@@ -859,8 +1188,8 @@ function decrease_product_qty($qty, $p_id) {
 	$qty = (int) $qty;
 	$id  = (int) $p_id;
 	$stmt = $db->prepare_query(
-		"UPDATE products SET quantity = quantity - ? WHERE id = ?",
-		"ii", $qty, $id
+		"UPDATE products SET quantity = quantity - ? WHERE id = ? AND org_id = ?",
+		"iii", $qty, $id, current_org_id()
 	);
 	$affected = $stmt->affected_rows;
 	$stmt->close();
@@ -884,6 +1213,10 @@ function find_recent_product_added($limit) {
 	$sql  .= "m.file_name AS image FROM products p";
 	$sql  .= " LEFT JOIN categories c ON c.id = p.category_id";
 	$sql  .= " LEFT JOIN media m ON m.id = p.media_id";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql  .= " WHERE p.org_id = " . $org_id;
+	}
 	$sql  .= " ORDER BY p.id DESC LIMIT ".$db->escape((int)$limit);
 	return find_by_sql($sql);
 }
@@ -904,7 +1237,12 @@ function find_highest_selling_product($limit) {
 	$sql  = "SELECT p.name, COUNT(s.product_id) AS totalSold, SUM(s.qty) AS totalQty";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON p.id = s.product_id ";
-	$sql .= " WHERE s.deleted_at IS NULL";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql .= " WHERE s.deleted_at IS NULL AND p.org_id = " . $org_id;
+	} else {
+		$sql .= " WHERE s.deleted_at IS NULL";
+	}
 	$sql .= " GROUP BY s.product_id";
 	$sql .= " ORDER BY SUM(s.qty) DESC LIMIT ".$db->escape((int)$limit);
 	return $db->query($sql);
@@ -926,7 +1264,12 @@ function find_all_sales() {
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN orders o ON s.order_id = o.id";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
-	$sql .= " WHERE s.deleted_at IS NULL";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql .= " WHERE s.deleted_at IS NULL AND p.org_id = " . $org_id;
+	} else {
+		$sql .= " WHERE s.deleted_at IS NULL";
+	}
 	$sql .= " ORDER BY s.date DESC";
 	return find_by_sql($sql);
 }
@@ -946,7 +1289,12 @@ function find_all_orders() {
 	$sql  = "SELECT o.id,o.sales_id,o.date";
 	$sql .= " FROM orders o";
 	$sql .= " LEFT JOIN sales s ON s.id = o.sales_id";
-	$sql .= " WHERE o.deleted_at IS NULL";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql .= " WHERE o.deleted_at IS NULL AND o.org_id = " . $org_id;
+	} else {
+		$sql .= " WHERE o.deleted_at IS NULL";
+	}
 	$sql .= " ORDER BY o.date DESC";
 	return find_by_sql($sql);
 }
@@ -968,6 +1316,12 @@ function find_sales_by_order_id($id) {
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN orders o ON s.order_id = o.id";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql .= " WHERE s.order_id = ? AND s.deleted_at IS NULL AND p.org_id = ?";
+		$sql .= " ORDER BY s.date DESC";
+		return $db->prepare_select($sql, "ii", (int)$id, $org_id);
+	}
 	$sql .= " WHERE s.order_id = ? AND s.deleted_at IS NULL";
 	$sql .= " ORDER BY s.date DESC";
 	return $db->prepare_select($sql, "i", (int)$id);
@@ -991,7 +1345,12 @@ function find_recent_sale_added($limit) {
 	$sql  = "SELECT s.id,s.qty,s.price,s.date,p.name";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
-	$sql .= " WHERE s.deleted_at IS NULL";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql .= " WHERE s.deleted_at IS NULL AND p.org_id = " . $org_id;
+	} else {
+		$sql .= " WHERE s.deleted_at IS NULL";
+	}
 	$sql .= " ORDER BY s.date DESC LIMIT ".$db->escape((int)$limit);
 	return find_by_sql($sql);
 }
@@ -1019,6 +1378,13 @@ function find_sale_by_dates($start_date, $end_date) {
 	$sql .= "SUM(p.buy_price * s.qty) AS total_buying_price ";
 	$sql .= "FROM sales s ";
 	$sql .= "LEFT JOIN products p ON s.product_id = p.id";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql .= " WHERE s.date BETWEEN ? AND ? AND s.deleted_at IS NULL AND p.org_id = ?";
+		$sql .= " GROUP BY DATE(s.date),p.name";
+		$sql .= " ORDER BY DATE(s.date) DESC";
+		return $db->prepare_select($sql, "ssi", $start_date, $end_date, $org_id);
+	}
 	$sql .= " WHERE s.date BETWEEN ? AND ? AND s.deleted_at IS NULL";
 	$sql .= " GROUP BY DATE(s.date),p.name";
 	$sql .= " ORDER BY DATE(s.date) DESC";
@@ -1045,6 +1411,12 @@ function dailySales($year, $month) {
 	$sql .= "SUM(p.sale_price * s.qty) AS total_selling_price";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql .= " WHERE DATE_FORMAT(s.date, '%Y-%m' ) = ? AND s.deleted_at IS NULL AND p.org_id = ?";
+		$sql .= " GROUP BY DATE_FORMAT( s.date,  '%e' ),s.product_id";
+		return $db->prepare_select($sql, "si", $year_month, $org_id);
+	}
 	$sql .= " WHERE DATE_FORMAT(s.date, '%Y-%m' ) = ? AND s.deleted_at IS NULL";
 	$sql .= " GROUP BY DATE_FORMAT( s.date,  '%e' ),s.product_id";
 	return $db->prepare_select($sql, "s", $year_month);
@@ -1068,6 +1440,13 @@ function monthlySales($year) {
 	$sql .= "SUM(p.sale_price * s.qty) AS total_selling_price";
 	$sql .= " FROM sales s";
 	$sql .= " LEFT JOIN products p ON s.product_id = p.id";
+	$org_id = current_org_id_safe();
+	if ($org_id !== null) {
+		$sql .= " WHERE DATE_FORMAT(s.date, '%Y' ) = ? AND s.deleted_at IS NULL AND p.org_id = ?";
+		$sql .= " GROUP BY DATE_FORMAT( s.date,  '%c' ),s.product_id";
+		$sql .= " ORDER BY date_format(s.date, '%c' ) ASC";
+		return $db->prepare_select($sql, "si", $year, $org_id);
+	}
 	$sql .= " WHERE DATE_FORMAT(s.date, '%Y' ) = ? AND s.deleted_at IS NULL";
 	$sql .= " GROUP BY DATE_FORMAT( s.date,  '%c' ),s.product_id";
 	$sql .= " ORDER BY date_format(s.date, '%c' ) ASC";

@@ -75,5 +75,33 @@ if [ $form_hits -gt 0 ]; then
     exit 1
 fi
 
-echo -e "${GREEN}pre-commit: php -l clean + form-action guard clean (${#STAGED[@]} file(s)).${NC}"
+# Guard: SELECT on org-scoped tables must reference org_id.
+# Detects hand-written SQL strings that query customers, products, categories,
+# sales, orders, stock, or media without an org_id filter. The check is
+# heuristic — it scans each staged file for "FROM <table>" patterns and warns
+# if org_id does not appear anywhere in the same file. Files that use
+# current_org_id_safe() with a conditional branch are acceptable and will
+# still pass because org_id appears in the file even in the filtered branch.
+ORG_TABLES="customers|products|categories|sales|orders|stock|media"
+org_hits=0
+for file in "${STAGED[@]}"; do
+    [ -f "$file" ] || continue
+    # Only check PHP files that contain at least one query on an org-scoped table.
+    if grep -qiE "FROM ($ORG_TABLES)\b" "$file" 2>/dev/null; then
+        if ! grep -q "org_id" "$file" 2>/dev/null; then
+            echo -e "${RED}pre-commit: missing org_id filter in${NC} $file" >&2
+            echo "  File queries an org-scoped table (${ORG_TABLES//|/, }) but contains no org_id reference." >&2
+            echo "  Add AND org_id = ? (or current_org_id_safe()) to every SELECT/UPDATE/DELETE on these tables." >&2
+            org_hits=$((org_hits + 1))
+        fi
+    fi
+done
+
+if [ $org_hits -gt 0 ]; then
+    echo -e "${RED}pre-commit: ${org_hits} file(s) missing org_id filter on org-scoped table queries.${NC}" >&2
+    echo "Bypass with 'git commit --no-verify' only if the query is intentionally cross-org." >&2
+    exit 1
+fi
+
+echo -e "${GREEN}pre-commit: php -l clean + form-action guard + org-scope guard clean (${#STAGED[@]} file(s)).${NC}"
 exit 0

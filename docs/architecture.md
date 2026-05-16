@@ -66,32 +66,59 @@ inventory/
 │   ├── stock_report.php       # Stock report form
 │   └── stock_report_process.php # Stock report results
 │
-├── users/                     # User & group administration
+├── users/                     # User & group administration (24 files)
 │   ├── index.php              # User dashboard / home page
+│   ├── auth.php               # Login handler (CSRF + rate limit check)
+│   ├── logout.php             # Session teardown
 │   ├── add_user.php           # Add user form+handler
 │   ├── edit_user.php          # Edit user form+handler
 │   ├── edit_account.php       # Edit own account
 │   ├── change_password.php    # Change password form+handler
+│   ├── profile.php            # User profile view
 │   ├── add_group.php          # Add user group form+handler
 │   ├── edit_group.php         # Edit user group form+handler
-│   └── edit_category.php      # Edit group permissions
+│   ├── users.php              # User list
+│   ├── group.php              # Group list
+│   ├── delete_user.php        # Soft-delete a user
+│   ├── delete_group.php       # Delete a user group
+│   ├── settings.php           # Admin-only app settings (currency code, etc.)
+│   ├── log.php                # Audit log viewer
+│   ├── delete_log.php         # Clear log entries
+│   ├── delete_log_by_ip.php   # Clear log entries by IP
+│   ├── trash.php              # Soft-delete trash UI (Admin only)
+│   ├── restore.php            # Restore a soft-deleted record
+│   ├── purge.php              # Permanently delete a soft-deleted record
+│   └── admin.php              # Admin dashboard
+│
+├── migrations/                # Numbered UP/DOWN SQL migration files
+│   ├── 001_quantity_int       # quantity columns VARCHAR→INT
+│   ├── 002_failed_logins      # Rate-limit tracking table
+│   ├── 003_log_user_fk        # log.user_id ON DELETE SET NULL
+│   ├── 004_settings_table     # App settings key/value store
+│   └── 005–009_soft_delete    # deleted_at on 5 tables
+│
+├── packaging/sql/migrations/  # Tenancy migrations (feature/tenancy-schema branch)
+│   └── 010–021_tenancy        # orgs, org_members, org_id on 7 tables
 │
 ├── libs/                      # Bundled frontend assets (no CDN)
 │   ├── bootstrap/             # Bootstrap 5 CSS/JS
 │   ├── datepicker/            # Bootstrap Datepicker CSS/JS
 │   ├── js/jquery.min.js       # jQuery 3.x
-│   └── css/main.css           # Application styles
+│   └── css/main.css           # Application styles (col-w-* classes, no inline styles)
 │
 ├── uploads/                   # User-uploaded media
 │   ├── users/                 # User profile images
 │   └── products/              # Product images
 │
-└── tests/                     # Test suite
+└── tests/                     # Test suite (62 tests across 6 suites)
     ├── run.sh                 # Test runner
-    ├── bootstrap.php          # Test harness bootstrap
-    ├── CSRFTest.php            # CSRF & helper function tests (unit)
-    ├── AuthTest.php            # Authentication tests (integration)
-    └── CRUDTest.php            # CRUD operation tests (integration)
+    ├── bootstrap.php          # Test harness bootstrap (ob_start, HARNESS_ prefix)
+    ├── CSRFTest.php           # CSRF helpers (unit, 16 tests)
+    ├── AuthTest.php           # Authentication (integration, 9 tests)
+    ├── CRUDTest.php           # CRUD operations (integration, 11 tests)
+    ├── SecurityHeadersTest.php # HTTP security headers (7 tests)
+    ├── SettingsTest.php       # Settings class (integration, 6 tests)
+    └── SoftDeleteTest.php     # Soft-delete lifecycle (integration, 13 tests)
 ```
 
 ## Request Lifecycle
@@ -194,64 +221,55 @@ HTTP Request
 - Level 2 → `special_menu.php`
 - Level 3 → `user_menu.php`
 
-## Database Schema (9 tables)
+## Database Schema (14 tables)
+
+Five business tables (`users`, `customers`, `sales`, `orders`, `stock`) have `deleted_at TIMESTAMP` and `deleted_by INT` for the soft-delete pattern. Tables marked *(tenancy)* are on the `feature/tenancy-schema` branch.
+
+| Table | Purpose | Soft-delete |
+|-------|---------|------------|
+| `categories` | Product categories | No |
+| `products` | Product catalog | No (gap — see gap-analysis.md) |
+| `media` | Product/user images | No |
+| `orders` | Sales orders | Yes |
+| `sales` | Order line items | Yes |
+| `stock` | Stock adjustments | Yes |
+| `customers` | Customer directory | Yes |
+| `users` | Login accounts | Yes |
+| `user_groups` | RBAC group definitions | No |
+| `log` | Activity audit trail | No (log.user_id → users.id ON DELETE SET NULL) |
+| `failed_logins` | Login rate-limit tracking | No (pruned probabilistically) |
+| `settings` | App config key/value | No |
+| `orgs` *(tenancy)* | Organization registry | Planned soft-delete |
+| `org_members` *(tenancy)* | User ↔ org membership + role | No |
 
 ```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│  categories  │    │   products   │    │    media     │
-│──────────────│    │──────────────│    │──────────────│
-│ id (PK)      │───▶│ category_id  │    │ id (PK)      │
-│ name (UNQ)   │    │ id (PK)      │    │ file_name    │
-└──────────────┘    │ name (UNQ)   │◀───│ file_type    │
-                    │ sku          │    └──────────────┘
-                    │ location     │
-┌──────────────┐    │ quantity     │    ┌──────────────┐
-│   orders     │    │ buy_price    │    │    sales     │
-│──────────────│    │ sale_price   │    │──────────────│
-│ id (PK)      │    │ media_id (FK)│    │ id (PK)      │
-│ customer     │    │ category_id  │    │ order_id (FK)│
-│ notes        │    │ date         │    │ product_id   │
-│ paymethod    │    └──────────────┘    │ qty          │
-│ date         │           │           │ price        │
-└──────────────┘           │           │ date         │
-                           │           └──────────────┘
-┌──────────────┐           │
-│    stock     │           │
-│──────────────│           │
-│ id (PK)      │           │
-│ product_id   │◀──────────┘
-│ quantity     │
-│ comments     │
-│ date         │
-└──────────────┘
-
-┌──────────────┐    ┌──────────────┐
-│  user_groups │    │    users     │
-│──────────────│    │──────────────│
-│ id (PK)      │    │ id (PK)      │
-│ group_name   │    │ name         │
-│ group_level  │───▶│ username     │
-│ group_status │    │ password     │
-└──────────────┘    │ user_level   │
-                    │ image        │
-┌──────────────┐    │ status       │
-│     log      │    │ last_login   │
-│──────────────│    └──────────────┘
-│ id (PK)      │
-│ user_id (FK) │
-│ remote_ip    │
-│ action       │
-│ date         │
-└──────────────┘
-
 Key relationships:
 - products.category_id → categories.id (CASCADE)
-- products.media_id → media.id
-- sales.product_id → products.id (CASCADE)
-- sales.order_id → orders.id
-- stock.product_id → products.id
-- users.user_level → user_groups.group_level (CASCADE)
+- products.media_id    → media.id
+- sales.product_id     → products.id (CASCADE)
+- sales.order_id       → orders.id
+- stock.product_id     → products.id
+- users.user_level     → user_groups.group_level (CASCADE)
+- log.user_id          → users.id ON DELETE SET NULL
+- org_members.org_id   → orgs.id (tenancy)
+- org_members.user_id  → users.id (tenancy)
 ```
+
+## Soft-Delete Pattern
+
+Five tables use reversible soft-delete. The helpers live in `includes/sql.php`.
+
+```
+soft_delete_by_id($table, $id)         Stamps deleted_at = NOW(), deleted_by = session user
+restore_by_id($table, $id)             Clears both columns (NOT NULL → NULL)
+purge_by_id($table, $id)              Hard DELETE — only allowed when deleted_at IS NOT NULL
+find_by_id_with_deleted($table, $id)  Bypasses filter (trash UI)
+find_with_deleted($table)             Returns all rows including soft-deleted
+```
+
+`find_all()` and `find_by_id()` automatically add `WHERE deleted_at IS NULL` when `table_has_soft_delete()` returns true. The probe result is cached per request in a static array, so there is exactly one `SHOW COLUMNS` query per table per request.
+
+The trash UI (`users/trash.php`) is Admin-only (level 1). `users/restore.php` and `users/purge.php` handle the two actions.
 
 ## Key Abstractions
 

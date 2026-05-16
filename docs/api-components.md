@@ -356,6 +356,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ```
 
+## Soft-Delete Helpers — `includes/sql.php`
+
+All helpers silently no-op if the table is not in `SOFT_DELETE_TABLES` (currently: users, customers, sales, orders, stock).
+
+```php
+// Mark a row as deleted (stamps deleted_at + deleted_by from session)
+soft_delete_by_id('customers', $id);           // returns bool
+
+// Reverse a soft-delete (clears deleted_at + deleted_by)
+restore_by_id('customers', $id);               // returns bool
+
+// Hard-delete a row that is already soft-deleted (refuses active rows)
+purge_by_id('customers', $id);                 // returns bool
+
+// Fetch a single row regardless of deleted_at (for trash UI)
+$row = find_by_id_with_deleted('customers', $id);  // array|null
+
+// Fetch all rows regardless of deleted_at (for trash UI)
+$rows = find_with_deleted('customers');         // array|null
+
+// Check if a table participates in soft-delete (cached per request)
+$has = table_has_soft_delete('customers');      // bool
+```
+
+`SOFT_DELETE_TABLES` constant (sql.php:139) is the definitive list. Adding a table name here alone is not enough — the matching `deleted_at` migration must also be applied.
+
+## Login Rate-Limiting Helpers — `includes/sql.php`
+
+```php
+// Returns true when the IP has ≥ 5 failed attempts in the last 15 minutes
+is_login_rate_limited($ip);            // bool
+
+// Record a failed attempt (called in auth.php on wrong credentials)
+record_failed_login($ip, $username);   // void
+
+// Clear all records for this IP (called on successful login)
+clear_failed_logins($ip);             // void
+
+// Prune stale records older than the window (probabilistic, ~1% of requests)
+prune_failed_logins();                // void
+```
+
+Constants: `LOGIN_MAX_ATTEMPTS` (default 5) and `LOGIN_WINDOW_SECONDS` (default 900) defined in `sql.php:1083–1088`. Override by defining them before `sql.php` is loaded.
+
+## `Settings` Class — `includes/settings.php`
+
+DB-backed key/value store. Instantiated at load time.
+
+```php
+// Get a setting value (returns $default if key not found)
+$code = Settings::get('currency_code', 'USD');
+
+// Persist a setting value (upserts via prepared statement)
+Settings::set('currency_code', 'EUR');
+```
+
+The admin UI is at `users/settings.php` (Admin-only, level 1). Currency changes take effect on the next page load — `formatcurrency()` reads the value once per request.
+
 ## Currency Display — `includes/formatcurrency.php`
 
-Format numeric values for display with the configured currency code (defined in `load.php` as `$CURRENCY_CODE = 'USD'`).
+Format numeric values for display using the DB-configured currency code (loaded via `Settings::get('currency_code', 'USD')` at bootstrap).

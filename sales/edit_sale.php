@@ -64,7 +64,7 @@ $req_fields = array('title', 'order_id', 'quantity', 'price', 'total', 'date' );
 
 		$sql  = "UPDATE sales SET";
 		$sql .= " order_id= '{$o_id}', product_id= '{$p_id}',qty={$quantity},price='{$s_total}',date='{$s_date}'";
-		$sql .= " WHERE id ='{$sale['id']}'";
+		$sql .= " WHERE id ='{$sale['id']}' AND org_id = '" . current_org_id() . "'";
 		$result = $db->query($sql);
 
 		if ( $result && $db->affected_rows() === 1) {

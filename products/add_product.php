@@ -34,9 +34,9 @@ $req_fields = array('product-title', 'product-category', 'product-quantity', 'co
 		}
 		$date    = make_date();
 		$query  = "INSERT INTO products (";
-		$query .=" name,description,sku,location,quantity,buy_price,sale_price,category_id,media_id,date";
+		$query .=" name,description,sku,location,quantity,buy_price,sale_price,category_id,media_id,date,org_id";
 		$query .=") VALUES (";
-		$query .=" '{$p_name}', '{$p_desc}', '{$p_sku}', '{$p_loc}', '{$p_qty}', '{$p_buy}', '{$p_sale}', '{$p_cat}', '{$media_id}', '{$date}'";
+		$query .=" '{$p_name}', '{$p_desc}', '{$p_sku}', '{$p_loc}', '{$p_qty}', '{$p_buy}', '{$p_sale}', '{$p_cat}', '{$media_id}', '{$date}', '" . current_org_id() . "'";
 		$query .=")";
 		$query .=" ON DUPLICATE KEY UPDATE name='{$p_name}'";
 		if ($db->query($query)) {
@@ -52,8 +52,8 @@ $req_fields = array('product-title', 'product-category', 'product-quantity', 'co
 			$cost = $p_buy;
 			$comments = "initial stock";
 
-			$sql  = "INSERT INTO stock (product_id,quantity,comments,date)";
-			$sql .= " VALUES ('{$product_id}','{$quantity}','{$comments}','{$date}')";
+			$sql  = "INSERT INTO stock (product_id,quantity,comments,date,org_id)";
+			$sql .= " VALUES ('{$product_id}','{$quantity}','{$comments}','{$date}','" . current_org_id() . "')";
 			$result = $db->query($sql);
 			if ( $result && $db->affected_rows() === 1) {
 				$session->msg('s', "Product Added ");

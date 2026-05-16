@@ -28,7 +28,7 @@ $req_field = array('category-name');
 	$cat_name = remove_junk($db->escape($_POST['category-name']));
 	if (empty($errors)) {
 		$sql = "UPDATE categories SET name='{$cat_name}'";
-		$sql .= " WHERE id='{$category['id']}'";
+		$sql .= " WHERE id='{$category['id']}' AND org_id = '" . current_org_id() . "'";
 		$result = $db->query($sql);
 		if ($result && $db->affected_rows() === 1) {
 			$session->msg("s", "Successfully updated category");

@@ -42,10 +42,10 @@ $req_fields = array('s_id', 'order_id', 'quantity', 'sale_price');
 		$date    = make_date();
 
 		$sql  = "INSERT INTO sales (";
-		$sql .= " product_id,order_id,qty,price,date";
+		$sql .= " product_id,order_id,qty,price,date,org_id";
 		$sql .= ") VALUES (";
 		//$sql .= "'{$p_id}','{$s_qty}','{$s_total}','{$s_date}'";
-		$sql .= "'{$p_id}','{$o_id}','{$s_qty}','{$s_total}','{$date}'";
+		$sql .= "'{$p_id}','{$o_id}','{$s_qty}','{$s_total}','{$date}','" . current_org_id() . "'";
 		$sql .= ")";
 
 		if ($db->query($sql)) {

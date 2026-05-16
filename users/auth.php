@@ -37,12 +37,12 @@ $username = remove_junk($_POST['username']);
 $password = remove_junk($_POST['password']);
 
 if (empty($errors)) {
-	$user_id = authenticate($username, $password);
-	if ($user_id) {
+	$auth = authenticate($username, $password);
+	if ($auth) {
 		// Successful login — clear prior failures from this IP.
 		clear_failed_logins($client_ip);
-		$session->login($user_id);
-		updateLastLogIn($user_id);
+		$session->login($auth['user_id'], $auth['org_id']);
+		updateLastLogIn($auth['user_id']);
 		$session->msg("s", "Welcome to Inventory.");
 		redirect('../users/home.php', false);
 

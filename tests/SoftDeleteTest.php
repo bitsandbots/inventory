@@ -59,6 +59,9 @@ if (!$soft_delete_ready) {
     exit(0);
 }
 
+// Set up org context for tests that need org_id guards
+$_SESSION['current_org_id'] = 1;
+
 // Task 7 — table_has_soft_delete introspection.
 test('table_has_soft_delete returns true for in-scope tables', function () {
     check(table_has_soft_delete('users') === true, 'users should be soft-delete-aware');
@@ -88,7 +91,7 @@ test('soft_delete_by_id stamps deleted_at and deleted_by', function () {
         "INSERT INTO users (name, username, password, user_level, status) VALUES (?, ?, ?, ?, ?)",
         "sssii", 'HARNESS_softdel', 'HARNESS_softdel', 'x', 3, 1
     );
-    $id = $db->connection()->insert_id;
+    $id = $db->insert_id();
     $stmt->close();
     check($id > 0, 'failed to insert HARNESS_softdel');
 
@@ -153,7 +156,7 @@ test('find_all excludes soft-deleted rows', function () {
         "INSERT INTO users (name, username, password, user_level, status) VALUES (?, ?, ?, ?, ?)",
         "sssii", 'HARNESS_findfilter', 'HARNESS_findfilter', 'x', 3, 1
     );
-    $id = $db->connection()->insert_id;
+    $id = $db->insert_id();
     $stmt->close();
     soft_delete_by_id('users', $id, 1);
 
@@ -172,7 +175,7 @@ test('find_by_id returns null for a soft-deleted row', function () {
         "INSERT INTO users (name, username, password, user_level, status) VALUES (?, ?, ?, ?, ?)",
         "sssii", 'HARNESS_findbyid', 'HARNESS_findbyid', 'x', 3, 1
     );
-    $id = $db->connection()->insert_id;
+    $id = $db->insert_id();
     $stmt->close();
     soft_delete_by_id('users', $id, 1);
 
@@ -192,7 +195,7 @@ test('find_with_deleted returns ALL rows including soft-deleted', function () {
         "INSERT INTO users (name, username, password, user_level, status) VALUES (?, ?, ?, ?, ?)",
         "sssii", 'HARNESS_withdel', 'HARNESS_withdel', 'x', 3, 1
     );
-    $id = $db->connection()->insert_id;
+    $id = $db->insert_id();
     $stmt->close();
     soft_delete_by_id('users', $id, 1);
 
@@ -210,7 +213,7 @@ test('find_all_user excludes soft-deleted users', function () {
         "INSERT INTO users (name, username, password, user_level, status) VALUES (?, ?, ?, ?, ?)",
         "sssii", 'HARNESS_rawsql', 'HARNESS_rawsql', 'x', 3, 1
     );
-    $id = $db->connection()->insert_id;
+    $id = $db->insert_id();
     $stmt->close();
     soft_delete_by_id('users', $id, 1);
 
@@ -237,10 +240,10 @@ test('find_all_sales excludes soft-deleted sales (row-local cascade test)', func
     $pid = (int)$rows[0]['id'];
 
     $stmt = $db->prepare_query(
-        "INSERT INTO sales (order_id, product_id, qty, price, date) VALUES (?, ?, ?, ?, ?)",
-        "iiids", 999999, $pid, 1, 1.00, date('Y-m-d')
+        "INSERT INTO sales (order_id, product_id, qty, price, date, org_id) VALUES (?, ?, ?, ?, ?, ?)",
+        "iidssi", 999999, $pid, 1, 1.00, date('Y-m-d'), 1
     );
-    $id = $db->connection()->insert_id;
+    $id = $db->insert_id();
     $stmt->close();
 
     $rows = find_all_sales();
@@ -259,26 +262,47 @@ test('find_all_sales excludes soft-deleted sales (row-local cascade test)', func
 // Task 10 follow-up — authenticate() must reject soft-deleted users.
 test('authenticate() rejects a soft-deleted user', function () {
     global $db;
+    // Create a test org first
+    $slug = 'harness_softdel_' . substr(md5(microtime()), 0, 8);
+    $db->prepare_query(
+        "INSERT INTO orgs (name, slug, deleted_at) VALUES (?, ?, NULL)",
+        'ss', 'HARNESS_SoftDelOrg', $slug
+    );
+    $org_id = (int)$db->insert_id();
+
     // Insert a HARNESS_ user with a known bcrypt-hashed password.
+    // Use a unique username to avoid collisions in repeated test runs.
+    $username = 'HARNESS_authdel_' . substr(md5(microtime(true) . random_bytes(4)), 0, 8);
     $password = 'HARNESS_pass';
     $hash = password_hash($password, PASSWORD_BCRYPT);
     $stmt = $db->prepare_query(
         "INSERT INTO users (name, username, password, user_level, status) VALUES (?, ?, ?, ?, ?)",
-        "sssii", 'HARNESS_authdel', 'HARNESS_authdel', $hash, 3, 1
+        "sssii", $username, $username, $hash, 3, 1
     );
-    $id = $db->connection()->insert_id;
+    $id = $db->insert_id();
     $stmt->close();
 
-    // Confirm authenticate works while the row is active.
-    $auth_ok = authenticate('HARNESS_authdel', $password);
-    check($auth_ok === $id, 'authenticate failed for active HARNESS_authdel');
+    // Create org membership so authenticate() succeeds
+    $db->prepare_query(
+        "INSERT INTO org_members (user_id, org_id, joined_at) VALUES (?, ?, NOW())",
+        'ii', $id, $org_id
+    );
 
-    // Soft-delete and re-attempt.
-    soft_delete_by_id('users', $id, 1);
-    $auth_after = authenticate('HARNESS_authdel', $password);
-    check($auth_after === false, 'authenticate ACCEPTED a soft-deleted user (security regression)');
+    try {
+        // Confirm authenticate works while the row is active.
+        $auth_ok = authenticate($username, $password);
+        check($auth_ok !== false, 'authenticate failed for active ' . $username);
+        check(is_array($auth_ok), 'authenticate should return array');
+        check((int)$auth_ok['user_id'] === (int)$id, 'authenticate returned wrong user_id');
 
-    purge_by_id('users', $id);
+        // Soft-delete and re-attempt.
+        soft_delete_by_id('users', $id, 1);
+        $auth_after = authenticate($username, $password);
+        check($auth_after === false, 'authenticate ACCEPTED a soft-deleted user (security regression)');
+    } finally {
+        purge_by_id('users', $id);
+        $db->prepare_query("DELETE FROM orgs WHERE id = ?", 'i', $org_id);
+    }
 });
 
 echo "\n---\nResults: $pass passed, $fail failed\n";

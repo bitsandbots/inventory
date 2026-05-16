@@ -39,9 +39,9 @@ $req_fields = array('customer-name', 'paymethod' );
 
 		if ( ! find_by_name('customers', $customer_name) ) {
 			$query  = "INSERT INTO customers (";
-			$query .=" name,address,city,region,postcode,telephone,email,paymethod";
+			$query .=" name,address,city,region,postcode,telephone,email,paymethod,org_id";
 			$query .=") VALUES (";
-			$query .=" '{$customer_name}', '{$c_address}','{$c_city}', '{$c_region}', '{$c_postcode}', '{$c_telephone}', '{$c_email}', '{$paymethod}'";
+			$query .=" '{$customer_name}', '{$c_address}','{$c_city}', '{$c_region}', '{$c_postcode}', '{$c_telephone}', '{$c_email}', '{$paymethod}', '" . current_org_id() . "'";
 			$query .=")";
 			$result = $db->query($query);
 			if ($result && $db->affected_rows() === 1) {
@@ -53,7 +53,7 @@ $req_fields = array('customer-name', 'paymethod' );
 
 		$sql = "UPDATE orders SET";
 		$sql .= " customer='{$customer_name}', paymethod='{$paymethod}', notes='{$notes}', date='{$date}'";
-		$sql .= " WHERE id='{$order['id']}'";
+		$sql .= " WHERE id='{$order['id']}' AND org_id = '" . current_org_id() . "'";
 
 		$result = $db->query($sql);
 		if ($result && $db->affected_rows() === 1) {

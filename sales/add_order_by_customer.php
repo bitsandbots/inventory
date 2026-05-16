@@ -29,10 +29,10 @@ $req_fields = array('customer-name', 'paymethod' );
 		if ( ! find_by_name('customers', $customer_name) ) {
 			$query  = "INSERT INTO customers (";
 			//$query .=" name,address,postcode,telephone,email,paymethod";
-			$query .=" name,paymethod";
+			$query .=" name,paymethod,org_id";
 			$query .=") VALUES (";
 			//$query .=" '{$customer}', '{$c_address}', '{$c_postcode}', '{$c_telephone}', '{$c_email}', '{$paymethod}'";
-			$query .=" '{$customer_name}', '{$paymethod}'";
+			$query .=" '{$customer_name}', '{$paymethod}', '" . current_org_id() . "'";
 			$query .=")";
 			$result = $db->query($query);
 			if ($result && $db->affected_rows() === 1) {
@@ -44,8 +44,8 @@ $req_fields = array('customer-name', 'paymethod' );
 
 		$current_date    = make_date();
 
-		$sql  = "INSERT INTO orders (id,customer,paymethod,notes,date)";
-		$sql .= " VALUES ('{$new_order_id}','{$customer_name}','{$paymethod}','{$notes}','{$current_date}')";
+		$sql  = "INSERT INTO orders (id,customer,paymethod,notes,date,org_id)";
+		$sql .= " VALUES ('{$new_order_id}','{$customer_name}','{$paymethod}','{$notes}','{$current_date}','" . current_org_id() . "')";
 		if ($db->query($sql)) {
 			$session->msg("s", "Successfully Added Order");
 			redirect( ( '../sales/add_sale_to_order.php?id=' . $new_order_id ) , false);
