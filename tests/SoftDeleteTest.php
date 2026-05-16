@@ -221,12 +221,64 @@ test('find_all_user excludes soft-deleted users', function () {
     purge_by_id('users', $id);
 });
 
-test('find_all_sales is callable and returns array', function () {
+test('find_all_sales excludes soft-deleted sales (row-local cascade test)', function () {
     global $db;
-    // This test verifies that find_all_sales can be called.
-    // The actual filtering behavior is tested implicitly once raw-SQL helpers are updated.
+    // sales.product_id has an FK to products.id (ON DELETE CASCADE). The
+    // dev DB may be empty; skip the FK-bound part of this test cleanly
+    // when so. find_all_sales' raw-SQL filter is still exercised below
+    // even without an insertable row.
+    $rows = find_by_sql("SELECT id FROM products LIMIT 1");
+    if (empty($rows)) {
+        $all = find_all_sales();
+        check(is_array($all), 'find_all_sales did not return an array');
+        echo "       [skipped FK-bound assertions — no products in dev DB]\n";
+        return;
+    }
+    $pid = (int)$rows[0]['id'];
+
+    $stmt = $db->prepare_query(
+        "INSERT INTO sales (order_id, product_id, qty, price, date) VALUES (?, ?, ?, ?, ?)",
+        "iiids", 999999, $pid, 1, 1.00, date('Y-m-d')
+    );
+    $id = $db->connection()->insert_id;
+    $stmt->close();
+
     $rows = find_all_sales();
-    check(is_array($rows), 'find_all_sales did not return an array');
+    $ids = array_map('intval', array_column($rows, 'id'));
+    check(in_array($id, $ids, true), 'find_all_sales did not include the new sale');
+
+    soft_delete_by_id('sales', $id, 1);
+
+    $rows = find_all_sales();
+    $ids = array_map('intval', array_column($rows, 'id'));
+    check(!in_array($id, $ids, true), 'find_all_sales leaked soft-deleted sale');
+
+    purge_by_id('sales', $id);
+});
+
+// Task 10 follow-up — authenticate() must reject soft-deleted users.
+test('authenticate() rejects a soft-deleted user', function () {
+    global $db;
+    // Insert a HARNESS_ user with a known bcrypt-hashed password.
+    $password = 'HARNESS_pass';
+    $hash = password_hash($password, PASSWORD_BCRYPT);
+    $stmt = $db->prepare_query(
+        "INSERT INTO users (name, username, password, user_level, status) VALUES (?, ?, ?, ?, ?)",
+        "sssii", 'HARNESS_authdel', 'HARNESS_authdel', $hash, 3, 1
+    );
+    $id = $db->connection()->insert_id;
+    $stmt->close();
+
+    // Confirm authenticate works while the row is active.
+    $auth_ok = authenticate('HARNESS_authdel', $password);
+    check($auth_ok === $id, 'authenticate failed for active HARNESS_authdel');
+
+    // Soft-delete and re-attempt.
+    soft_delete_by_id('users', $id, 1);
+    $auth_after = authenticate('HARNESS_authdel', $password);
+    check($auth_after === false, 'authenticate ACCEPTED a soft-deleted user (security regression)');
+
+    purge_by_id('users', $id);
 });
 
 echo "\n---\nResults: $pass passed, $fail failed\n";

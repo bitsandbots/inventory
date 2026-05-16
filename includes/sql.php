@@ -384,7 +384,7 @@ function tableExists($table) {
  */
 function authenticate($username='', $password='') {
 	global $db;
-	$sql  = "SELECT id,username,password,user_level FROM users WHERE username = ? LIMIT 1";
+	$sql  = "SELECT id,username,password,user_level FROM users WHERE username = ? AND deleted_at IS NULL LIMIT 1";
 	$result = $db->prepare_select_one($sql, "s", $username);
 
 	if ($result) {
