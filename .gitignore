@@ -10,3 +10,6 @@ Thumbs.db
 # Pre-migration DB dumps produced by the deploy step in migrations/README.md
 # (e.g. `mysqldump ... > inventory-pre-004.sql`). Contain real data.
 inventory-pre-*.sql
+
+# Playwright MCP cache (browser state from local smoke testing)
+.playwright-mcp/
