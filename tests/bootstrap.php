@@ -26,6 +26,17 @@ define('LIB_PATH_INC', SITE_ROOT . DS);
 // Load config (this also loads .env if available)
 require_once LIB_PATH_INC . 'config.php';
 
+// Define role constants (used in require_org_role and other permission checks)
+if (!defined('ROLE_ADMIN')) {
+    define('ROLE_ADMIN', 1);
+}
+if (!defined('ROLE_SUPERVISOR')) {
+    define('ROLE_SUPERVISOR', 2);
+}
+if (!defined('ROLE_USER')) {
+    define('ROLE_USER', 3);
+}
+
 // Load database (creates $db) — only if not skipping
 if (!getenv('TESTS_NO_DB')) {
     require_once LIB_PATH_INC . 'database.php';
@@ -49,6 +60,16 @@ require_once LIB_PATH_INC . 'formatcurrency.php';
 // Session stub for CLI testing (no HTTP headers)
 if (php_sapi_name() === 'cli') {
     $_SESSION = [];
+}
+
+/**
+ * Set up $_SESSION with org_id for integration tests.
+ * Call at the start of any test that touches org-scoped queries.
+ *
+ * @param int $org_id  Defaults to 1 (Default Organization).
+ */
+function setup_test_org_session(int $org_id = 1): void {
+    $_SESSION['current_org_id'] = $org_id;
 }
 
 // Seed org_members if empty (for tests that need org membership)
