@@ -6,7 +6,7 @@ $(function () {
     $(document).on('click', '[data-close-target]', function (e) {
         e.preventDefault();
         var sel = $(this).attr('data-close-target');
-        var $el = $(sel);
+        var $el = $($.find(sel));
         if ($el.css('display') === 'none') {
             $el.css('display', 'block');
         } else {
