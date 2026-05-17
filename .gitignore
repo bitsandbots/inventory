@@ -14,3 +14,5 @@ inventory-pre-*.sql
 # Playwright MCP cache (browser state from local smoke testing)
 .playwright-mcp/
 includes/sql.php.bak
+tests/ui/.auth/*.json
+node_modules/
