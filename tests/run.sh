@@ -84,7 +84,38 @@ fi
 
 # HTTP-dependent test: only runs if a web server is reachable.
 # Set INVENTORY_BASE_URL to override the default http://localhost:8080.
+HTTP_OK=0
+if php -r "
+\$base = getenv('INVENTORY_BASE_URL') ?: 'http://localhost:8080';
+\$ctx = stream_context_create([
+    'http' => ['method' => 'GET', 'timeout' => 3, 'ignore_errors' => true],
+]);
+@file_get_contents(\$base . '/users/index.php', false, \$ctx);
+if (isset(\$http_response_header)) { echo 'OK'; exit(0); }
+exit(1);
+" 2>/dev/null; then
+    HTTP_OK=1
+fi
+
 run_test "tests/SecurityHeadersTest.php" "Security Headers (http)" nodb
+
+# UI tests (Playwright) — only if server is reachable and npx is available.
+TOTAL=$((TOTAL + 1))
+echo "--- Playwright UI Tests ---"
+if [ "$HTTP_OK" -eq 1 ] && command -v npx &>/dev/null; then
+    if npx playwright test --reporter=line 2>&1; then
+        PASSED=$((PASSED + 1))
+        echo ""
+    else
+        FAILED=$((FAILED + 1))
+        echo "  (Playwright tests failed — run: npx playwright test --headed)"
+        echo ""
+    fi
+else
+    echo "  SKIPPED: server not reachable or npx not found."
+    echo ""
+    SKIPPED=$((SKIPPED + 1))
+fi
 
 echo "========================================="
 echo " Summary: $PASSED/$TOTAL suites passed"
