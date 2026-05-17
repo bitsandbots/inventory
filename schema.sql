@@ -325,6 +325,15 @@ CREATE TABLE `org_members` (
 INSERT INTO `orgs` (`id`, `name`, `slug`) VALUES
 (1, 'Default Organization', 'default');
 
+--
+-- Dumping data for table `org_members`
+--
+
+INSERT INTO `org_members` (`org_id`, `user_id`, `role`) VALUES
+(1, 1, 'owner'),
+(1, 2, 'admin'),
+(1, 3, 'member');
+
 -- --------------------------------------------------------
 
 --
