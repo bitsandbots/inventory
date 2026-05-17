@@ -94,5 +94,47 @@ jobs:
           APP_SECRET=$(openssl rand -hex 32)
           EOF
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install npm deps
+        run: npm ci
+
+      - name: Install Playwright Chromium + system deps
+        run: npx playwright install --with-deps chromium
+
+      - name: Start PHP dev server
+        run: |
+          # PHP's built-in server is sufficient for UI tests; avoids configuring
+          # Apache/php-fpm in CI. Logged to /tmp/phpserver.log for triage.
+          php -S 0.0.0.0:8080 -t . > /tmp/phpserver.log 2>&1 &
+          # Wait for the server to accept connections.
+          for i in {1..20}; do
+            if curl -fsSL http://127.0.0.1:8080/users/index.php > /dev/null; then
+              echo "PHP server up."
+              exit 0
+            fi
+            sleep 0.5
+          done
+          echo "PHP server failed to start. Log:"
+          cat /tmp/phpserver.log
+          exit 1
+
       - name: Run tests
+        env:
+          INVENTORY_BASE_URL: http://127.0.0.1:8080
         run: bash tests/run.sh
+
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            test-results/
+            playwright-report/
+            /tmp/phpserver.log
+          if-no-files-found: ignore
+          retention-days: 7
