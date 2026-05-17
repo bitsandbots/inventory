@@ -19,9 +19,10 @@ if ($org_id <= 0 || $user_id <= 0 || $role === '') {
 
 require_org_role('owner', 'admin');
 
+global $db;
+
 // Guard: cannot demote the last owner.
 if ($role !== 'owner') {
-	global $db;
 	$row = $db->prepare_select_one(
 		"SELECT COUNT(*) AS cnt FROM org_members WHERE org_id = ? AND role = 'owner'",
 		'i', $org_id
@@ -36,7 +37,6 @@ if ($role !== 'owner') {
 	}
 }
 
-global $db;
 $db->prepare_query(
 	"UPDATE org_members SET role = ? WHERE org_id = ? AND user_id = ?",
 	'sii', $role, $org_id, $user_id
