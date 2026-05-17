@@ -5,6 +5,18 @@
  * @package default
  */
 
+// Constants must be defined before require_once 'load.php' because load.php
+// can call prune_failed_logins() and page_require_level() via audit hooks,
+// which reference these constants before the rest of this file has loaded.
+if (!defined('ROLE_ADMIN')) {
+	define('ROLE_ADMIN', 1); // group_level 1 = Admin (bypasses org-membership checks)
+}
+if (!defined('LOGIN_MAX_ATTEMPTS')) {
+	define('LOGIN_MAX_ATTEMPTS', 5);
+}
+if (!defined('LOGIN_WINDOW_SECONDS')) {
+	define('LOGIN_WINDOW_SECONDS', 900); // 15 minutes
+}
 
 require_once 'load.php';
 
@@ -1455,24 +1467,8 @@ function monthlySales($year) {
 
 
 /*--------------------------------------------------------------*/
-/* User level constants
-/*--------------------------------------------------------------*/
-
-if (!defined('ROLE_ADMIN')) {
-	define('ROLE_ADMIN', 1); // group_level 1 = Admin (bypasses org-membership checks)
-}
-
 /* Login rate limiting
 /*--------------------------------------------------------------*/
-
-// Maximum failed attempts allowed per IP within the window before lockout.
-if (!defined('LOGIN_MAX_ATTEMPTS')) {
-	define('LOGIN_MAX_ATTEMPTS', 5);
-}
-// Lockout window in seconds.
-if (!defined('LOGIN_WINDOW_SECONDS')) {
-	define('LOGIN_WINDOW_SECONDS', 900); // 15 minutes
-}
 
 /**
  * Count failed logins from the given IP within the rate-limit window.
