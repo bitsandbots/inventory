@@ -7,8 +7,19 @@ test.describe('Org switcher', () => {
     const context = await browser.newContext({ storageState: 'tests/ui/.auth/admin.json' });
     const page = await context.newPage();
 
-    // Create the HARNESS_ org via the org management UI.
+    // Clean up any leftover HARNESS_ org from a previous failed run.
     await page.goto('/orgs/orgs.php');
+    const leftover = page.locator('tr', { hasText: HARNESS_ORG });
+    if (await leftover.count() > 0) {
+      const deleteBtn = leftover.locator('button.btn-danger');
+      if (await deleteBtn.count() > 0) {
+        page.on('dialog', d => d.accept());
+        await deleteBtn.click();
+        await page.waitForURL(/orgs\.php/);
+      }
+    }
+
+    // Create the HARNESS_ org via the org management UI.
     // The create form has a hidden org_id=0; the rename form has a non-zero org_id.
     await page.fill('form:has(input[name="org_id"][value="0"]) input[name="name"]', HARNESS_ORG);
     await page.click('form:has(input[name="org_id"][value="0"]) button[type="submit"]');
