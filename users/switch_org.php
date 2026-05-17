@@ -6,7 +6,7 @@
  * before updating session and last_active_org_id.
  */
 require_once '../includes/load.php';
-page_require_level(ROLE_USER);
+page_require_level(3);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !verify_csrf()) {
 	$session->msg('d', 'Invalid security token. Please try again.');
