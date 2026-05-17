@@ -10,7 +10,7 @@ $page_title = 'Sales Report';
 $results = '';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
-page_require_level(3);
+page_require_level(ROLE_USER);
 if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
 ?>
 <?php

@@ -9,7 +9,7 @@
 $page_title = 'All Product';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
-page_require_level(2);
+page_require_level(ROLE_SUPERVISOR);
 
 if ( isset( $_GET['id'] ) ) {
 	$product = find_by_id('products', (int)$_GET['id']);

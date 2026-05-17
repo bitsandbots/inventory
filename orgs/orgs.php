@@ -2,7 +2,7 @@
 $page_title = 'Organizations';
 require_once '../includes/load.php';
 if (!$session->isUserLoggedIn(true)) { redirect('../users/index.php', false); }
-page_require_level(1);
+page_require_level(ROLE_ADMIN);
 
 $orgs = find_all_orgs();
 ?>

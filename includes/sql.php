@@ -9,7 +9,9 @@
 // can call prune_failed_logins() and page_require_level() via audit hooks,
 // which reference these constants before the rest of this file has loaded.
 if (!defined('ROLE_ADMIN')) {
-	define('ROLE_ADMIN', 1); // group_level 1 = Admin (bypasses org-membership checks)
+	define('ROLE_ADMIN',      1); // group_level 1 = Admin (bypasses org-membership checks)
+	define('ROLE_SUPERVISOR', 2); // group_level 2 = Supervisor
+	define('ROLE_USER',       3); // group_level 3 = User (any logged-in account)
 }
 if (!defined('LOGIN_MAX_ATTEMPTS')) {
 	define('LOGIN_MAX_ATTEMPTS', 5);

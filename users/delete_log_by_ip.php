@@ -8,7 +8,7 @@
 
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
-page_require_level(2);
+page_require_level(ROLE_SUPERVISOR);
 if (!verify_get_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }
 
 if ( isset($_GET['ip']) ) {

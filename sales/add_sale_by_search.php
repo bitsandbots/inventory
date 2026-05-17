@@ -9,7 +9,7 @@
 $page_title = 'Add Sale by Search';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
-page_require_level(3);
+page_require_level(ROLE_USER);
 $order_id = 0;
 
 if (isset($_GET['id'])) {
