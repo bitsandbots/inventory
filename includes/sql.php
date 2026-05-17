@@ -1467,6 +1467,77 @@ function monthlySales($year) {
 
 
 /*--------------------------------------------------------------*/
+/* Org-management helpers
+/*--------------------------------------------------------------*/
+
+function find_all_orgs(): array
+{
+	global $db;
+	return $db->prepare_select(
+		"SELECT id, name, slug, deleted_at FROM orgs ORDER BY name",
+		''
+	);
+}
+
+function find_org_by_id(int $id): ?array
+{
+	global $db;
+	return $db->prepare_select_one(
+		"SELECT id, name, slug, deleted_at FROM orgs WHERE id = ?",
+		'i', $id
+	);
+}
+
+/**
+ * Returns non-deleted org memberships for a user: [['org_id'=>N,'name'=>'...'],...]
+ */
+function find_org_memberships(int $user_id): array
+{
+	global $db;
+	return $db->prepare_select(
+		"SELECT o.id AS org_id, o.name
+		   FROM org_members m
+		   JOIN orgs o ON o.id = m.org_id
+		  WHERE m.user_id = ? AND o.deleted_at IS NULL
+		  ORDER BY o.name",
+		'i', $user_id
+	);
+}
+
+/**
+ * Creates a new org and auto-enrolls the creator as owner.
+ * Returns the new org_id or false on failure.
+ */
+function create_org(string $name, int $creator_user_id): int|false
+{
+	global $db;
+	$slug = trim(preg_replace('/[^a-z0-9]+/', '-', strtolower($name)), '-') ?: 'org';
+	$db->prepare_query("INSERT INTO orgs (name, slug) VALUES (?, ?)", 'ss', $name, $slug);
+	$org_id = (int)$db->insert_id();
+	if (!$org_id) return false;
+	// Suffix slug with ID to guarantee uniqueness.
+	$db->prepare_query("UPDATE orgs SET slug = ? WHERE id = ?", 'si', $slug . '-' . $org_id, $org_id);
+	$db->prepare_query(
+		"INSERT INTO org_members (org_id, user_id, role) VALUES (?, ?, 'owner')",
+		'ii', $org_id, $creator_user_id
+	);
+	return $org_id;
+}
+
+/**
+ * Renames an org. Returns true (failure kills the process via prepare_query).
+ */
+function rename_org(int $id, string $name): bool
+{
+	global $db;
+	$db->prepare_query(
+		"UPDATE orgs SET name = ? WHERE id = ? AND deleted_at IS NULL",
+		'si', $name, $id
+	);
+	return true;
+}
+
+/*--------------------------------------------------------------*/
 /* Login rate limiting
 /*--------------------------------------------------------------*/
 
