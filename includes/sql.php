@@ -1455,6 +1455,13 @@ function monthlySales($year) {
 
 
 /*--------------------------------------------------------------*/
+/* User level constants
+/*--------------------------------------------------------------*/
+
+if (!defined('ROLE_ADMIN')) {
+	define('ROLE_ADMIN', 1); // group_level 1 = Admin (bypasses org-membership checks)
+}
+
 /* Login rate limiting
 /*--------------------------------------------------------------*/
 
