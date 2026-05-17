@@ -15,4 +15,6 @@ inventory-pre-*.sql
 .playwright-mcp/
 includes/sql.php.bak
 tests/ui/.auth/*.json
+test-results/
+playwright-report/
 node_modules/
