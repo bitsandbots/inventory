@@ -9,7 +9,7 @@
 $page_title = 'Home Page';
 require_once '../includes/load.php';
 if (!$session->isUserLoggedIn(true)) { redirect('index.php', false);}
-page_require_level(3);
+page_require_level(ROLE_USER);
 
 $products_sold   = find_highest_selling_product('10');
 $recent_products = find_recent_product_added('5');

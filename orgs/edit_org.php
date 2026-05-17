@@ -2,7 +2,7 @@
 $page_title = 'Edit Organization';
 require_once '../includes/load.php';
 if (!$session->isUserLoggedIn(true)) { redirect('../users/index.php', false); }
-page_require_level(1);
+page_require_level(ROLE_ADMIN);
 
 $org_id = (int)($_GET['id'] ?? 0);
 $org    = $org_id > 0 ? find_org_by_id($org_id) : null;

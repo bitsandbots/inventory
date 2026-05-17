@@ -9,7 +9,7 @@
 $page_title = 'Add Group';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
-page_require_level(1);
+page_require_level(ROLE_ADMIN);
 ?>
 <?php
 if (!verify_csrf()) { $session->msg('d', 'Invalid or missing security token.'); redirect($_SERVER['HTTP_REFERER'] ?? 'index.php', false); }

@@ -6,7 +6,7 @@
  */
 
 require_once '../includes/load.php';
-page_require_level(1);
+page_require_level(ROLE_ADMIN);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('trash.php', false);

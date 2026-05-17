@@ -9,7 +9,7 @@
 $page_title = 'Admin Home Page';
 require_once '../includes/load.php';
 
-page_require_level(1);
+page_require_level(ROLE_ADMIN);
 
 $c_categories     = count_by_id('categories');
 $c_products       = count_by_id('products');

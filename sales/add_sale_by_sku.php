@@ -9,7 +9,7 @@
 $page_title = 'Add Sale by SKU';
 require_once '../includes/load.php';
 // Checkin What level user has permission to view this page
-page_require_level(3);
+page_require_level(ROLE_USER);
 
 $order_id = last_id('orders');
 $o_id = $order_id['id'];

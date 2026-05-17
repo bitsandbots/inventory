@@ -11,7 +11,7 @@
 
 $page_title = 'Settings';
 require_once '../includes/load.php';
-page_require_level(1);
+page_require_level(ROLE_ADMIN);
 
 $current_currency = Settings::get('currency_code', 'USD');
 $supported = supported_currency_codes();

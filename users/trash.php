@@ -8,7 +8,7 @@
  */
 
 require_once '../includes/load.php';
-page_require_level(1);
+page_require_level(ROLE_ADMIN);
 
 // SOFT_DELETE_TABLES is defined in includes/sql.php (Task 7).
 $table = isset($_GET['table']) ? (string)$_GET['table'] : 'users';
