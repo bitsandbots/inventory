@@ -72,19 +72,23 @@ org_test('create_org() inserts org and enrolls creator as owner', function () us
     global $db;
     $name   = 'HARNESS_Created_' . uniqid();
     $org_id = create_org($name, $harness_user_id);
-    org_check($org_id !== false && $org_id > 0, 'expected positive org_id');
-    $row = $db->prepare_select_one("SELECT name FROM orgs WHERE id = ?", 'i', $org_id);
-    org_check($row !== null, 'org row not found');
-    org_check($row['name'] === $name, 'name mismatch');
-    $member = $db->prepare_select_one(
-        "SELECT role FROM org_members WHERE org_id = ? AND user_id = ?",
-        'ii', $org_id, $harness_user_id
-    );
-    org_check($member !== null, 'creator not enrolled');
-    org_check($member['role'] === 'owner', 'creator not enrolled as owner');
-    // Clean up
-    $db->prepare_query("DELETE FROM org_members WHERE org_id = ?", 'i', $org_id);
-    $db->prepare_query("DELETE FROM orgs WHERE id = ?", 'i', $org_id);
+    try {
+        org_check($org_id !== false && $org_id > 0, 'expected positive org_id');
+        $row = $db->prepare_select_one("SELECT name FROM orgs WHERE id = ?", 'i', $org_id);
+        org_check($row !== null, 'org row not found');
+        org_check($row['name'] === $name, 'name mismatch');
+        $member = $db->prepare_select_one(
+            "SELECT role FROM org_members WHERE org_id = ? AND user_id = ?",
+            'ii', $org_id, $harness_user_id
+        );
+        org_check($member !== null, 'creator not enrolled');
+        org_check($member['role'] === 'owner', 'creator not enrolled as owner');
+    } finally {
+        if ($org_id) {
+            $db->prepare_query("DELETE FROM org_members WHERE org_id = ?", 'i', $org_id);
+            $db->prepare_query("DELETE FROM orgs WHERE id = ?", 'i', $org_id);
+        }
+    }
 });
 
 // --- rename_org ---
