@@ -3,6 +3,7 @@ const { defineConfig, devices } = require('@playwright/test');
 module.exports = defineConfig({
   testDir: './tests/ui',
   timeout: 30_000,
+  workers: 1,
   globalSetup: require.resolve('./tests/ui/globalSetup'),
   globalTeardown: require.resolve('./tests/ui/globalTeardown'),
   use: {
