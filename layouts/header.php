@@ -40,6 +40,44 @@ else echo "Inventory Management System";
       </div>
       <div class="pull-right clearfix">
         <ul class="info-menu list-inline list-unstyled">
+          <?php
+          // Org switcher: only render when user has ≥ 2 active memberships.
+          $_user_orgs = [];
+          if ($session->isUserLoggedIn() && isset($_SESSION['user_id'])) {
+              $_user_orgs = find_org_memberships((int)$_SESSION['user_id']);
+          }
+          if (count($_user_orgs) >= 2):
+              $_current_org_name = 'Organization';
+              foreach ($_user_orgs as $_o) {
+                  if ((int)$_o['org_id'] === (int)($_SESSION['current_org_id'] ?? 0)) {
+                      $_current_org_name = h($_o['name']);
+                      break;
+                  }
+              }
+          ?>
+          <li class="dropdown">
+            <a href="#" data-toggle="dropdown" class="toggle">
+              <span class="glyphicon glyphicon-th-list"></span>
+              <?php echo $_current_org_name; ?> <i class="caret"></i>
+            </a>
+            <ul class="dropdown-menu">
+              <?php foreach ($_user_orgs as $_o): ?>
+              <li>
+                <form method="POST" action="../users/switch_org.php">
+                  <?php echo csrf_field(); ?>
+                  <input type="hidden" name="org_id" value="<?php echo (int)$_o['org_id']; ?>">
+                  <button type="submit" class="org-switcher-btn">
+                    <?php echo h($_o['name']); ?>
+                    <?php if ((int)$_o['org_id'] === (int)($_SESSION['current_org_id'] ?? 0)): ?>
+                    <span class="glyphicon glyphicon-ok pull-right"></span>
+                    <?php endif; ?>
+                  </button>
+                </form>
+              </li>
+              <?php endforeach; ?>
+            </ul>
+          </li>
+          <?php endif; ?>
           <li class="profile">
             <a href="#" data-toggle="dropdown" class="toggle" aria-expanded="false">
               <img src="../uploads/users/<?php echo h($user['image']);?>" alt="user-image" class="img-circle img-inline">
