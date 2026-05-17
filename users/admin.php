@@ -101,6 +101,33 @@ $recent_sales    = find_recent_sale_added('5')
   </div>
 
   <div class="row">
+    <div class="col-md-3 col-sm-6">
+      <a href="../users/users.php" class="panel panel-info text-center">
+        <div class="panel-body">
+          <span class="glyphicon glyphicon-user" style="font-size:2em"></span>
+          <h4>Manage Users</h4>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <a href="../users/group.php" class="panel panel-info text-center">
+        <div class="panel-body">
+          <span class="glyphicon glyphicon-th" style="font-size:2em"></span>
+          <h4>Manage Groups</h4>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <a href="../orgs/orgs.php" class="panel panel-info text-center">
+        <div class="panel-body">
+          <span class="glyphicon glyphicon-th-list" style="font-size:2em"></span>
+          <h4>Organizations</h4>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
    <div class="col-md-4">
      <div class="panel panel-default">
        <div class="panel-heading">
